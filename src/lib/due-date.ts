@@ -96,3 +96,33 @@ export function parseApiDate(value: string): Date | undefined {
 export function toDateInputValue(date: Date): string {
   return format(asLocalCalendarDate(date), 'yyyy-MM-dd')
 }
+
+/**
+ * Re-projects a UTC instant onto local fields including the time, so a
+ * formatter that reads local fields prints the UTC wall clock.
+ */
+function asUtcWallClock(date: Date): Date {
+  return new Date(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    date.getUTCHours(),
+    date.getUTCMinutes(),
+  )
+}
+
+/**
+ * An account timestamp — `createdAt`, `updatedAt` — rendered in UTC and labelled
+ * as such.
+ *
+ * These are instants rather than calendar dates, so showing them in the viewer's
+ * own zone would be defensible. They are shown in UTC anyway, for consistency:
+ * due dates elsewhere in the app are read in UTC, and a screen that mixed the
+ * two conventions would show two dates from the same API in two different
+ * frames with nothing to say which was which. The suffix removes the ambiguity
+ * that creates.
+ */
+export function formatUtcTimestamp(value: string): string {
+  const parsed = parseApiDate(value)
+  return parsed ? `${format(asUtcWallClock(parsed), "d MMMM yyyy 'at' HH:mm")} UTC` : 'Unknown'
+}

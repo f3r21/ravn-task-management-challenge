@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import { useSearchParams } from 'react-router'
+import { useProfile } from '@/features/profile/use-profile'
 import { Avatar } from '@/ui/avatar/avatar'
 import { BellIcon, SearchIcon } from '@/ui/icons/icons'
 
@@ -22,6 +23,9 @@ import { BellIcon, SearchIcon } from '@/ui/icons/icons'
  */
 export function AppHeader() {
   const searchId = useId()
+  // Same query key as the settings page, so the signed-in user is fetched once
+  // and the two cannot disagree about who it is.
+  const { data: profile } = useProfile()
   const [params, setParams] = useSearchParams()
   const value = params.get('name') ?? ''
 
@@ -65,7 +69,7 @@ export function AppHeader() {
         >
           <BellIcon className="size-6" />
         </button>
-        <Avatar size={40} name="Fernando Ramirez" />
+        <Avatar size={40} src={profile?.avatar} name={profile?.fullName} />
       </div>
     </header>
   )

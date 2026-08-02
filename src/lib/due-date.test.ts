@@ -3,6 +3,7 @@ import {
   daysUntilDue,
   dueDateTone,
   formatDueDate,
+  formatUtcTimestamp,
   parseApiDate,
   toDateInputValue,
 } from './due-date'
@@ -104,5 +105,21 @@ describe('parseApiDate', () => {
 describe('toDateInputValue', () => {
   it('formats for a date input in the same UTC frame the badge reads', () => {
     expect(toDateInputValue(new Date('2026-08-02T00:00:00.000Z'))).toBe('2026-08-02')
+  })
+})
+
+describe('formatUtcTimestamp', () => {
+  it('renders an account timestamp in UTC, labelled', () => {
+    expect(formatUtcTimestamp('2026-01-04T09:30:00.000Z')).toBe('4 January 2026 at 09:30 UTC')
+  })
+
+  it('does not shift the wall clock into the viewer’s zone', () => {
+    // The suite runs at UTC+14. A formatter reading local fields would print
+    // 23:30 here, and would move the date outright for an instant near midnight.
+    expect(formatUtcTimestamp('2026-01-04T23:30:00.000Z')).toBe('4 January 2026 at 23:30 UTC')
+  })
+
+  it('says so rather than producing "Invalid Date"', () => {
+    expect(formatUtcTimestamp('not a date')).toBe('Unknown')
   })
 })
