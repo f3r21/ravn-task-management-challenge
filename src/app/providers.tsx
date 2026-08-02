@@ -1,5 +1,6 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query'
 import { useState, type ReactNode } from 'react'
+import { ToastProvider } from '@/ui/toast/toast-context'
 import { createQueryClient } from './query-client'
 
 interface ProvidersProps {
@@ -19,5 +20,9 @@ interface ProvidersProps {
 export function Providers({ children, queryClient }: ProvidersProps) {
   const [client] = useState(() => queryClient ?? createQueryClient())
 
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  return (
+    <QueryClientProvider client={client}>
+      <ToastProvider>{children}</ToastProvider>
+    </QueryClientProvider>
+  )
 }

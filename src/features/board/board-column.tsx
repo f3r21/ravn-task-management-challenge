@@ -10,6 +10,8 @@ interface BoardColumnProps {
   className?: string
   /** How each task is arranged. `row` is the list view; `card` is the board. */
   itemLayout?: TaskCardLayout
+  onEditTask?: (task: Task) => void
+  onDeleteTask?: (task: Task) => void
 }
 
 /**
@@ -25,6 +27,8 @@ export function BoardColumn({
   now,
   className,
   itemLayout = 'card',
+  onEditTask,
+  onDeleteTask,
 }: BoardColumnProps) {
   const label = statusLabel(status)
   const count = String(tasks.length).padStart(2, '0')
@@ -44,7 +48,13 @@ export function BoardColumn({
         <ul className={cn('flex flex-col', itemLayout === 'row' ? 'gap-2' : 'gap-4')}>
           {tasks.map((task) => (
             <li key={task.id}>
-              <TaskCard task={task} now={now} layout={itemLayout} />
+              <TaskCard
+                task={task}
+                now={now}
+                layout={itemLayout}
+                onEdit={onEditTask}
+                onDelete={onDeleteTask}
+              />
             </li>
           ))}
         </ul>

@@ -20,6 +20,9 @@
   --palette-primary-4: #da584b;
   --palette-secondary-4: #70b252;
   --palette-tertiary-4: #e5b454;
+  /* The Tag component's Blue variant. Unlike the ramps above it is not bound to
+     a Figma variable, so it is read off the component's own fill. */
+  --palette-blue: #2f61bf;
 }
 
 @theme {
@@ -42,9 +45,12 @@
   --color-brand: var(--palette-primary-4);
   --color-danger: var(--palette-primary-4);
 
-  /* Tag and status accents. */
+  /* Tag accents. The design system's Tag component has exactly five types —
+     General, Green, Blue, Yellow, Red — which is also how many tags the API
+     defines, so every tag gets its own colour and none is invented. */
   --color-accent-green: var(--palette-secondary-4);
   --color-accent-amber: var(--palette-tertiary-4);
+  --color-accent-blue: var(--palette-blue);
 
   /*
    * Type scale, transcribed from the Figma text styles. The brief recommends

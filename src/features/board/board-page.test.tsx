@@ -1,4 +1,4 @@
-import { screen, waitForElementToBeRemoved } from '@testing-library/react'
+import { screen, waitForElementToBeRemoved, within } from '@testing-library/react'
 import { graphql, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { server } from '@/mocks/server'
@@ -20,7 +20,10 @@ describe('BoardPage', () => {
   it('announces that it is loading before the tasks arrive', () => {
     renderWithProviders(<BoardPage />)
 
-    expect(screen.getByRole('status')).toHaveTextContent(/loading tasks/i)
+    // Scoped to `main`: the toast region is also a live region, and it is
+    // rendered by the provider outside the page's content.
+    const main = screen.getByRole('main')
+    expect(within(main).getByRole('status')).toHaveTextContent(/loading tasks/i)
   })
 
   it('puts the fetched tasks into their columns', async () => {

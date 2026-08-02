@@ -8,6 +8,12 @@ interface DialogProps extends AriaModalOverlayProps {
   title: string
   children: ReactNode
   className?: string
+  /**
+   * `alertdialog` for a consequential, interrupting decision — a delete
+   * confirmation. It makes assistive tech announce the body text on open rather
+   * than the title alone.
+   */
+  role?: 'dialog' | 'alertdialog'
 }
 
 /**
@@ -48,12 +54,19 @@ export function Dialog({ state, ...props }: DialogProps) {
  * `aria-labelledby` at it — a dialog whose name is optional is a dialog that ships
  * unnamed.
  */
-function ModalContents({ state, title, children, className, ...props }: DialogProps) {
+function ModalContents({
+  state,
+  title,
+  children,
+  className,
+  role = 'dialog',
+  ...props
+}: DialogProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
 
   const { modalProps, underlayProps } = useModalOverlay(props, state, modalRef)
-  const { dialogProps, titleProps } = useDialog({ role: 'dialog' }, dialogRef)
+  const { dialogProps, titleProps } = useDialog({ role }, dialogRef)
 
   return (
     <div
