@@ -15,6 +15,14 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     css: true,
+    env: {
+      // The suite runs 14 hours ahead of UTC on purpose. Due dates arrive from
+      // the API as midnight-UTC instants and are read as calendar dates, so any
+      // code that reaches for local calendar fields shifts them by a day — and
+      // in a UTC test run that bug is invisible. Kiritimati is the largest
+      // offset there is, so it surfaces the mistake in either direction.
+      TZ: 'Pacific/Kiritimati',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary'],

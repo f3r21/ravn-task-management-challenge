@@ -60,11 +60,12 @@
   --text-body-l--line-height: 32px;
   --text-body-l--letter-spacing: 0.75px;
 
-  /* Radii. `panel` is the sidebar and other full-height surfaces, `card` is a
-     task card or control, `pill` is a tag or date badge. */
-  --radius-panel: 16px;
-  --radius-card: 8px;
-  --radius-pill: 4px;
+  /* Radii. Four distinct values, each read off the node in Figma that uses it,
+     rather than a generic sm/md/lg scale that would invite picking by feel. */
+  --radius-pill: 4px; /* tag chips, due-date badge */
+  --radius-card: 8px; /* task card, icon buttons, view switcher */
+  --radius-bar: 16px; /* search bar */
+  --radius-sidebar: 24px; /* the sidebar panel */
 }
 
 /*
