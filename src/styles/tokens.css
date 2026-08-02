@@ -14,6 +14,7 @@
 :root {
   --palette-neutral-1: #ffffff;
   --palette-neutral-2: #94979a;
+  --palette-neutral-3: #393d41;
   --palette-neutral-4: #2c2f33;
   --palette-neutral-5: #222528;
   --palette-primary-4: #da584b;
@@ -22,10 +23,12 @@
 }
 
 @theme {
-  /* Surfaces. The board sits on `surface`; every panel, card and control that
-     lifts off it uses `surface-raised`. */
+  /* Surfaces, in the order they stack. The board sits on `surface`; panels,
+     cards and controls lift onto `surface-raised`; a modal sits above both on
+     `surface-overlay`, which is why the design gives it a lighter grey. */
   --color-surface: var(--palette-neutral-5);
   --color-surface-raised: var(--palette-neutral-4);
+  --color-surface-overlay: var(--palette-neutral-3);
 
   /* Text. Two levels only — the design never uses a third. */
   --color-text-primary: var(--palette-neutral-1);
@@ -60,6 +63,10 @@
   --text-body-l: 18px;
   --text-body-l--line-height: 32px;
   --text-body-l--letter-spacing: 0.75px;
+
+  --text-body-xl: 20px;
+  --text-body-xl--line-height: 32px;
+  --text-body-xl--letter-spacing: 0.75px;
 
   /* Radii. Four distinct values, each read off the node in Figma that uses it,
      rather than a generic sm/md/lg scale that would invite picking by feel. */
