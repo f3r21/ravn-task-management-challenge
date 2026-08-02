@@ -1,28 +1,29 @@
 import { useId } from 'react'
+import { useSearchParams } from 'react-router'
 import { Avatar } from '@/ui/avatar/avatar'
 import { BellIcon, SearchIcon } from '@/ui/icons/icons'
-
-interface AppHeaderProps {
-  /** Bound to the search field in the phase that adds filtering. */
-  searchValue?: string
-  onSearchChange?: (value: string) => void
-}
 
 /**
  * The top bar: search on the left, notifications and the current user on the
  * right.
  *
- * Figma draws the whole bar as one `<button>` with the word "Search" inside it.
- * That is a mockup convention, not an instruction — this is a search field, so
- * it is an `<input type="search">`. A button would not accept typing, would not
- * be reachable the way users expect, and would have to be swapped out entirely
- * once search actually works.
+ * Search writes straight to the URL's `name` parameter, which is where the board
+ * reads its filters from. That is what lets a control in the app shell drive a
+ * query on the page without either side importing the other, or a context
+ * existing purely to carry one string.
  *
- * The label is visually hidden rather than absent. The placeholder disappears as
+ * Figma draws the whole bar as one `<button>` containing the word "Search". That
+ * is a mockup convention, not an instruction — this is a search field, so it is
+ * an `<input type="search">`. A button would not accept typing and would have to
+ * be replaced the moment search actually worked.
+ *
+ * The label is visually hidden rather than absent: the placeholder disappears as
  * soon as the user types, taking the field's only description with it.
  */
-export function AppHeader({ searchValue, onSearchChange }: AppHeaderProps) {
+export function AppHeader() {
   const searchId = useId()
+  const [params, setParams] = useSearchParams()
+  const value = params.get('name') ?? ''
 
   return (
     <header className="bg-surface-raised rounded-bar flex items-center justify-between gap-6 px-6 py-3">
@@ -35,8 +36,23 @@ export function AppHeader({ searchValue, onSearchChange }: AppHeaderProps) {
           id={searchId}
           type="search"
           placeholder="Search"
-          value={searchValue}
-          onChange={(event) => onSearchChange?.(event.target.value)}
+          value={value}
+          onChange={(event) => {
+            setParams(
+              (current) => {
+                const next = new URLSearchParams(current)
+                if (event.target.value === '') {
+                  next.delete('name')
+                } else {
+                  next.set('name', event.target.value)
+                }
+                return next
+              },
+              // Replace, so a back press leaves the board rather than retracing
+              // the search one character at a time.
+              { replace: true },
+            )
+          }}
           className="text-body-m placeholder:text-text-secondary w-full min-w-0 flex-1 bg-transparent outline-none"
         />
       </div>

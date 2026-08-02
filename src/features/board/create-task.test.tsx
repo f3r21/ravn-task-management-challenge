@@ -2,12 +2,11 @@ import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-lib
 import { graphql, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { server } from '@/mocks/server'
-import { renderWithProviders, userEvent } from '@/test/test-utils'
-import { BoardPage } from './board-page'
+import { renderApp, userEvent } from '@/test/test-utils'
 
 async function renderBoard() {
   const user = userEvent.setup()
-  renderWithProviders(<BoardPage />)
+  renderApp('/')
   await waitForElementToBeRemoved(() => screen.queryByText(/loading tasks/i))
   return user
 }

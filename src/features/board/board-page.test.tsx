@@ -3,8 +3,7 @@ import { graphql, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { server } from '@/mocks/server'
 import { taskStore } from '@/mocks/task-store'
-import { renderWithProviders, userEvent } from '@/test/test-utils'
-import { BoardPage } from './board-page'
+import { renderApp, userEvent } from '@/test/test-utils'
 
 /**
  * Waits for the first query to settle.
@@ -18,7 +17,7 @@ async function waitForBoard() {
 
 describe('BoardPage', () => {
   it('announces that it is loading before the tasks arrive', () => {
-    renderWithProviders(<BoardPage />)
+    renderApp('/')
 
     // Scoped to `main` so this cannot match a status region elsewhere in the shell.
     const main = screen.getByRole('main')
@@ -26,7 +25,7 @@ describe('BoardPage', () => {
   })
 
   it('puts the fetched tasks into their columns', async () => {
-    renderWithProviders(<BoardPage />)
+    renderApp('/')
     await waitForBoard()
 
     expect(await screen.findByRole('heading', { name: 'Slack' })).toBeInTheDocument()
@@ -37,7 +36,7 @@ describe('BoardPage', () => {
   it('shows an empty state when the API returns no tasks at all', async () => {
     server.use(graphql.query('Tasks', () => HttpResponse.json({ data: { tasks: [] } })))
 
-    renderWithProviders(<BoardPage />)
+    renderApp('/')
     await waitForBoard()
 
     expect(await screen.findByText(/no tasks yet/i)).toBeInTheDocument()
@@ -50,7 +49,7 @@ describe('BoardPage', () => {
       ),
     )
 
-    renderWithProviders(<BoardPage />)
+    renderApp('/')
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent(/could not load the board/i)
@@ -72,7 +71,7 @@ describe('BoardPage', () => {
     )
     const user = userEvent.setup()
 
-    renderWithProviders(<BoardPage />)
+    renderApp('/')
     await user.click(await screen.findByRole('button', { name: /try again/i }))
 
     expect(await screen.findByRole('heading', { name: 'Slack' })).toBeInTheDocument()
@@ -87,7 +86,7 @@ describe('BoardPage', () => {
       ),
     )
 
-    renderWithProviders(<BoardPage />)
+    renderApp('/')
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/access token was rejected/i)
     expect(screen.queryByRole('button', { name: /try again/i })).not.toBeInTheDocument()
@@ -95,7 +94,7 @@ describe('BoardPage', () => {
 
   it('says when the board is running on mocked data rather than the live API', async () => {
     // Tests always run without a token configured, which is the mock path.
-    renderWithProviders(<BoardPage />)
+    renderApp('/')
     await waitForBoard()
 
     expect(screen.getByText(/running on mocked data/i)).toBeInTheDocument()

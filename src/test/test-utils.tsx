@@ -37,14 +37,22 @@ export function renderWithProviders(ui: ReactNode, queryClient = createTestQuery
 /**
  * Mounts the real route table at a real URL, so navigation is exercised for what
  * it is rather than simulated by swapping components.
+ *
+ * The router is returned alongside the render result because a memory router
+ * keeps its own history — it never touches `window.location`, so a test that
+ * asserts on the address has to ask the router.
  */
-export function renderApp(initialPath = '/', queryClient = createTestQueryClient()): RenderResult {
+export function renderApp(
+  initialPath = '/',
+  queryClient = createTestQueryClient(),
+): RenderResult & { router: ReturnType<typeof createMemoryRouter> } {
   const router = createMemoryRouter(routes, { initialEntries: [initialPath] })
-  return render(
+  const result = render(
     <Providers queryClient={queryClient}>
       <RouterProvider router={router} />
     </Providers>,
   )
+  return { ...result, router }
 }
 
 /**
