@@ -29,6 +29,12 @@ export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogPro
     try {
       await onConfirm()
       state.close()
+    } catch {
+      // Swallowed on purpose. `onConfirm` rejects to say "do not close", and it
+      // has already reported the failure to the user — it owns the message,
+      // since only it knows what went wrong. Letting the rejection escape here
+      // would surface as an unhandled promise rejection instead, which is how
+      // this was caught: the tests passed while the process reported an error.
     } finally {
       // Reset even on failure: the dialog stays open so the user can retry, and
       // a permanently disabled button would leave them stuck.
