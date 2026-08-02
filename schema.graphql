@@ -1,26 +1,96 @@
+# The challenge API's schema, printed from the live endpoint's introspection
+# response. Regenerate with `npm run schema:check`, which fails if this file has
+# drifted.
+#
+# Committed rather than introspected at build time for two reasons: codegen and
+# CI then need neither network access nor a credential, and a change to the API
+# arrives as a reviewable diff in a pull request instead of silently altering
+# every generated type.
+#
+# This is also the contract the MSW handlers implement, so the mock and the real
+# API cannot disagree about what a task is.
+#
+# These are `#` comments, not GraphQL descriptions, so they are not part of the
+# schema and cannot make the drift check fail.
+
+input CreateTaskInput {
+  assigneeId: String
+  dueDate: DateTime!
+  name: String!
+  pointEstimate: PointEstimate!
+  status: Status!
+  tags: [TaskTag!]!
+}
+
 """
-The challenge API's schema.
-
-The endpoint published in the brief (syn-api-prod.herokuapp.com) no longer
-resolves, so this file is the contract of record: it is what the MSW handlers
-implement and what codegen reads. Keeping it in the repo rather than
-introspecting a URL also means CI has no network dependency.
-
-Recovered from the generated output that published solutions to this same
-challenge committed, so it reflects the API as it actually shipped.
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
 
-"Status for Task"
-enum Status {
-  BACKLOG
-  TODO
-  IN_PROGRESS
-  DONE
-  CANCELLED
+input DeleteTaskInput {
+  id: String!
 }
 
-"Enum for tags for tasks"
+input FilterTaskInput {
+  assigneeId: String
+  dueDate: DateTime
+  name: String
+  ownerId: String
+  pointEstimate: PointEstimate
+  status: Status
+  tags: [TaskTag!]
+}
+
+type Mutation {
+  createTask(input: CreateTaskInput!): Task!
+  deleteTask(input: DeleteTaskInput!): Task!
+  updateTask(input: UpdateTaskInput!): Task!
+}
+
+"""
+Estimate point for a task
+"""
+enum PointEstimate {
+  EIGHT
+  FOUR
+  ONE
+  TWO
+  ZERO
+}
+
+type Query {
+  profile: User!
+  tasks(input: FilterTaskInput!): [Task!]!
+  users: [User!]!
+}
+
+"""
+Status for Task
+"""
+enum Status {
+  BACKLOG
+  CANCELLED
+  DONE
+  IN_PROGRESS
+  TODO
+}
+
+type Task {
+  assignee: User
+  createdAt: DateTime!
+  creator: User!
+  dueDate: DateTime!
+  id: ID!
+  name: String!
+  pointEstimate: PointEstimate!
+  position: Float!
+  status: Status!
+  tags: [TaskTag!]!
+}
+
+"""
+Enum for tags for tasks
+"""
 enum TaskTag {
   ANDROID
   IOS
@@ -29,86 +99,31 @@ enum TaskTag {
   REACT
 }
 
-"Estimate point for a task"
-enum PointEstimate {
-  ZERO
-  ONE
-  TWO
-  FOUR
-  EIGHT
-}
-
-"Type of the User"
-enum UserType {
-  ADMIN
-  CANDIDATE
+input UpdateTaskInput {
+  assigneeId: String
+  dueDate: DateTime
+  id: String!
+  name: String
+  pointEstimate: PointEstimate
+  position: Float
+  status: Status
+  tags: [TaskTag!]
 }
 
 type User {
-  id: ID!
-  fullName: String!
-  email: String!
   avatar: String
-  type: UserType!
   createdAt: DateTime!
+  email: String!
+  fullName: String!
+  id: ID!
+  type: UserType!
   updatedAt: DateTime!
 }
 
-type Task {
-  id: ID!
-  name: String!
-  status: Status!
-  tags: [TaskTag!]!
-  dueDate: DateTime!
-  pointEstimate: PointEstimate!
-  position: Float!
-  createdAt: DateTime!
-  assignee: User
-  creator: User!
-}
-
-input FilterTaskInput {
-  name: String
-  status: Status
-  tags: [TaskTag!]
-  dueDate: DateTime
-  assigneeId: String
-  ownerId: String
-  pointEstimate: PointEstimate
-}
-
-input CreateTaskInput {
-  name: String!
-  status: Status!
-  tags: [TaskTag!]!
-  dueDate: DateTime!
-  pointEstimate: PointEstimate!
-  assigneeId: String
-}
-
-input UpdateTaskInput {
-  id: String!
-  name: String
-  status: Status
-  tags: [TaskTag!]
-  dueDate: DateTime
-  pointEstimate: PointEstimate
-  position: Float
-  assigneeId: String
-}
-
-input DeleteTaskInput {
-  id: String!
-}
-
-type Query {
-  tasks(input: FilterTaskInput!): [Task!]!
-  users: [User!]!
-  profile: User!
-}
-
-type Mutation {
-  createTask(input: CreateTaskInput!): Task!
-  updateTask(input: UpdateTaskInput!): Task!
-  deleteTask(input: DeleteTaskInput!): Task!
+"""
+Type of the User
+"""
+enum UserType {
+  ADMIN
+  CANDIDATE
 }

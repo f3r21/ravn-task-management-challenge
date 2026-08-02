@@ -1,6 +1,7 @@
 import { RouterProvider, createBrowserRouter } from 'react-router'
 import { ErrorBoundary } from '@/ui/error-boundary/error-boundary'
 import { ErrorPage } from './error-page'
+import { Providers } from './providers'
 import { routes } from './routes'
 
 const router = createBrowserRouter(routes)
@@ -14,7 +15,9 @@ const router = createBrowserRouter(routes)
 export function App() {
   return (
     <ErrorBoundary fallback={<ErrorPage onRetry={() => window.location.reload()} />}>
-      <RouterProvider router={router} />
+      <Providers>
+        <RouterProvider router={router} />
+      </Providers>
     </ErrorBoundary>
   )
 }

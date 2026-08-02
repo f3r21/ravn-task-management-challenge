@@ -1,0 +1,62 @@
+fragment TaskFields on Task {
+  id
+  name
+  status
+  tags
+  dueDate
+  pointEstimate
+  position
+  createdAt
+  assignee {
+    ...UserFields
+  }
+  creator {
+    ...UserFields
+  }
+}
+
+fragment UserFields on User {
+  id
+  fullName
+  email
+  avatar
+  type
+  createdAt
+  updatedAt
+}
+
+query Tasks($input: FilterTaskInput!) {
+  tasks(input: $input) {
+    ...TaskFields
+  }
+}
+
+query Users {
+  users {
+    ...UserFields
+  }
+}
+
+query Profile {
+  profile {
+    ...UserFields
+  }
+}
+
+mutation CreateTask($input: CreateTaskInput!) {
+  createTask(input: $input) {
+    ...TaskFields
+  }
+}
+
+mutation UpdateTask($input: UpdateTaskInput!) {
+  updateTask(input: $input) {
+    ...TaskFields
+  }
+}
+
+mutation DeleteTask($input: DeleteTaskInput!) {
+  deleteTask(input: $input) {
+    id
+  }
+}

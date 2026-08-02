@@ -16,6 +16,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "codegen": "graphql-codegen",
+    "schema:check": "node scripts/check-schema.mjs",
     "gate": "npm run typecheck && npm run lint && npm run format:check && npm run coverage"
   },
   "dependencies": {
@@ -23,7 +24,6 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "graphql": "^16.11.0",
-    "graphql-request": "^7.4.0",
     "react": "^19.2.0",
     "react-aria": "^3.51.0",
     "react-dom": "^19.2.0",

@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { server } from './src/mocks/server'
+import { taskStore } from './src/mocks/task-store'
 
 /*
  * `onUnhandledRequest: 'error'` is the point of this setup, not a detail. Without
@@ -18,6 +19,10 @@ afterEach(() => {
   // Handlers a test installed with `server.use()` are per-test overrides. Reset
   // so one test's stubbed failure cannot leak into the next test's happy path.
   server.resetHandlers()
+  // The mock store is stateful on purpose — creating a task really adds one —
+  // which means it also has to be rolled back, or a test that creates a task
+  // changes the board every later test sees.
+  taskStore.reset()
 })
 
 afterAll(() => {

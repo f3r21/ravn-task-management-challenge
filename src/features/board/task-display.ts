@@ -1,5 +1,5 @@
 import { assertNever } from '@/lib/assert-never'
-import { PointEstimate, Status, TaskTag } from './task-types'
+import type { PointEstimate, Status, TaskTag } from './task-types'
 
 /**
  * Turning API enums into the words and colours the design shows.
@@ -18,15 +18,15 @@ import { PointEstimate, Status, TaskTag } from './task-types'
 
 export function statusLabel(status: Status): string {
   switch (status) {
-    case Status.Backlog:
+    case 'BACKLOG':
       return 'Backlog'
-    case Status.Todo:
+    case 'TODO':
       return 'Todo'
-    case Status.InProgress:
+    case 'IN_PROGRESS':
       return 'In Progress'
-    case Status.Done:
+    case 'DONE':
       return 'Done'
-    case Status.Cancelled:
+    case 'CANCELLED':
       return 'Cancelled'
     default:
       return assertNever(status, 'status')
@@ -35,15 +35,15 @@ export function statusLabel(status: Status): string {
 
 export function tagLabel(tag: TaskTag): string {
   switch (tag) {
-    case TaskTag.Android:
+    case 'ANDROID':
       return 'Android'
-    case TaskTag.Ios:
+    case 'IOS':
       return 'iOS app'
-    case TaskTag.NodeJs:
+    case 'NODE_JS':
       return 'Node js'
-    case TaskTag.Rails:
+    case 'RAILS':
       return 'Rails'
-    case TaskTag.React:
+    case 'REACT':
       return 'React'
     default:
       return assertNever(tag, 'tag')
@@ -63,14 +63,14 @@ export type TagAccent = 'green' | 'amber' | 'red' | 'neutral'
 
 export function tagAccent(tag: TaskTag): TagAccent {
   switch (tag) {
-    case TaskTag.Ios:
+    case 'IOS':
       return 'green'
-    case TaskTag.Android:
+    case 'ANDROID':
       return 'amber'
-    case TaskTag.React:
+    case 'REACT':
       return 'red'
-    case TaskTag.NodeJs:
-    case TaskTag.Rails:
+    case 'NODE_JS':
+    case 'RAILS':
       return 'neutral'
     default:
       return assertNever(tag, 'tag')
@@ -80,15 +80,15 @@ export function tagAccent(tag: TaskTag): TagAccent {
 /** The numeric value behind a point estimate, for display as "4 Points". */
 export function pointValue(estimate: PointEstimate): number {
   switch (estimate) {
-    case PointEstimate.Zero:
+    case 'ZERO':
       return 0
-    case PointEstimate.One:
+    case 'ONE':
       return 1
-    case PointEstimate.Two:
+    case 'TWO':
       return 2
-    case PointEstimate.Four:
+    case 'FOUR':
       return 4
-    case PointEstimate.Eight:
+    case 'EIGHT':
       return 8
     default:
       return assertNever(estimate, 'point estimate')

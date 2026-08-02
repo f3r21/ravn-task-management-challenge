@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { makeTask } from '@/mocks/task-fixtures'
 import { renderWithProviders } from '@/test/test-utils'
 import { Board } from './board'
-import { Status } from './task-types'
+import type { Status } from './task-types'
 
 const now = new Date('2026-08-02T12:00:00.000Z')
 
@@ -20,8 +20,8 @@ describe('Board', () => {
     renderWithProviders(
       <Board
         tasks={[
-          makeTask({ id: 't1', name: 'Slack', status: Status.Todo }),
-          makeTask({ id: 't2', name: 'Twitter', status: Status.Done }),
+          makeTask({ id: 't1', name: 'Slack', status: 'TODO' }),
+          makeTask({ id: 't2', name: 'Twitter', status: 'DONE' }),
         ]}
         view="grid"
         now={now}
@@ -39,10 +39,7 @@ describe('Board', () => {
   it('counts the tasks in each column, zero-padded like the design', () => {
     renderWithProviders(
       <Board
-        tasks={[
-          makeTask({ id: 't1', status: Status.Todo }),
-          makeTask({ id: 't2', status: Status.Todo }),
-        ]}
+        tasks={[makeTask({ id: 't1', status: 'TODO' }), makeTask({ id: 't2', status: 'TODO' })]}
         view="grid"
         now={now}
       />,

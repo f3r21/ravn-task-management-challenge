@@ -1,32 +1,47 @@
+import { QueryClient } from '@tanstack/react-query'
 import { render, type RenderResult } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
+import { Providers } from '@/app/providers'
 import { routes } from '@/app/routes'
+
+/**
+ * A query client for one test.
+ *
+ * Retries are off: a test that asserts an error state would otherwise wait
+ * through two silent retries before the assertion could pass, and a flaky
+ * handler would be papered over rather than reported.
+ */
+export function createTestQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, staleTime: 0, refetchOnWindowFocus: false },
+      mutations: { retry: false },
+    },
+  })
+}
 
 /**
  * Every test renders through one of these.
  *
- * The point is that the provider stack is written down in exactly one place.
- * When a later phase adds one — the QueryClient, the toast region — it lands
- * here and nowhere else, instead of being a find-and-replace across the suite.
+ * The provider stack is written down in exactly one place, so adding one later
+ * lands here rather than becoming a find-and-replace across the suite. Each call
+ * builds a fresh `QueryClient`, so one test's fetched board cannot satisfy the
+ * next test's query and hide a missing handler.
  */
-function Providers({ children }: { children: ReactNode }) {
-  return <>{children}</>
-}
-
-export function renderWithProviders(ui: ReactNode): RenderResult {
-  return render(<Providers>{ui}</Providers>)
+export function renderWithProviders(ui: ReactNode, queryClient = createTestQueryClient()) {
+  return render(<Providers queryClient={queryClient}>{ui}</Providers>)
 }
 
 /**
  * Mounts the real route table at a real URL, so navigation is exercised for what
  * it is rather than simulated by swapping components.
  */
-export function renderApp(initialPath = '/'): RenderResult {
+export function renderApp(initialPath = '/', queryClient = createTestQueryClient()): RenderResult {
   const router = createMemoryRouter(routes, { initialEntries: [initialPath] })
   return render(
-    <Providers>
+    <Providers queryClient={queryClient}>
       <RouterProvider router={router} />
     </Providers>,
   )
