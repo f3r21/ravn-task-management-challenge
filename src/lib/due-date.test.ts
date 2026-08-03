@@ -114,8 +114,9 @@ describe('formatUtcTimestamp', () => {
   })
 
   it('does not shift the wall clock into the viewer’s zone', () => {
-    // The suite runs at UTC+14. A formatter reading local fields would print
-    // 23:30 here, and would move the date outright for an instant near midnight.
+    // The suite runs at UTC+14, so a formatter reading local fields would print
+    // 13:30 on 5 January for this instant — wrong hour and wrong day. 23:30 is what
+    // reading UTC gives, which is what the assertion below pins.
     expect(formatUtcTimestamp('2026-01-04T23:30:00.000Z')).toBe('4 January 2026 at 23:30 UTC')
   })
 
