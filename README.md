@@ -50,8 +50,8 @@ anywhere in this repository.
 | ---------------------------------------------------- | ------------------------------------------------- |
 | ![Creating a task](docs/screenshots/create-task.jpg) | ![No results](docs/screenshots/empty-results.jpg) |
 | Creating a task                                      | Filters that match nothing                        |
-| ![Settings](docs/screenshots/settings.jpg)           |                                                   |
-| The signed-in user                                   |                                                   |
+| ![Settings](docs/screenshots/settings.jpg)           | ![List layout](docs/screenshots/list-view.jpg)    |
+| The signed-in user                                   | The list layout                                   |
 
 - **Board** — five status columns, task cards with name, tags, due date, points, assignee
   and an options menu. Loading, error and empty states are three distinct things.
