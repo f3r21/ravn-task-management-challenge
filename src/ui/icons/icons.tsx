@@ -161,7 +161,7 @@ export function LogoMark(props: IconProps) {
   )
 }
 
-/** 24x24 box. The estimate-points control in the task modal. */
+/** 24x24 box. Marks a points control, in the task modal and the filter bar. */
 export function PointsIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 20 18" fill="none" aria-hidden="true" {...props}>
@@ -173,7 +173,7 @@ export function PointsIcon(props: IconProps) {
   )
 }
 
-/** 24x24 box. The assignee control in the task modal. */
+/** 24x24 box. Marks a person control — assignee in the modal, owner in the filters. */
 export function AssigneeIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 16 21" fill="none" aria-hidden="true" {...props}>
@@ -185,7 +185,7 @@ export function AssigneeIcon(props: IconProps) {
   )
 }
 
-/** 24x24 box. The label (tags) control in the task modal. */
+/** 24x24 box. Marks a tag control, in the task modal and the filter bar. */
 export function LabelIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 20.7988 20.7998" fill="none" aria-hidden="true" {...props}>
@@ -197,7 +197,7 @@ export function LabelIcon(props: IconProps) {
   )
 }
 
-/** 24x24 box. The due-date control in the task modal. */
+/** 24x24 box. Marks a date control, in the task modal and the filter bar. */
 export function CalendarIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>

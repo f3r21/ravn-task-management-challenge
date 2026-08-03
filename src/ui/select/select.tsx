@@ -15,7 +15,8 @@ interface SelectProps<T extends object> extends AriaSelectProps<T> {
 }
 
 /**
- * The pill-shaped dropdown the task modal uses for points, assignee and status.
+ * The pill-shaped dropdown used wherever one value is picked from a short list —
+ * points, assignee and status in the task modal, and three of the board's filters.
  *
  * `HiddenSelect` renders a real `<select>` off-screen wired to the same state.
  * That is not redundancy: it is what makes the control work inside a `<form>`,
