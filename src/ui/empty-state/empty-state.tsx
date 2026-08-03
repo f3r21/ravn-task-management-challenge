@@ -14,10 +14,14 @@ interface EmptyStateProps {
 /**
  * What fills the space where content would be.
  *
- * `role="status"` because this most often appears in response to something the
- * user just did — narrowing a filter until nothing matched. Without a live
- * region the board simply goes quiet: sighted users see the message, everyone
- * else gets silence and an empty page.
+ * Deliberately not a live region. It used to carry `role="status"`, on the reasoning
+ * that it appears in response to something the user just did — but a live region
+ * announces *changes* to its contents, and this mounts with its text already inside,
+ * so it announced nothing. The board's own status region, which outlives every one of
+ * these states, is what reports "no tasks to show".
+ *
+ * It stays a labelled group so it is still a thing a screen-reader user can find and
+ * step into, rather than three loose strings.
  */
 export function EmptyState({
   title,
@@ -28,7 +32,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      role="status"
+      role="group"
       aria-label={label}
       className={cn(
         'border-text-secondary/20 rounded-card flex flex-col items-center gap-2',
