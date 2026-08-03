@@ -24,6 +24,36 @@ describe('BoardToolbar', () => {
     expect(onViewChange).toHaveBeenCalledWith('list')
   })
 
+  // The roles above are the easy half. These two are the behaviour the group was
+  // chosen *for*, and the hand-rolled `role="radio"` version passed every
+  // role assertion while providing neither.
+  it('moves the selection with an arrow key', async () => {
+    const user = userEvent.setup()
+    const onViewChange = vi.fn()
+    renderWithProviders(
+      <BoardToolbar view="grid" onViewChange={onViewChange} onCreateTask={vi.fn()} />,
+    )
+
+    screen.getByRole('radio', { name: /grid view/i }).focus()
+    await user.keyboard('{ArrowLeft}')
+
+    expect(onViewChange).toHaveBeenCalledWith('list')
+  })
+
+  it('is a single tab stop, not one per option', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<BoardToolbar view="grid" onViewChange={vi.fn()} onCreateTask={vi.fn()} />)
+
+    // A roving tabindex means Tab reaches the group once and then leaves it. Two
+    // independently tabbable radios would make the second press land on "List
+    // view" instead of moving on to the create button.
+    await user.tab()
+    expect(screen.getByRole('radio', { name: /grid view/i })).toHaveFocus()
+
+    await user.tab()
+    expect(screen.getByRole('button', { name: /create task/i })).toHaveFocus()
+  })
+
   it('has a create button with a name, not just a plus glyph', () => {
     renderWithProviders(<BoardToolbar view="grid" onViewChange={vi.fn()} onCreateTask={vi.fn()} />)
 
