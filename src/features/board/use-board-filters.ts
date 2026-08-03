@@ -8,13 +8,17 @@ import type { PointEstimate, Status, TaskTag } from './task-types'
 /**
  * The board's filters, stored in the URL.
  *
- * Query parameters rather than component state, for reasons that all come from
- * the same place — the URL is the one piece of app state the browser already
- * knows how to manage. A filtered board can be linked to and bookmarked, the
- * back button steps through filter changes, and a reload does not silently
- * reset to "everything" while the controls still look set. It also means the
- * search box in the header and the filter bar over the board can share state
- * without either knowing the other exists.
+ * Query parameters rather than component state, for reasons that all come from the
+ * same place — the URL is the one piece of app state the browser already knows how to
+ * manage. A filtered board can be linked to and bookmarked, and a reload does not
+ * silently reset to "everything" while the controls still look set. It also means the
+ * search box in the header and the filter bar over the board can share state without
+ * either knowing the other exists.
+ *
+ * It does *not* give the back button a step per filter change: every write below is a
+ * `replace`, deliberately, so one press leaves the board rather than retracing each
+ * keystroke. Said here because the opposite was claimed for a while, eighty lines
+ * above the code that rules it out.
  */
 
 export interface BoardFilters {
@@ -34,6 +38,39 @@ function readMember<T extends string>(raw: string | null, allowed: readonly T[])
   return raw !== null && (allowed as readonly string[]).includes(raw) ? (raw as T) : undefined
 }
 
+/**
+ * Narrows a raw query-string value to a `yyyy-MM-dd` date, or drops it.
+ *
+ * The same guard the enums get, and it was missing: `?due=nonsense` was concatenated
+ * straight into `nonsenseT00:00:00.000Z` and sent as a `DateTime`, so the API rejected
+ * the whole request. The shape check alone is not enough — `2026-99-99` has the right
+ * shape and is not a date — so the parsed value has to agree with what was written.
+ */
+function readDate(raw: string | null): string | undefined {
+  if (raw === null || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return undefined
+  }
+  const parsed = new Date(`${raw}T00:00:00.000Z`)
+  return Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== raw
+    ? undefined
+    : raw
+}
+
+/**
+ * Narrows a raw owner id to one the directory knows, or drops it.
+ *
+ * While the directory is still loading `knownIds` is empty and the id is kept: the
+ * alternative is a first request without the filter followed by a second with it,
+ * which is a visible flicker in exchange for nothing. Once the list has arrived an
+ * id that is not in it is dropped, the same as a bad enum.
+ */
+function readOwner(raw: string | null, knownIds: readonly string[]): string | undefined {
+  if (raw === null || raw === '') {
+    return undefined
+  }
+  return knownIds.length === 0 || knownIds.includes(raw) ? raw : undefined
+}
+
 export const SEARCH_DEBOUNCE_MS = 300
 
 interface UseBoardFilters {
@@ -46,7 +83,7 @@ interface UseBoardFilters {
   isFiltered: boolean
 }
 
-export function useBoardFilters(): UseBoardFilters {
+export function useBoardFilters(knownOwnerIds: readonly string[] = []): UseBoardFilters {
   const [params, setParams] = useSearchParams()
 
   const filters: BoardFilters = useMemo(
@@ -58,10 +95,10 @@ export function useBoardFilters(): UseBoardFilters {
         .map((tag) => readMember(tag, ALL_TAGS))
         .filter((tag): tag is TaskTag => tag !== undefined),
       pointEstimate: readMember(params.get('points'), ALL_POINT_ESTIMATES),
-      ownerId: params.get('owner') ?? undefined,
-      dueDate: params.get('due') ?? undefined,
+      ownerId: readOwner(params.get('owner'), knownOwnerIds),
+      dueDate: readDate(params.get('due')),
     }),
-    [params],
+    [params, knownOwnerIds],
   )
 
   const setFilter = useCallback<UseBoardFilters['setFilter']>(

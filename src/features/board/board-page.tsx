@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useOverlayTriggerState } from 'react-stately'
 import { ApiError } from '@/graphql/client'
 import { parseApiDate, toDateInputValue } from '@/lib/due-date'
@@ -74,9 +74,12 @@ function boardStatusMessage(status: 'pending' | 'error' | 'success', count: numb
 
 export function BoardPage() {
   const [view, setView] = useState<BoardView>('grid')
-  const { filters, queryInput, setFilter, clearAll, isFiltered } = useBoardFilters()
-  const { data: tasks, status, error, refetch } = useTasks(queryInput)
   const { data: users } = useUsers()
+  // The owner ids are handed to the filters so an `?owner=` that nobody matches is
+  // dropped rather than sent on, the same as a bad status or tag.
+  const ownerIds = useMemo(() => (users ?? []).map((user) => user.id), [users])
+  const { filters, queryInput, setFilter, clearAll, isFiltered } = useBoardFilters(ownerIds)
+  const { data: tasks, status, error, refetch } = useTasks(queryInput)
   const toast = useToast()
 
   const createDialog = useOverlayTriggerState({})
