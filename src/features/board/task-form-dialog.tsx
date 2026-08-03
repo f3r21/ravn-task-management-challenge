@@ -35,6 +35,14 @@ interface TaskFormDialogProps {
   mode?: 'create' | 'edit'
 }
 
+/**
+ * The key standing in for "nobody" in the assignee picker.
+ *
+ * A sentinel rather than `null`, because a react-stately collection is keyed by
+ * string. Prefixed so it cannot collide with a real user id.
+ */
+const UNASSIGNED = '__unassigned__'
+
 function initialState(overrides: Partial<TaskFormFields> = {}): TaskFormFields {
   return {
     name: '',
@@ -141,19 +149,27 @@ export function TaskFormDialog({
             {(item) => <Item key={item.id}>{pointsLabel(item.id as PointEstimate)}</Item>}
           </Select>
 
+          {/* "Unassigned" is an option rather than a way of clearing the control,
+              because taking the owner off a task is a choice a user makes, not the
+              absence of one — and a single-select has no gesture for "undo my
+              pick". `assigneeId` is nullable on the API, so this maps onto a real
+              value the mutation can carry. */}
           <Select<{ id: string }>
             label="Assignee"
             placeholder="Assignee"
             icon={<AssigneeIcon className="size-6 shrink-0" />}
-            items={users.map((user) => ({ id: user.id }))}
-            selectedKey={fields.assigneeId ?? undefined}
+            items={[{ id: UNASSIGNED }, ...users.map((user) => ({ id: user.id }))]}
+            selectedKey={fields.assigneeId ?? UNASSIGNED}
             onSelectionChange={(key) => {
-              dispatch({ type: 'set-assignee', assigneeId: String(key) })
+              const id = String(key)
+              dispatch({ type: 'set-assignee', assigneeId: id === UNASSIGNED ? null : id })
             }}
           >
             {(item) => (
               <Item key={item.id}>
-                {users.find((user) => user.id === item.id)?.fullName ?? item.id}
+                {item.id === UNASSIGNED
+                  ? 'Unassigned'
+                  : (users.find((user) => user.id === item.id)?.fullName ?? item.id)}
               </Item>
             )}
           </Select>

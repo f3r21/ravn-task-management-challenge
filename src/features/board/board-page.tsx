@@ -117,7 +117,13 @@ export function BoardPage() {
       tags: fields.tags,
       dueDate: toApiDate(fields.dueDate),
       pointEstimate: fields.pointEstimate,
-      ...(fields.assigneeId ? { assigneeId: fields.assigneeId } : {}),
+      // Omitted when the field is blank, which is what leaves the server's own
+      // ordering alone. Sending `null` would be a request to unset a `Float!`.
+      ...(fields.position.trim() === '' ? {} : { position: Number(fields.position) }),
+      // Sent even when empty, unlike the create path. `UpdateTaskInput` is a patch,
+      // so omitting the field means "leave it as it is" — which made unassigning
+      // impossible. `null` is what says "nobody".
+      assigneeId: fields.assigneeId,
     })
     toast.show('success', 'Task updated')
   }
@@ -181,6 +187,7 @@ export function BoardPage() {
           state={editDialog}
           users={users ?? []}
           onSubmit={handleEdit}
+          mode="edit"
           title={`Edit ${taskUnderAction.name}`}
           submitLabel="Save"
           initialFields={{
@@ -191,6 +198,7 @@ export function BoardPage() {
               ? toDateInputValue(parseApiDate(taskUnderAction.dueDate) as Date)
               : '',
             pointEstimate: taskUnderAction.pointEstimate,
+            position: String(taskUnderAction.position),
             assigneeId: taskUnderAction.assignee?.id ?? null,
           }}
         />

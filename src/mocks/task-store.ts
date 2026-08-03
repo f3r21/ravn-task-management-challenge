@@ -109,18 +109,28 @@ class TaskStore {
     if (!existing) {
       return undefined
     }
-    // Only fields actually present in the input are applied: `UpdateTaskInput`
-    // is a patch, and spreading it wholesale would blank every omitted field.
+    // Only fields actually present in the input are applied: `UpdateTaskInput` is a
+    // patch, and spreading it wholesale would blank every omitted field.
+    //
+    // Present means `!== undefined`, not `!= null`. GraphQL distinguishes the two —
+    // an omitted variable arrives as `undefined`, an explicit null arrives as
+    // `null` — and conflating them makes a nullable field impossible to clear.
+    // `assigneeId: null` is how a task gets unassigned; treating that as "absent"
+    // silently kept the previous owner.
     const updated: Task = {
       ...existing,
-      ...(input.name != null && { name: input.name }),
-      ...(input.status != null && { status: input.status }),
-      ...(input.tags != null && { tags: input.tags }),
-      ...(input.dueDate != null && { dueDate: input.dueDate }),
-      ...(input.pointEstimate != null && { pointEstimate: input.pointEstimate }),
-      ...(input.position != null && { position: input.position }),
-      ...(input.assigneeId != null && {
-        assignee: this.users.find((user) => user.id === input.assigneeId) ?? null,
+      ...(input.name !== undefined && input.name !== null && { name: input.name }),
+      ...(input.status !== undefined && input.status !== null && { status: input.status }),
+      ...(input.tags !== undefined && input.tags !== null && { tags: input.tags }),
+      ...(input.dueDate !== undefined && input.dueDate !== null && { dueDate: input.dueDate }),
+      ...(input.pointEstimate !== undefined &&
+        input.pointEstimate !== null && { pointEstimate: input.pointEstimate }),
+      ...(input.position !== undefined && input.position !== null && { position: input.position }),
+      ...(input.assigneeId !== undefined && {
+        assignee:
+          input.assigneeId === null
+            ? null
+            : (this.users.find((user) => user.id === input.assigneeId) ?? null),
       }),
     }
     this.tasks = this.tasks.map((task) => (task.id === input.id ? updated : task))
