@@ -7,22 +7,20 @@ interface AppLayoutProps {
 }
 
 /**
- * The shell every route renders inside: sidebar, header, then the route content.
+ * The shell every route renders inside: navigation, header, then the route content.
  *
- * The sidebar is hidden below the medium breakpoint rather than squeezed. At
- * 232px fixed it would leave a phone under 140px for the board, which is not a
- * usable board — and the same two destinations are one tap away from the header
- * on those sizes once navigation lands there.
+ * The navigation stacks above the content below the medium breakpoint and sits
+ * beside it from there up — rather than being squeezed, which at 232px fixed would
+ * leave a phone under 140px for the board, or hidden, which would leave a phone
+ * with no way to reach the settings route at all.
  */
 export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-dvh p-4 md:p-8">
-      <div className="mx-auto flex max-w-[1440px] gap-8">
-        <div className="hidden md:block">
-          <AppSidebar />
-        </div>
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-4 md:flex-row md:gap-8">
+        <AppSidebar />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-8">
+        <div className="flex min-w-0 flex-1 flex-col gap-4 md:gap-8">
           <AppHeader />
           {children}
         </div>

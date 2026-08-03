@@ -92,8 +92,16 @@ body {
  * A single visible focus ring for every interactive element, rather than each
  * component inventing its own. Keyboard users get a consistent affordance and
  * pointer users are not shown a ring they did not ask for.
+ *
+ * In `@layer base` on purpose. Unlayered CSS outranks every layered rule, so an
+ * unlayered version of this would beat any Tailwind utility and a component could
+ * not adjust the ring even where the default is wrong — a element clipped by an
+ * ancestor's `overflow-hidden` needs the ring drawn *inside* its own box, and
+ * that has to be expressible as `-outline-offset-2` at the call site.
  */
-:focus-visible {
-  outline: 2px solid var(--color-brand);
-  outline-offset: 2px;
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
 }

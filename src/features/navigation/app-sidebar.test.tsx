@@ -32,4 +32,16 @@ describe('AppSidebar', () => {
 
     expect(screen.getByRole('navigation', { name: /main/i })).toBeInTheDocument()
   })
+
+  it('renders the destinations exactly once', () => {
+    // The navigation restyles across the breakpoint rather than being hidden and
+    // repeated in the header. Repeating it is the tempting fix for "no navigation
+    // on a phone" and it puts two of every link, and two navigation landmarks, in
+    // the document at the same time.
+    renderApp('/')
+
+    expect(screen.getAllByRole('navigation', { name: /main/i })).toHaveLength(1)
+    expect(screen.getAllByRole('link', { name: /dashboard/i })).toHaveLength(1)
+    expect(screen.getAllByRole('link', { name: /my task/i })).toHaveLength(1)
+  })
 })
