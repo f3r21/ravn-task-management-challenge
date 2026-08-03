@@ -90,12 +90,22 @@ export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskC
       icon={<MenuDotsIcon className="size-6" />}
       triggerClassName="text-text-secondary hover:text-text-primary shrink-0 transition-colors"
       onAction={(key) => {
-        if (key === 'edit') {
-          onEdit?.(task)
-        }
-        if (key === 'delete') {
-          onDelete?.(task)
-        }
+        // Deferred by a frame so the menu finishes closing first.
+        //
+        // React Aria records what to restore focus to when the dialog first
+        // renders. Opening it straight from `onAction` puts that render in the same
+        // commit that unmounts the menu item, so the recorded element is already
+        // detached, gets discarded, and focus lands on `<body>` when the dialog
+        // closes. Waiting lets the menu hand focus back to its own trigger, which
+        // is then the element the dialog records — and returns to.
+        requestAnimationFrame(() => {
+          if (key === 'edit') {
+            onEdit?.(task)
+          }
+          if (key === 'delete') {
+            onDelete?.(task)
+          }
+        })
       }}
     >
       <Item key="edit">Edit</Item>
