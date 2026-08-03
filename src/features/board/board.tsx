@@ -23,6 +23,18 @@ function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
     // an unknown status is dropped — deliberately, and pinned by a test.
     grouped.get(task.status)?.push(task)
   }
+
+  // Ordered by `position`, which is what the field is for. The query has always
+  // selected it and nothing read it, so columns rendered in whatever order the
+  // API happened to return — an order the user cannot influence and that can
+  // change between requests. Sorting a copy, because `Array.prototype.sort`
+  // mutates and these arrays are handed straight to the columns.
+  for (const [status, inColumn] of grouped) {
+    grouped.set(
+      status,
+      [...inColumn].sort((a, b) => a.position - b.position),
+    )
+  }
   return grouped
 }
 

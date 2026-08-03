@@ -36,6 +36,29 @@ describe('Board', () => {
     expect(within(todo).queryByRole('heading', { name: 'Twitter' })).not.toBeInTheDocument()
   })
 
+  it('orders a column by position, not by the order the API returned', () => {
+    // `position` was selected by the query and read by nothing, so the board
+    // rendered in whatever order the response happened to arrive in.
+    renderWithProviders(
+      <Board
+        tasks={[
+          makeTask({ id: 't1', name: 'Third', status: 'TODO', position: 30 }),
+          makeTask({ id: 't2', name: 'First', status: 'TODO', position: 10 }),
+          makeTask({ id: 't3', name: 'Second', status: 'TODO', position: 20 }),
+        ]}
+        view="grid"
+        now={now}
+      />,
+    )
+
+    const todo = screen.getByRole('region', { name: /todo/i })
+    const names = within(todo)
+      .getAllByRole('heading', { level: 3 })
+      .map((heading) => heading.textContent)
+
+    expect(names).toEqual(['First', 'Second', 'Third'])
+  })
+
   it('counts the tasks in each column, zero-padded like the design', () => {
     renderWithProviders(
       <Board
