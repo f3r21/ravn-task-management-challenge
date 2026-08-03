@@ -44,9 +44,19 @@ class TaskStore {
   }
 
   /**
-   * Applies the same filter semantics the real API documents: a field that is
-   * absent or null does not narrow the result, and `tags` matches a task
-   * carrying *any* of the requested tags.
+   * The filter semantics this fake implements.
+   *
+   * Stated as *this fake's* choices rather than as the API's, because the schema
+   * documents none of them: `FilterTaskInput` carries no descriptions, so the
+   * behaviour below is inferred from the field names and from what a filter
+   * argument conventionally means. A field that is absent or null does not narrow;
+   * `name` matches a case-insensitive substring; `tags` matches a task carrying
+   * *any* of the requested tags; `dueDate` compares calendar days.
+   *
+   * The `dueDate` rule is the one to distrust. The app sends a precise
+   * midnight-UTC instant and this compares only the date part, so a real API doing
+   * an exact `DateTime` equality check would return less than this does. Tests that
+   * rely on it are testing an assumption, not a contract.
    */
   listTasks(filters: FilterTaskInput): Task[] {
     return this.tasks.filter((task) => {

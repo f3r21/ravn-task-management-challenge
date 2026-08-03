@@ -49,6 +49,6 @@ describe('pointValue', () => {
   })
 
   it('says "1 Point", not "1 Points"', () => {
-    expect(pointsLabel(PointEstimate.One)).toBe('1 Point')
+    expect(pointsLabel('ONE')).toBe('1 Point')
   })
 })

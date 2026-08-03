@@ -74,8 +74,9 @@ export async function request<Result, Variables extends object>(
 
   let body: GraphQLResponseBody<Result>
   try {
-    // The one unavoidable assertion in the app: JSON is `any` by nature. It is
-    // made here, at the boundary, so nothing downstream has to repeat it.
+    // JSON is untyped by nature, so this assertion cannot be avoided — only
+    // placed well. It sits at the transport boundary so nothing downstream has to
+    // repeat it: every caller gets a typed result from a `TypedDocumentNode`.
     body = (await response.json()) as GraphQLResponseBody<Result>
   } catch {
     // A failing gateway answers with an HTML page or an empty body, so the parse
