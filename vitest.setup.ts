@@ -18,7 +18,6 @@ afterEach(() => {
   // Handlers a test installed with `server.use()` are per-test overrides. Reset
   // so one test's stubbed failure cannot leak into the next test's happy path.
   server.resetHandlers()
-  localStorage.clear()
 })
 
 afterAll(() => {
