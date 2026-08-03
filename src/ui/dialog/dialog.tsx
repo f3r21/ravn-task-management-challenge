@@ -66,7 +66,13 @@ function ModalContents({
   const dialogRef = useRef<HTMLDivElement>(null)
 
   const { modalProps, underlayProps } = useModalOverlay(props, state, modalRef)
-  const { dialogProps, titleProps } = useDialog({ role }, dialogRef)
+  // `contentProps` is the third return value and was being dropped. For an
+  // `alertdialog` `useDialog` generates an id, points `aria-describedby` at it, and
+  // then checks in a layout effect whether any element actually carries it —
+  // `useSlotId` discards the id if nothing does. Nothing did, so the description
+  // resolved to `undefined` and the role's whole reason for being chosen (announcing
+  // the body, not just the name) was absent.
+  const { dialogProps, titleProps, contentProps } = useDialog({ role }, dialogRef)
 
   return (
     <div
@@ -78,14 +84,16 @@ function ModalContents({
           {...dialogProps}
           ref={dialogRef}
           className={cn(
-            'bg-surface-overlay rounded-card flex flex-col gap-6 p-4 outline-none',
+            'bg-surface-overlay rounded-card flex flex-col p-4 outline-none',
             className,
           )}
         >
           <h2 {...titleProps} className="sr-only">
             {title}
           </h2>
-          {children}
+          <div {...contentProps} className="flex flex-col gap-6">
+            {children}
+          </div>
         </div>
       </div>
     </div>
