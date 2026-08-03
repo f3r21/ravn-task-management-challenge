@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   verify:
-    name: Typecheck, lint, format, test
+    name: Typecheck, lint, format, test, build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -38,3 +38,8 @@ jobs:
       # Runs the suite with the coverage thresholds enforced, so a PR that adds
       # untested code fails here rather than in review.
       - run: npm run coverage
+
+      # `typecheck` proves the types; only a real bundle proves it ships. A broken
+      # asset import or a dependency that resolves in dev but not in a production
+      # build fails nowhere else in this pipeline.
+      - run: npm run build
