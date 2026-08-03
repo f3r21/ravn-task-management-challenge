@@ -26,12 +26,17 @@ function userTypeLabel(type: User['type']): string {
   return type === 'ADMIN' ? 'Admin' : 'Candidate'
 }
 
+/**
+ * No live region in here, deliberately.
+ *
+ * One that mounts with its text already inside announces nothing — a live region
+ * reports *changes* to its contents, and this component is unmounted the instant the
+ * data arrives. The announcement comes from a region in `ProfilePage` that outlives
+ * every one of these states and swaps its text instead.
+ */
 function ProfileSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <p role="status" className="sr-only">
-        Loading your profile
-      </p>
       <Skeleton className="size-20 rounded-full" />
       {Array.from({ length: 5 }, (_, index) => (
         <Skeleton key={index} className="h-12 w-full max-w-md" />
@@ -52,12 +57,26 @@ function ProfileSkeleton() {
  * nothing else. Inventing a value would be worse than saying so, and this is
  * noted in the README rather than silently dropped.
  */
+/** What the page is currently doing, for assistive tech. */
+function profileStatusMessage(status: 'pending' | 'error' | 'success'): string {
+  if (status === 'pending') {
+    return 'Loading your profile'
+  }
+  // The failure is announced by the `role="alert"` below; saying it here too would
+  // say it twice.
+  return status === 'error' ? '' : 'Profile loaded'
+}
+
 export function ProfilePage() {
   const { data: profile, status, error, refetch } = useProfile()
 
   return (
     <main className="flex flex-col gap-6">
       <h1 className="text-body-xl font-semibold">My task</h1>
+
+      <p role="status" className="sr-only">
+        {profileStatusMessage(status)}
+      </p>
 
       {status === 'pending' ? <ProfileSkeleton /> : null}
 

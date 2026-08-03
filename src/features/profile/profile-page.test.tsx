@@ -1,4 +1,4 @@
-import { screen, waitForElementToBeRemoved, within } from '@testing-library/react'
+import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react'
 import { graphql, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { makeUser } from '@/mocks/task-fixtures'
@@ -16,9 +16,26 @@ describe('the settings page', () => {
   it('announces that it is loading', () => {
     renderApp('/settings')
 
-    // Scoped to `main`: the notification region is also a live region.
+    // Scoped to `main` so this cannot match a status region elsewhere in the shell.
     const main = screen.getByRole('main')
     expect(within(main).getByRole('status')).toHaveTextContent(/loading your profile/i)
+  })
+
+  it('announces from a region that outlives the loading state', async () => {
+    // A live region reports *changes* to its contents, so one that mounts with its
+    // text already inside announces nothing — the mistake the board's skeleton and
+    // the empty state were both corrected for. This page kept it: the region lived
+    // inside `ProfileSkeleton` and was unmounted the moment the data arrived.
+    const { container } = renderApp('/settings')
+    const main = screen.getByRole('main')
+    const region = within(main).getByRole('status')
+
+    await waitFor(() => {
+      expect(region).not.toHaveTextContent(/loading your profile/i)
+    })
+    // Same node throughout — not a fresh one carrying different text.
+    expect(container.contains(region)).toBe(true)
+    expect(within(main).getByRole('status')).toBe(region)
   })
 
   it('shows every field the API exposes on a user', async () => {
