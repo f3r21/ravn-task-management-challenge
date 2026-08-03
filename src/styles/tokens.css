@@ -31,7 +31,8 @@
   --color-text-primary: var(--palette-neutral-1);
   --color-text-secondary: var(--palette-neutral-2);
 
-  /* Brand red: active navigation, the create button, and overdue due dates.
+  /* Brand red: whatever is active, selected, primary, or overdue — and the focus
+     ring at the bottom of this file.
      `danger` is an alias rather than a second value because the design uses
      one red for both meanings. Naming them separately keeps call sites honest
      about intent, and lets them diverge later without touching components. */

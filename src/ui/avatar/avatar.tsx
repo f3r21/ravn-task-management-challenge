@@ -5,7 +5,7 @@ interface AvatarProps {
   src?: string | null
   /** Used for the initials fallback and for the accessible name. */
   name?: string | null
-  /** Pixel size of the square. 32 on a task card, 40 in the header. */
+  /** Pixel size of the square. 32 on a task card, 40 wherever a person is named. */
   size?: 32 | 40
   className?: string
 }

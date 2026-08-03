@@ -8,11 +8,7 @@ interface NavItem {
   icon: typeof GridViewIcon
 }
 
-/**
- * Exported so the header can offer the same destinations below the breakpoint
- * where this sidebar is hidden. One list, so the two cannot disagree about where
- * the app can go.
- */
+/** The destinations, in the order the design lists them. */
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Dashboard', icon: GridViewIcon },
   { to: '/settings', label: 'My task', icon: ListViewIcon },

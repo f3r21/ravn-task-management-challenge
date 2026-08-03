@@ -21,7 +21,7 @@ import type { SVGProps } from 'react'
 
 type IconProps = SVGProps<SVGSVGElement>
 
-/** 24x24 box in the design. Sits at the right edge of a task card's title row. */
+/** 24x24 box in the design. Opens a task card's options menu. */
 export function MenuDotsIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 18 4" fill="none" aria-hidden="true" {...props}>

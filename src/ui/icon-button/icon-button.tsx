@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 
-type IconButtonVariant = 'primary' | 'outline' | 'ghost'
+type IconButtonVariant = 'primary' | 'ghost'
 
 interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   /**
@@ -16,13 +16,15 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
 
 const VARIANT_CLASSES: Record<IconButtonVariant, string> = {
   primary: 'bg-brand text-text-primary',
-  outline: 'border border-brand text-brand',
   ghost: 'text-text-secondary hover:text-text-primary',
 }
 
 /**
- * The 40x40 square button the design uses for creating a task and for the
- * list/grid switcher.
+ * A 40x40 square button whose whole content is a glyph.
+ *
+ * The layout switcher used to be built from these. It is a real radio group now, so
+ * the only caller is the create button — but the shape is the design's, not that
+ * button's, so it stays a component rather than being inlined.
  */
 export function IconButton({
   label,

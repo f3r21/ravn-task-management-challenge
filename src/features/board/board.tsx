@@ -18,9 +18,9 @@ interface BoardProps {
 function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
   const grouped = new Map<Status, Task[]>(BOARD_STATUSES.map((status) => [status, []]))
   for (const task of tasks) {
-    // A status outside the known set means the API grew a member this build does
-    // not know about. Dropping the task silently would be worse than the column
-    // simply not existing, so it is left out of the board rather than crashing it.
+    // A status outside the known set means the API grew a member this build does not
+    // know about. Crashing the board would be worse than one task not appearing, so
+    // an unknown status is dropped — deliberately, and pinned by a test.
     grouped.get(task.status)?.push(task)
   }
   return grouped
