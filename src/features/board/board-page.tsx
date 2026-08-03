@@ -37,6 +37,27 @@ function BoardError({ error, onRetry }: { error: unknown; onRetry: () => void })
   )
 }
 
+/**
+ * What the board is currently doing, for assistive tech.
+ *
+ * One region, mounted for the life of the page, whose *text* changes — not a
+ * message rendered inside whichever state component happens to be on screen. A
+ * live region announces changes to its contents, so a fresh `role="status"` that
+ * arrives with its text already in it announces nothing at all; that is the usual
+ * reason a loading message is silent.
+ */
+function boardStatusMessage(status: 'pending' | 'error' | 'success', count: number): string {
+  if (status === 'pending') {
+    return 'Loading tasks'
+  }
+  if (status === 'error') {
+    // The failure itself is announced by the `role="alert"` in `BoardError`;
+    // repeating it here would say it twice.
+    return ''
+  }
+  return count === 0 ? 'No tasks to show' : `${String(count)} tasks loaded`
+}
+
 export function BoardPage() {
   const [view, setView] = useState<BoardView>('grid')
   const { data: tasks, status, error, refetch } = useTasks()
@@ -44,6 +65,10 @@ export function BoardPage() {
   return (
     <main className="flex flex-col gap-6">
       <h1 className="sr-only">Dashboard</h1>
+
+      <p role="status" className="sr-only">
+        {boardStatusMessage(status, tasks?.length ?? 0)}
+      </p>
 
       {isUsingMockApi ? (
         // Stated rather than hidden: a reviewer running this without a token
