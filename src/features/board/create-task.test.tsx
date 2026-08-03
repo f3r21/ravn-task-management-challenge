@@ -41,6 +41,14 @@ describe('creating a task', () => {
     })
   })
 
+  it('offers no position field, since createTask cannot accept one', async () => {
+    // `CreateTaskInput` has no `position`: the server assigns it. A control here
+    // would collect a value with nowhere to send it.
+    const { dialog } = await openCreateDialog()
+
+    expect(within(dialog).queryByRole('spinbutton', { name: /position/i })).not.toBeInTheDocument()
+  })
+
   it('keeps Tab inside the dialog instead of letting it reach the page behind', async () => {
     const { user, dialog } = await openCreateDialog()
 

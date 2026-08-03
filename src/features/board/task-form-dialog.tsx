@@ -27,6 +27,12 @@ interface TaskFormDialogProps {
   title: string
   submitLabel: string
   initialFields?: Partial<TaskFormFields>
+  /**
+   * `edit` adds the position field. `CreateTaskInput` has no `position` — the
+   * server assigns it — so offering the control on create would collect a value
+   * with nowhere to send it.
+   */
+  mode?: 'create' | 'edit'
 }
 
 function initialState(overrides: Partial<TaskFormFields> = {}): TaskFormFields {
@@ -37,6 +43,7 @@ function initialState(overrides: Partial<TaskFormFields> = {}): TaskFormFields {
     dueDate: toDateInputValue(new Date()),
     pointEstimate: 'ZERO',
     assigneeId: null,
+    position: '',
     ...overrides,
   }
 }
@@ -60,11 +67,13 @@ export function TaskFormDialog({
   title,
   submitLabel,
   initialFields,
+  mode = 'create',
 }: TaskFormDialogProps) {
   const [fields, dispatch] = useReducer(taskFormReducer, initialFields, initialState)
   const [submitState, setSubmitState] = useState<SubmitState>({ status: 'idle' })
   const nameId = useId()
   const dueDateId = useId()
+  const positionId = useId()
   const errorId = useId()
   const nameRef = useRef<HTMLInputElement>(null)
 
@@ -190,6 +199,30 @@ export function TaskFormDialog({
               className="text-body-m bg-transparent font-semibold outline-none"
             />
           </div>
+
+          {mode === 'edit' ? (
+            <div className="rounded-pill bg-text-secondary/10 flex items-center gap-2 px-4 py-1">
+              <PointsIcon className="text-text-secondary size-6 shrink-0" />
+              <label htmlFor={positionId} className="sr-only">
+                Position
+              </label>
+              {/* A native number input, for the same reasons the due date is a
+                  native date input: the platform supplies the stepper, the mobile
+                  keypad and the keyboard handling. `step="any"` because the field
+                  is a Float — the board leaves gaps between positions so a task can
+                  be placed between two others without renumbering the column. */}
+              <input
+                id={positionId}
+                type="number"
+                step="any"
+                value={fields.position}
+                onChange={(event) => {
+                  dispatch({ type: 'set-position', position: event.target.value })
+                }}
+                className="text-body-m w-20 bg-transparent font-semibold outline-none"
+              />
+            </div>
+          ) : null}
         </div>
 
         {shownError ? (

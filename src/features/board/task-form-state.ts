@@ -18,6 +18,19 @@ export interface TaskFormFields {
   dueDate: string
   pointEstimate: PointEstimate
   assigneeId: string | null
+  /**
+   * The task's order within its column, as the text of a number input.
+   *
+   * A string rather than a number for the same reason `dueDate` is: it mirrors what
+   * the input holds, including the empty string a user leaves behind when they clear
+   * the field. Modelling it as a number would mean storing `NaN` for that state and
+   * deciding what `NaN` means at every read. Coerced once, at the boundary that
+   * builds the mutation.
+   *
+   * Empty is legitimate — on create the server assigns the position, and
+   * `CreateTaskInput` has no field to send it in.
+   */
+  position: string
 }
 
 export type TaskFormAction =
@@ -27,6 +40,7 @@ export type TaskFormAction =
   | { type: 'set-due-date'; dueDate: string }
   | { type: 'set-point-estimate'; pointEstimate: PointEstimate }
   | { type: 'set-assignee'; assigneeId: string | null }
+  | { type: 'set-position'; position: string }
 
 /**
  * A pure reducer over the fields.
@@ -48,6 +62,8 @@ export function taskFormReducer(state: TaskFormFields, action: TaskFormAction): 
       return { ...state, pointEstimate: action.pointEstimate }
     case 'set-assignee':
       return { ...state, assigneeId: action.assigneeId }
+    case 'set-position':
+      return { ...state, position: action.position }
     default:
       return assertNever(action, 'task form action')
   }
@@ -65,6 +81,12 @@ export function validateTaskForm(fields: TaskFormFields): string | undefined {
   }
   if (fields.dueDate === '') {
     return 'Pick a due date.'
+  }
+  // Checked last on purpose. Each of these returns the *first* problem, so moving
+  // this above the two required fields would answer "what is wrong with this form"
+  // with a note about ordering while the name was still blank.
+  if (fields.position !== '' && !Number.isFinite(Number(fields.position))) {
+    return 'Position has to be a number.'
   }
   return undefined
 }

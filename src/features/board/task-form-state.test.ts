@@ -13,6 +13,7 @@ const fields: TaskFormFields = {
   dueDate: '2026-08-14',
   pointEstimate: 'FOUR',
   assigneeId: 'user-1',
+  position: '1',
 }
 
 describe('taskFormReducer', () => {
@@ -40,6 +41,7 @@ describe('taskFormReducer', () => {
       { type: 'set-due-date', dueDate: '2026-12-01' },
       { type: 'set-point-estimate', pointEstimate: 'EIGHT' },
       { type: 'set-assignee', assigneeId: 'user-9' },
+      { type: 'set-position', position: '42.5' },
     ]
 
     const result = actions.reduce(taskFormReducer, fields)
@@ -51,6 +53,7 @@ describe('taskFormReducer', () => {
       dueDate: '2026-12-01',
       pointEstimate: 'EIGHT',
       assigneeId: 'user-9',
+      position: '42.5',
     })
   })
 
@@ -87,5 +90,18 @@ describe('validateTaskForm', () => {
 
   it('accepts a task with no tags and no assignee, both of which are optional', () => {
     expect(validateTaskForm({ ...fields, tags: [], assigneeId: null })).toBeUndefined()
+  })
+  it('rejects a position that is not a number', () => {
+    expect(validateTaskForm({ ...fields, position: 'abc' })).toMatch(/position/i)
+  })
+
+  it('accepts an empty position, since the server assigns one', () => {
+    expect(validateTaskForm({ ...fields, position: '' })).toBeUndefined()
+  })
+
+  it('reports the missing name before the bad position, so the first error is the first field', () => {
+    // Ordering matters: a position check that ran first would change the message
+    // every existing name/due-date test asserts on.
+    expect(validateTaskForm({ ...fields, name: '', position: 'abc' })).toMatch(/name/i)
   })
 })
