@@ -81,6 +81,78 @@ describe('editing a task', () => {
     expect(screen.queryByRole('heading', { name: 'Slack' })).not.toBeInTheDocument()
   })
 
+  it('leaves the fields it was not asked to change alone', async () => {
+    // Every field the form holds is resent on save, so dropping one from the
+    // payload — or seeding it wrongly — silently wipes it. Renaming a task is the
+    // cheapest way to prove the other five survive the round trip. Slack carries
+    // two tags, 4 points and a due date, none of which this edit touches.
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Edit')
+    const dialog = await screen.findByRole('dialog')
+
+    const title = within(dialog).getByRole('textbox', { name: /task title/i })
+    await user.clear(title)
+    await user.type(title, 'Slack integration')
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    const card = (await screen.findByRole('heading', { name: 'Slack integration' })).closest(
+      'article',
+    )
+    expect(card).not.toBeNull()
+    const within_ = within(card as HTMLElement)
+    expect(within_.getByText('iOS app')).toBeInTheDocument()
+    expect(within_.getByText('Android')).toBeInTheDocument()
+    expect(within_.getByText('4 Points')).toBeInTheDocument()
+    expect(within_.getByText('14 August, 2026')).toBeInTheDocument()
+    expect(within_.getByRole('img', { name: 'Alicia Koch' })).toBeInTheDocument()
+  })
+
+  it('can take an assignee off a task', async () => {
+    // The API models `assigneeId` as nullable and the card already knows how to
+    // render "Unassigned", but the picker offered no way to get there: the option
+    // did not exist, and `handleEdit` dropped the field whenever it was empty — so
+    // once a task had an owner it kept that owner permanently.
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Edit')
+    const dialog = await screen.findByRole('dialog')
+
+    await user.click(within(dialog).getByRole('button', { name: /assignee/i }))
+    await user.click(await screen.findByRole('option', { name: /unassigned/i }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    const card = (await screen.findByRole('heading', { name: 'Slack' })).closest('article')
+    expect(
+      within(card as HTMLElement).getByRole('img', { name: /unassigned/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('reorders a task within its column by editing its position', async () => {
+    // §4 lists position among the editable fields. Slack sits above Google in Todo
+    // because it has the lower position; pushing it past Google swaps them.
+    const user = await renderBoard()
+    const todo = screen.getByRole('region', { name: /todo/i })
+    expect(
+      within(todo)
+        .getAllByRole('heading', { level: 3 })
+        .map((h) => h.textContent),
+    ).toEqual(['Slack', 'Google'])
+
+    await chooseAction(user, 'Slack', 'Edit')
+    const dialog = await screen.findByRole('dialog')
+    const position = within(dialog).getByRole('spinbutton', { name: /position/i })
+    await user.clear(position)
+    await user.type(position, '99')
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(
+        within(screen.getByRole('region', { name: /todo/i }))
+          .getAllByRole('heading', { level: 3 })
+          .map((h) => h.textContent),
+      ).toEqual(['Google', 'Slack'])
+    })
+  })
+
   it('confirms the save with a notification', async () => {
     const user = await renderBoard()
     await chooseAction(user, 'Slack', 'Edit')
@@ -148,6 +220,38 @@ describe('deleting a task', () => {
     const dialog = await screen.findByRole('alertdialog')
     expect(dialog).toHaveTextContent(/delete “slack”\?/i)
     expect(dialog).toHaveTextContent(/cannot be undone/i)
+  })
+
+  it('returns focus to the card that opened it', async () => {
+    // Focus was dropped on `<body>` here, so cancelling a delete on the seventh card
+    // sent the user back to the top of the document to tab down again.
+    //
+    // The create dialog does not have this problem, which is what hid it: React Aria
+    // records what to restore to when the dialog first renders, and on this path the
+    // menu item that was focused is unmounting in that same commit — so the recorded
+    // element is already detached and gets discarded.
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Delete')
+    const dialog = await screen.findByRole('alertdialog', { name: /delete slack/i })
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Task options for Slack' })).toHaveFocus()
+    })
+  })
+
+  it('describes the consequence, not only the title', async () => {
+    // `alertdialog` was chosen over `dialog` precisely so the body text is
+    // announced on open rather than the name alone. That only happens if the
+    // description is wired: `useDialog` generates the id and points
+    // `aria-describedby` at it, but only survives if an element carries it.
+    const user = await renderBoard()
+
+    await chooseAction(user, 'Slack', 'Delete')
+
+    const dialog = await screen.findByRole('alertdialog', { name: /delete slack/i })
+    expect(dialog).toHaveAccessibleDescription(/cannot be undone/i)
   })
 
   it('leaves the task alone when the user cancels', async () => {
