@@ -37,6 +37,26 @@ export const apiConfig = readApiConfig(import.meta.env)
 export const isUsingMockApi = apiConfig === undefined
 
 /**
+ * Whether the MSW worker has to be started before the first render.
+ *
+ * The same predicate as `isUsingMockApi`, exported under its own name so the
+ * bootstrap has something to call rather than re-deciding "are we mocking" from
+ * the raw env. It got that decision wrong: it gated on `VITE_API_URL` alone,
+ * while everything else requires a url *and* a token. `.env.example` ships the
+ * url filled in and the token blank, so `cp .env.example .env` — the first step
+ * in the README — produced the one state neither branch handles: no worker
+ * started, and `apiUrl` pointing at the mock host that only the worker answers.
+ * Every request went to a name that does not resolve, under a banner saying the
+ * app was running on mocked data.
+ *
+ * A function rather than a constant so a test can pass an env in; `main.tsx`
+ * itself is excluded from coverage, which is why nothing caught this.
+ */
+export function shouldStartMockWorker(env: ImportMetaEnv): boolean {
+  return readApiConfig(env) === undefined
+}
+
+/**
  * Where requests are sent when no live API is configured.
  *
  * MSW intercepts at the network layer, so the client still performs a real
