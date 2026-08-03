@@ -95,6 +95,13 @@ export function pointValue(estimate: PointEstimate): number {
   }
 }
 
+/**
+ * "4 Points", but "1 Point" — the one estimate where the plural is wrong.
+ *
+ * Zero takes the plural, which is what English does with it ("0 Points"), so the
+ * singular is the single case rather than the default.
+ */
 export function pointsLabel(estimate: PointEstimate): string {
-  return `${String(pointValue(estimate))} Points`
+  const points = pointValue(estimate)
+  return `${String(points)} ${points === 1 ? 'Point' : 'Points'}`
 }
