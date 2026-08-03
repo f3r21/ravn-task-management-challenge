@@ -12,7 +12,7 @@ the API's shape rather than choices — both spelled out under
 
 ## Setup
 
-Requires Node 22 or newer.
+Requires Node 22.13 or newer (see `engines` in `package.json`).
 
 ```bash
 npm install
@@ -59,7 +59,8 @@ anywhere in this repository.
   a notification for each outcome.
 - **Search and filter** — all six filters the brief lists, sent to the API rather than
   applied to a loaded list. Filters live in the URL.
-- **Settings** — the signed-in user, from the `profile` query.
+- **My task** (`/settings`) — the signed-in user, from the `profile` query. The label is
+  the design's; the route is the one §6 asks for.
 
 ## Stack, and why
 
@@ -90,12 +91,14 @@ RAVN's `platform-frontend` rules.
 
 ```
 src/
-├── app/         routing, providers, query client
+├── main.tsx     bootstrap: starts MSW when unconfigured, then renders
+├── app/         routing, providers, query client, error boundary
 ├── features/    board/ · profile/ · navigation/
 ├── ui/          design-system pieces: button, dialog, menu, select, tag, toast, …
-├── graphql/     client + generated types
-├── lib/         cn, dates, env, assertNever
-├── shared/      storage, debounce
+├── graphql/     operations, the fetch client, generated types
+├── lib/         cn, dates, env, assertNever, exhaustive
+├── shared/      debounce
+├── styles/      the token layer
 ├── mocks/       MSW handlers + an in-memory store
 └── test/        the one render helper every test goes through
 ```
@@ -183,9 +186,12 @@ Three of the five:
   that distinction matters: the board is _already_ one stacked column at narrow widths, so
   a list view built by stacking would have been a switcher that did nothing on a phone.
 
-Drag-and-drop was deliberately skipped: it is a keyboard-accessibility problem more than a
-layout one, and changing a task's status through the options menu already exercises the
-same `updateTask` mutation.
+Drag-and-drop was left out for scope, not difficulty — and it is worth being precise about
+that, because the easy excuse would be accessibility. The installed React Aria ships the
+whole accessible drag story: a keyboard mode, drop-target navigation and localised screen
+reader announcements. The obstacle was the collection layer each column would need, not the
+keyboard. A task's status and its position within a column can both be changed from the
+options menu, which exercises the same `updateTask` mutation a drop would.
 
 ## Testing
 
@@ -223,5 +229,7 @@ listens for. Anything about focus or the accessibility tree is checked in both.
   `schema.graphql` is committed and `npm run schema:check` re-introspects the API to prove
   it has not drifted. Codegen reads the file, so neither it nor CI needs network access or
   a credential.
-- **History** is one branch and one pull request per section of the brief, each with CI
-  green before merge.
+- **History** is one branch and one pull request per step: §1, §2, §3 read, §3 create, §4,
+  §5, §6, and the README. Eight for six sections, because §3 is large enough to split and
+  the README is a graded deliverable of its own. Each was revised after an adversarial
+  review; the fixes are in the commit messages.
