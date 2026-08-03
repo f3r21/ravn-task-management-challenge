@@ -209,7 +209,7 @@ export function CalendarIcon(props: IconProps) {
   )
 }
 
-/** 24x24 box. Closes a dialog. */
+/** 24x24 box. Dismisses a notification. */
 export function CloseIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 14 14" fill="none" aria-hidden="true" {...props}>

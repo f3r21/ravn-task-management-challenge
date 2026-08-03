@@ -20,8 +20,7 @@ describe('BoardPage', () => {
   it('announces that it is loading before the tasks arrive', () => {
     renderWithProviders(<BoardPage />)
 
-    // Scoped to `main`: the toast region is also a live region, and it is
-    // rendered by the provider outside the page's content.
+    // Scoped to `main` so this cannot match a status region elsewhere in the shell.
     const main = screen.getByRole('main')
     expect(within(main).getByRole('status')).toHaveTextContent(/loading tasks/i)
   })

@@ -82,10 +82,10 @@ describe('editing a task', () => {
   })
 
   it('leaves the fields it was not asked to change alone', async () => {
-    // Every field the form holds is resent on save, so dropping one from the
-    // payload — or seeding it wrongly — silently wipes it. Renaming a task is the
-    // cheapest way to prove the other five survive the round trip. Slack carries
-    // two tags, 4 points and a due date, none of which this edit touches.
+    // Every field the form holds is resent on save, so dropping one from the payload
+    // — or seeding it wrongly — silently wipes it. Renaming a task is the cheapest way
+    // to prove the fields it does not touch survive the round trip. Slack carries two
+    // tags, 4 points, a due date and an assignee, none of which this edit changes.
     const user = await renderBoard()
     await chooseAction(user, 'Slack', 'Edit')
     const dialog = await screen.findByRole('dialog')
