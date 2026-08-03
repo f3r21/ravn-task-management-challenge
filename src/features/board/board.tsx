@@ -31,9 +31,21 @@ export function Board({ tasks, view, now }: BoardProps) {
 
   if (view === 'list') {
     return (
+      /*
+       * The list view is not the board stacked — that is what the board already
+       * does at narrow widths, so a switcher between the two would do nothing on a
+       * phone. Each status becomes a full-width section and each task a single row,
+       * so the fields line up down the page and far more tasks fit on screen.
+       */
       <div className="flex flex-col gap-8">
         {BOARD_STATUSES.map((status) => (
-          <BoardColumn key={status} status={status} tasks={grouped.get(status) ?? []} now={now} />
+          <BoardColumn
+            key={status}
+            status={status}
+            tasks={grouped.get(status) ?? []}
+            now={now}
+            itemLayout="row"
+          />
         ))}
       </div>
     )

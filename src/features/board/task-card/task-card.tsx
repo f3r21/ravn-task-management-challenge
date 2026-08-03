@@ -1,4 +1,5 @@
 import { parseApiDate } from '@/lib/due-date'
+import { cn } from '@/lib/cn'
 import { Avatar } from '@/ui/avatar/avatar'
 import { AttachmentIcon, CommentIcon, MenuDotsIcon, SubtaskIcon } from '@/ui/icons/icons'
 import { Tag } from '@/ui/tag/tag'
@@ -6,10 +7,18 @@ import { pointsLabel, tagAccent, tagLabel } from '../task-display'
 import type { Task } from '../task-types'
 import { DueDateBadge } from './due-date-badge'
 
+/**
+ * `card` stacks the fields, which is what the design draws for a board column.
+ * `row` lays them out along one line for the list view, where a column is as wide
+ * as the page and a stacked card would just be a card with more whitespace.
+ */
+export type TaskCardLayout = 'card' | 'row'
+
 interface TaskCardProps {
   task: Task
   /** Injected so tests can pin "today" without faking the clock. */
   now?: Date
+  layout?: TaskCardLayout
 }
 
 /**
@@ -34,49 +43,91 @@ function TaskCardMeta() {
   )
 }
 
-export function TaskCard({ task, now }: TaskCardProps) {
+export function TaskCard({ task, now, layout = 'card' }: TaskCardProps) {
   const dueDate = parseApiDate(task.dueDate)
+  const isRow = layout === 'row'
+
+  // The same fields in both layouts; only the arrangement differs. Declared once
+  // so the two cannot drift into showing different information.
+  const name = (
+    <h3 id={`task-${task.id}-name`} className="text-body-l min-w-0 flex-1 truncate font-semibold">
+      {task.name}
+    </h3>
+  )
+
+  const points = (
+    <span className="text-body-m font-semibold whitespace-nowrap">
+      {pointsLabel(task.pointEstimate)}
+    </span>
+  )
+
+  const date = dueDate ? <DueDateBadge dueDate={dueDate} now={now} /> : null
+
+  const tags =
+    task.tags.length > 0 ? (
+      <ul className="flex flex-wrap gap-2">
+        {task.tags.map((tag) => (
+          <li key={tag}>
+            <Tag tone={tagAccent(tag)}>{tagLabel(tag)}</Tag>
+          </li>
+        ))}
+      </ul>
+    ) : null
+
+  const assignee = <Avatar src={task.assignee?.avatar} name={task.assignee?.fullName} />
+
+  const options = (
+    <button
+      type="button"
+      aria-label={`Task options for ${task.name}`}
+      className="text-text-secondary hover:text-text-primary shrink-0 transition-colors"
+    >
+      <MenuDotsIcon className="size-6" />
+    </button>
+  )
+
+  if (isRow) {
+    return (
+      <article
+        className="bg-surface-raised rounded-card flex flex-wrap items-center gap-x-6 gap-y-3 p-4"
+        aria-labelledby={`task-${task.id}-name`}
+      >
+        {/* The name takes the slack and truncates; everything after it keeps its
+            natural width so the row reads as columns rather than reflowing. */}
+        {name}
+        <div className="flex shrink-0 items-center gap-6">
+          {points}
+          {date}
+        </div>
+        {tags}
+        <div className="flex shrink-0 items-center gap-6">
+          {assignee}
+          <TaskCardMeta />
+          {options}
+        </div>
+      </article>
+    )
+  }
 
   return (
     <article
-      className="bg-surface-raised rounded-card flex flex-col gap-4 p-4"
+      className={cn('bg-surface-raised rounded-card flex flex-col gap-4 p-4')}
       aria-labelledby={`task-${task.id}-name`}
     >
       <div className="flex h-8 items-center gap-2">
-        <h3
-          id={`task-${task.id}-name`}
-          className="text-body-l min-w-0 flex-1 truncate font-semibold"
-        >
-          {task.name}
-        </h3>
-        <button
-          type="button"
-          aria-label={`Task options for ${task.name}`}
-          className="text-text-secondary hover:text-text-primary shrink-0 transition-colors"
-        >
-          <MenuDotsIcon className="size-6" />
-        </button>
+        {name}
+        {options}
       </div>
 
       <div className="flex items-center justify-between gap-2">
-        <span className="text-body-m font-semibold whitespace-nowrap">
-          {pointsLabel(task.pointEstimate)}
-        </span>
-        {dueDate ? <DueDateBadge dueDate={dueDate} now={now} /> : null}
+        {points}
+        {date}
       </div>
 
-      {task.tags.length > 0 ? (
-        <ul className="flex flex-wrap gap-2">
-          {task.tags.map((tag) => (
-            <li key={tag}>
-              <Tag tone={tagAccent(tag)}>{tagLabel(tag)}</Tag>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      {tags}
 
       <div className="flex items-center justify-between">
-        <Avatar src={task.assignee?.avatar} name={task.assignee?.fullName} />
+        {assignee}
         <TaskCardMeta />
       </div>
     </article>

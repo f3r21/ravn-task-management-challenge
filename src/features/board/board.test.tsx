@@ -77,4 +77,23 @@ describe('Board', () => {
 
     expect(screen.getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
   })
+
+  it('lays a task out differently in each view, so the switcher does something', () => {
+    // Asserting the same heading renders in both views — which is all the test
+    // above did — passes even when the two branches are byte-identical. It was:
+    // below the `sm` breakpoint the board is already a single stacked column, so
+    // the switcher had no effect at all on a phone.
+    const task = makeTask({ id: 't1', name: 'Slack', status: 'TODO' })
+
+    const grid = renderWithProviders(<Board tasks={[task]} view="grid" now={now} />)
+    const gridCard = grid.container.querySelector('article')?.className
+    grid.unmount()
+
+    const list = renderWithProviders(<Board tasks={[task]} view="list" now={now} />)
+    const listCard = list.container.querySelector('article')?.className
+
+    expect(gridCard).toBeDefined()
+    expect(listCard).toBeDefined()
+    expect(listCard).not.toBe(gridCard)
+  })
 })

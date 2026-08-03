@@ -1,13 +1,15 @@
 import { cn } from '@/lib/cn'
 import { statusLabel } from './task-display'
 import type { Status, Task } from './task-types'
-import { TaskCard } from './task-card/task-card'
+import { TaskCard, type TaskCardLayout } from './task-card/task-card'
 
 interface BoardColumnProps {
   status: Status
   tasks: Task[]
   now?: Date
   className?: string
+  /** How each task is arranged. `row` is the list view; `card` is the board. */
+  itemLayout?: TaskCardLayout
 }
 
 /**
@@ -17,7 +19,13 @@ interface BoardColumnProps {
  * design is, and because a fixed-width count stops the heading reflowing every
  * time a task moves in or out.
  */
-export function BoardColumn({ status, tasks, now, className }: BoardColumnProps) {
+export function BoardColumn({
+  status,
+  tasks,
+  now,
+  className,
+  itemLayout = 'card',
+}: BoardColumnProps) {
   const label = statusLabel(status)
   const count = String(tasks.length).padStart(2, '0')
 
@@ -33,10 +41,10 @@ export function BoardColumn({ status, tasks, now, className }: BoardColumnProps)
       {tasks.length === 0 ? (
         <p className="text-text-secondary text-body-m">No tasks here yet.</p>
       ) : (
-        <ul className="flex flex-col gap-4">
+        <ul className={cn('flex flex-col', itemLayout === 'row' ? 'gap-2' : 'gap-4')}>
           {tasks.map((task) => (
             <li key={task.id}>
-              <TaskCard task={task} now={now} />
+              <TaskCard task={task} now={now} layout={itemLayout} />
             </li>
           ))}
         </ul>
