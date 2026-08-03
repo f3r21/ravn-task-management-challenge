@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   daysUntilDue,
   dueDateTone,
@@ -121,5 +121,26 @@ describe('formatUtcTimestamp', () => {
 
   it('says so rather than producing "Invalid Date"', () => {
     expect(formatUtcTimestamp('not a date')).toBe('Unknown')
+  })
+
+  // The suite's own zone is UTC+14, a fixed offset with no daylight saving — so it
+  // cannot reach the one failure a local-field round trip actually introduces. These
+  // zones each skip an hour at midnight, which means the local wall clock the
+  // formatter was reconstructing does not exist and the engine resolves it forward.
+  describe.each([
+    ['America/Santiago', '2022-09-11T00:30:00.000Z', '11 September 2022 at 00:30 UTC'],
+    ['Asia/Beirut', '2023-03-26T00:30:00.000Z', '26 March 2023 at 00:30 UTC'],
+    ['America/Havana', '2024-03-10T00:30:00.000Z', '10 March 2024 at 00:30 UTC'],
+  ])('in %s', (zone, instant, expected) => {
+    it('prints the UTC hour even when the matching local hour does not exist', () => {
+      // `vi.stubEnv` rather than touching `process.env` directly: it is typed, and it
+      // is undone by `unstubAllEnvs` so the zone cannot leak into another test.
+      vi.stubEnv('TZ', zone)
+      try {
+        expect(formatUtcTimestamp(instant)).toBe(expected)
+      } finally {
+        vi.unstubAllEnvs()
+      }
+    })
   })
 })

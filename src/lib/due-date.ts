@@ -1,4 +1,4 @@
-import { format, isValid, parseISO } from 'date-fns'
+import { isValid, parseISO } from 'date-fns'
 
 export type DueDateTone = 'overdue' | 'soon' | 'normal'
 
@@ -26,11 +26,35 @@ function utcDayNumber(date: Date): number {
 }
 
 /**
- * Re-projects a UTC calendar date onto local fields, so `date-fns` formatters —
- * which read local fields — render the UTC day.
+ * Reads a date's fields in UTC, without going through local ones.
+ *
+ * The tempting shortcut is to build `new Date(y, m, d, H, M)` from the UTC getters so
+ * that a formatter reading *local* fields prints the UTC clock. It is wrong in any
+ * zone that skips an hour: the local time being asked for does not exist that day, the
+ * engine resolves it forward, and the output is an hour late while still labelled UTC.
+ * It is invisible at a fixed offset, which is why the suite's own UTC+14 could not
+ * catch it — see the DST cases in the tests.
+ *
+ * `Intl` with an explicit `timeZone` has no such gap to fall into. The parts are
+ * assembled by hand rather than taking a locale's own ordering, so the output keeps
+ * the shape the design draws.
  */
-function asLocalCalendarDate(date: Date): Date {
-  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+const UTC_PARTS = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'UTC',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+})
+
+function utcParts(date: Date): Record<string, string> {
+  return Object.fromEntries(
+    UTC_PARTS.formatToParts(date)
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value]),
+  )
 }
 
 /** Whole calendar days from `now` to `dueDate`. Negative once the date is past. */
@@ -77,7 +101,8 @@ export function formatDueDate(dueDate: Date, now: Date): string {
   if (daysLeft === 1) {
     return 'Tomorrow'
   }
-  return format(asLocalCalendarDate(dueDate), 'd MMMM, yyyy')
+  const { day, month, year } = utcParts(dueDate)
+  return `${day} ${month}, ${year}`
 }
 
 /**
@@ -94,21 +119,9 @@ export function parseApiDate(value: string): Date | undefined {
 
 /** Formats a date for a `<input type="date">` value, in the same UTC frame. */
 export function toDateInputValue(date: Date): string {
-  return format(asLocalCalendarDate(date), 'yyyy-MM-dd')
-}
-
-/**
- * Re-projects a UTC instant onto local fields including the time, so a
- * formatter that reads local fields prints the UTC wall clock.
- */
-function asUtcWallClock(date: Date): Date {
-  return new Date(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-    date.getUTCHours(),
-    date.getUTCMinutes(),
-  )
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  return `${String(date.getUTCFullYear())}-${month}-${day}`
 }
 
 /**
@@ -124,5 +137,9 @@ function asUtcWallClock(date: Date): Date {
  */
 export function formatUtcTimestamp(value: string): string {
   const parsed = parseApiDate(value)
-  return parsed ? `${format(asUtcWallClock(parsed), "d MMMM yyyy 'at' HH:mm")} UTC` : 'Unknown'
+  if (!parsed) {
+    return 'Unknown'
+  }
+  const { day, month, year, hour, minute } = utcParts(parsed)
+  return `${day} ${month} ${year} at ${hour}:${minute} UTC`
 }
