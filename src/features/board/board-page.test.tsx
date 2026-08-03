@@ -6,7 +6,12 @@ import { taskStore } from '@/mocks/task-store'
 import { renderWithProviders, userEvent } from '@/test/test-utils'
 import { BoardPage } from './board-page'
 
-/** The skeleton is what "still loading" looks like; wait for it to go away. */
+/**
+ * Waits for the first query to settle.
+ *
+ * Keyed on the status region's text, not on the skeleton: the skeleton is
+ * `aria-hidden` and cannot be found this way at all.
+ */
 async function waitForBoard() {
   await waitForElementToBeRemoved(() => screen.queryByText(/loading tasks/i))
 }

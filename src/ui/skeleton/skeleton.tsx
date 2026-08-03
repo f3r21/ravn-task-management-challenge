@@ -3,9 +3,9 @@ import { cn } from '@/lib/cn'
 /**
  * A placeholder block, sized by the caller.
  *
- * `aria-hidden`: a skeleton conveys "not ready yet", which the live region on
- * the loading container already announces. Exposing the blocks themselves would
- * read out a run of empty elements.
+ * `aria-hidden`: a skeleton conveys "not ready yet", which the page's own status
+ * region announces in words. Exposing the blocks themselves would read out a run of
+ * empty elements.
  *
  * The pulse is suppressed under `prefers-reduced-motion` — a looping animation
  * is exactly the kind of thing that setting exists for.

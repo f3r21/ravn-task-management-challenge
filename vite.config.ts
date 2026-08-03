@@ -61,8 +61,8 @@ export default defineConfig({
         // fake's own complexity, which is not a signal about the app at all.
         //
         // Excluded from the metric, not from testing: `task-store.test.ts`
-        // pins its filter semantics directly, because the filter tests in a
-        // later phase trust the store to behave like the real API — and a
+        // pins its filter semantics directly, because the filter tests in
+        // `search-filter.test.tsx` trust the store to narrow correctly — and a
         // wrong fake would let those tests pass against the wrong answer.
         'src/mocks/**',
       ],

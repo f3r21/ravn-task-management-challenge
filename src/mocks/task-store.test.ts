@@ -4,11 +4,16 @@ import { taskStore } from './task-store'
 /**
  * The mock API's behaviour, tested directly.
  *
- * The store is excluded from the coverage metric — it is a test double, not app
- * code — but its correctness still matters: the filter tests in a later phase
- * assert that a filtered request returns the right tasks, and they can only do
- * that if the fake filters the way the real API documents. A wrong fake would
- * let a broken filter pass.
+ * The store is excluded from the coverage metric — it is a test double, not app code
+ * — but its correctness still matters: `search-filter.test.tsx` asserts that a
+ * filtered request returns the right tasks, and it can only be trusted if the fake
+ * narrows the way `listTasks` says it does. A wrong fake would let a broken filter
+ * pass.
+ *
+ * Note what that does *not* say. The schema documents none of these semantics —
+ * `FilterTaskInput` carries no descriptions — so the rules are the fake's own reading
+ * of the field names, and `dueDate` in particular is deliberately more permissive than
+ * an exact `DateTime` comparison. These tests pin the fake, not a contract.
  */
 beforeEach(() => {
   taskStore.reset()

@@ -6,9 +6,9 @@ import type { Task } from './task-types'
 /**
  * Query keys for everything under the board.
  *
- * Centralised so an invalidation cannot miss a cache entry through a typo — the
- * mutations in later phases invalidate `taskKeys.all`, which matches every
- * filtered variant of the list at once.
+ * Centralised so an invalidation cannot miss a cache entry through a typo. The
+ * create, update and delete hooks all invalidate `taskKeys.all`, which prefix-matches
+ * every filtered variant of the list at once.
  */
 export const taskKeys = {
   all: ['tasks'] as const,

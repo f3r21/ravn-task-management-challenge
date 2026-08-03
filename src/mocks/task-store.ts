@@ -28,8 +28,10 @@ class TaskStore {
   }
 
   reset(): void {
-    // Structured copies, so mutating a stored task cannot reach back into the
-    // shared seed arrays and corrupt every later reset.
+    // Shallow copies. `tags` and `assignee` are still shared with the seed objects,
+    // which is safe for the reason that matters: nothing here mutates a task in place
+    // — `updateTask` builds a replacement — so the seeds are never reachable for
+    // writing. A deep clone would suggest a hazard that does not exist.
     this.tasks = SEED_TASKS.map((task) => ({ ...task }))
     this.users = SEED_USERS.map((user) => ({ ...user }))
     this.nextId = 1

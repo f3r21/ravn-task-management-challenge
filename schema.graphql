@@ -1,6 +1,7 @@
 # The challenge API's schema, printed from the live endpoint's introspection
-# response. Regenerate with `npm run schema:check`, which fails if this file has
-# drifted.
+# response. `npm run schema:check` re-introspects and fails if this file has drifted,
+# printing the live schema so it can be pasted in — it checks, it does not regenerate.
+# After updating, re-run `npm run codegen`.
 #
 # Committed rather than introspected at build time for two reasons: codegen and
 # CI then need neither network access nor a credential, and a change to the API
