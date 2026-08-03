@@ -33,17 +33,22 @@ afterEach(() => {
 })
 
 describe('ToastProvider', () => {
-  it('renders the live region before any toast exists', () => {
+  it('renders no notification region until there is something in it', () => {
     render(
       <ToastProvider>
         <span />
       </ToastProvider>,
     )
 
-    // The region has to be in the DOM up front: a live region only announces
-    // changes to its contents, so mounting one that already contains text
-    // announces nothing at all.
-    expect(screen.getByRole('status', { name: /notifications/i })).toBeInTheDocument()
+    // The region is a landmark. Mounting it empty gives a screen-reader user a
+    // destination that contains nothing.
+    //
+    // The old hand-rolled version had to stay mounted for the opposite reason: an
+    // `aria-live` region only announces *changes* to its contents, so one that
+    // arrives with text already inside says nothing. React Aria's toasts do not
+    // depend on that — each carries its own `role="alert"` content and is revealed
+    // in two phases specifically so it announces on arrival.
+    expect(screen.queryByRole('region', { name: /alerts/i })).not.toBeInTheDocument()
   })
 
   it('shows a message when one is raised', async () => {
@@ -59,7 +64,7 @@ describe('ToastProvider', () => {
     expect(screen.getByText('Saved')).toBeInTheDocument()
   })
 
-  it('puts the message inside the live region, not merely on the page', async () => {
+  it('puts the message inside the notification region, not merely on the page', async () => {
     const user = userEvent.setup()
     render(
       <ToastProvider>
@@ -69,8 +74,34 @@ describe('ToastProvider', () => {
 
     await user.click(screen.getByRole('button', { name: 'fail' }))
 
-    const region = screen.getByRole('status', { name: /notifications/i })
+    const region = screen.getByRole('region', { name: /alerts/i })
     expect(region).toHaveTextContent('Could not save')
+  })
+
+  it('names the region something other than the header bell', () => {
+    // Two landmarks called "Notifications" — the bell button and this — is a worse
+    // thing to hand a screen reader than a duller label on one of them.
+    render(
+      <ToastProvider>
+        <Harness />
+      </ToastProvider>,
+    )
+
+    expect(screen.queryByRole('region', { name: /^notifications$/i })).not.toBeInTheDocument()
+  })
+
+  it('offers a way to dismiss a message before it times out', async () => {
+    const user = userEvent.setup()
+    render(
+      <ToastProvider>
+        <Harness />
+      </ToastProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'succeed' }))
+
+    await user.click(screen.getByRole('button', { name: /close/i }))
+
+    expect(screen.queryByText('Saved')).not.toBeInTheDocument()
   })
 
   it('stacks several messages rather than replacing the previous one', async () => {

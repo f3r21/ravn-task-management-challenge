@@ -1,3 +1,4 @@
+import { isInaccessible } from '@testing-library/dom'
 import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react'
 import { graphql, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -202,5 +203,34 @@ describe('deleting a task', () => {
     // page behind it from the accessibility tree — which is the point of a
     // modal. The task itself is still on the board.
     expect(screen.getByRole('heading', { name: 'Slack', hidden: true })).toBeInTheDocument()
+  })
+
+  it('announces a failed deletion, rather than putting the message somewhere inert', async () => {
+    // The dialog stays open on failure and carries no inline error by design, so
+    // this notification is the only report the user gets. It renders inside the
+    // subtree React Aria marks `inert` while a modal is open, which takes it out of
+    // the accessibility tree — so a screen-reader user is told nothing at all and
+    // the Delete button simply re-enables.
+    server.use(
+      graphql.mutation('DeleteTask', () =>
+        HttpResponse.json({ errors: [{ message: 'Task is locked' }] }),
+      ),
+    )
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Delete')
+    const dialog = await screen.findByRole('alertdialog')
+
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+
+    // `isInaccessible` is Testing Library's own answer to "can assistive tech reach
+    // this", which is the actual question — it walks the ancestors for `aria-hidden`
+    // and for display/visibility. Checking `[inert]` by hand does not work here:
+    // React Aria assigns the `inert` *property*, jsdom does not reflect it to an
+    // attribute, and the page behind a modal ends up `aria-hidden` regardless.
+    const notification = await screen.findByText(/task is locked/i)
+    // Named, because a React Aria toast is itself an `alertdialog` — a focusable,
+    // non-modal one — so an unqualified query matches both it and the confirmation.
+    expect(screen.getByRole('alertdialog', { name: /delete slack/i })).toBeInTheDocument()
+    expect(isInaccessible(notification)).toBe(false)
   })
 })
