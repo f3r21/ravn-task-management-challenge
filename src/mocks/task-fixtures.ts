@@ -32,7 +32,11 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
     position: 1,
     createdAt: '2026-08-01T09:00:00.000Z',
     assignee: makeUser(),
-    creator: makeUser({ id: 'user-0', fullName: 'Marcus Chen' }),
+    // A creator drawn from the same directory the `users` query returns. This used
+    // to be `user-0`, an id absent from `SEED_USERS`, and since no seed task
+    // overrode it *every* task had a creator who did not exist — so the owner
+    // filter matched nothing for every name its picker offered.
+    creator: makeUser({ id: 'user-2', fullName: 'Marcus Chen', email: 'marcus@ravn.co' }),
     ...overrides,
   }
 }
@@ -54,6 +58,7 @@ export const SEED_TASKS: Task[] = [
     pointEstimate: 'FOUR',
     dueDate: '2026-08-14T00:00:00.000Z',
     assignee: SEED_USERS[0],
+    creator: SEED_USERS[0],
   }),
   makeTask({
     id: 'task-2',
@@ -63,6 +68,7 @@ export const SEED_TASKS: Task[] = [
     pointEstimate: 'TWO',
     dueDate: '2026-08-30T00:00:00.000Z',
     assignee: SEED_USERS[1],
+    creator: SEED_USERS[1],
   }),
   makeTask({
     id: 'task-3',
@@ -72,6 +78,7 @@ export const SEED_TASKS: Task[] = [
     pointEstimate: 'ONE',
     dueDate: '2026-07-28T00:00:00.000Z',
     assignee: SEED_USERS[2],
+    creator: SEED_USERS[0],
   }),
   makeTask({
     id: 'task-4',
@@ -81,6 +88,7 @@ export const SEED_TASKS: Task[] = [
     pointEstimate: 'FOUR',
     dueDate: '2026-09-06T00:00:00.000Z',
     assignee: SEED_USERS[3],
+    creator: SEED_USERS[2],
   }),
   makeTask({
     id: 'task-5',
@@ -90,6 +98,7 @@ export const SEED_TASKS: Task[] = [
     pointEstimate: 'EIGHT',
     dueDate: '2026-09-20T00:00:00.000Z',
     assignee: SEED_USERS[0],
+    creator: SEED_USERS[1],
   }),
   makeTask({
     id: 'task-6',
@@ -99,6 +108,7 @@ export const SEED_TASKS: Task[] = [
     pointEstimate: 'FOUR',
     dueDate: '2026-07-30T00:00:00.000Z',
     assignee: SEED_USERS[1],
+    creator: SEED_USERS[3],
   }),
   makeTask({
     id: 'task-7',
@@ -108,5 +118,6 @@ export const SEED_TASKS: Task[] = [
     pointEstimate: 'ZERO',
     dueDate: '2026-08-25T00:00:00.000Z',
     assignee: null,
+    creator: SEED_USERS[0],
   }),
 ]

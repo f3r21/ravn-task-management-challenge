@@ -48,9 +48,26 @@ describe('listTasks', () => {
   })
 
   it('narrows by assignee, and does not match the creator', () => {
+    // `user-3` is Twitter's assignee and Maxxis Tyres' creator, so this only
+    // proves anything because the two fields are seeded to different people.
     const mine = taskStore.listTasks({ assigneeId: 'user-3' })
 
     expect(mine.map((task) => task.name)).toEqual(['Twitter'])
+  })
+
+  it('narrows by owner, matching the creator rather than the assignee', () => {
+    // The regression this exists for: every seed task used to carry creator
+    // `user-0`, an id absent from the directory the owner picker is built from,
+    // so every owner returned nothing and the §5 filter was dead on arrival.
+    const owned = taskStore.listTasks({ ownerId: 'user-3' })
+
+    expect(owned.map((task) => task.name)).toEqual(['Maxxis Tyres'])
+  })
+
+  it('has a task for every owner the directory offers, so the filter is usable', () => {
+    for (const user of taskStore.listUsers()) {
+      expect(taskStore.listTasks({ ownerId: user.id }).length).toBeGreaterThan(0)
+    }
   })
 
   it('combines filters, narrowing further with each one', () => {
