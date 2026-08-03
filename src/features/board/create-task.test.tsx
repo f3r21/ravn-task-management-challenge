@@ -41,6 +41,33 @@ describe('creating a task', () => {
     })
   })
 
+  it('keeps Tab inside the dialog instead of letting it reach the page behind', async () => {
+    const { user, dialog } = await openCreateDialog()
+
+    // Enough tabs to walk past the last control and wrap. A modal that does not
+    // contain focus drops it on <body> here, and the page behind is inert — so the
+    // user is left with focus nowhere and every control unreachable.
+    for (let press = 0; press < 12; press += 1) {
+      await user.tab()
+      expect(dialog).toContainElement(document.activeElement as HTMLElement)
+    }
+  })
+
+  it('still closes on Escape after Tab has wrapped around', async () => {
+    // Escape is bound to the dialog, so it only works while focus is inside it.
+    // Losing focus to <body> made the modal impossible to dismiss from the keyboard.
+    const { user } = await openCreateDialog()
+
+    for (let press = 0; press < 12; press += 1) {
+      await user.tab()
+    }
+    await user.keyboard('{Escape}')
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+  })
+
   it('closes on Cancel', async () => {
     const { user, dialog } = await openCreateDialog()
 
