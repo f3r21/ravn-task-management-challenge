@@ -16,7 +16,8 @@
       "command": "npx",
       "args": ["-y", "mcp-graphql"],
       "env": {
-        "GRAPHQL_ENDPOINT": "https://syn-api-production-e95c.up.railway.app/graphql"
+        "ENDPOINT": "https://syn-api-production-e95c.up.railway.app/graphql",
+        "HEADERS": "{\"Authorization\":\"Bearer ${VITE_API_TOKEN}\"}"
       }
     }
   }

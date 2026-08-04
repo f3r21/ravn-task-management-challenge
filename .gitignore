@@ -12,6 +12,7 @@ npm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea
+.claude/settings.local.json
 
 # corvus — managed, do not edit this block
 .corvusrc
