@@ -1,0 +1,114 @@
+"""
+The challenge API's schema.
+
+The endpoint published in the brief (syn-api-prod.herokuapp.com) no longer
+resolves, so this file is the contract of record: it is what the MSW handlers
+implement and what codegen reads. Keeping it in the repo rather than
+introspecting a URL also means CI has no network dependency.
+
+Recovered from the generated output that published solutions to this same
+challenge committed, so it reflects the API as it actually shipped.
+"""
+scalar DateTime
+
+"Status for Task"
+enum Status {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+"Enum for tags for tasks"
+enum TaskTag {
+  ANDROID
+  IOS
+  NODE_JS
+  RAILS
+  REACT
+}
+
+"Estimate point for a task"
+enum PointEstimate {
+  ZERO
+  ONE
+  TWO
+  FOUR
+  EIGHT
+}
+
+"Type of the User"
+enum UserType {
+  ADMIN
+  CANDIDATE
+}
+
+type User {
+  id: ID!
+  fullName: String!
+  email: String!
+  avatar: String
+  type: UserType!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Task {
+  id: ID!
+  name: String!
+  status: Status!
+  tags: [TaskTag!]!
+  dueDate: DateTime!
+  pointEstimate: PointEstimate!
+  position: Float!
+  createdAt: DateTime!
+  assignee: User
+  creator: User!
+}
+
+input FilterTaskInput {
+  name: String
+  status: Status
+  tags: [TaskTag!]
+  dueDate: DateTime
+  assigneeId: String
+  ownerId: String
+  pointEstimate: PointEstimate
+}
+
+input CreateTaskInput {
+  name: String!
+  status: Status!
+  tags: [TaskTag!]!
+  dueDate: DateTime!
+  pointEstimate: PointEstimate!
+  assigneeId: String
+}
+
+input UpdateTaskInput {
+  id: String!
+  name: String
+  status: Status
+  tags: [TaskTag!]
+  dueDate: DateTime
+  pointEstimate: PointEstimate
+  position: Float
+  assigneeId: String
+}
+
+input DeleteTaskInput {
+  id: String!
+}
+
+type Query {
+  tasks(input: FilterTaskInput!): [Task!]!
+  users: [User!]!
+  profile: User!
+}
+
+type Mutation {
+  createTask(input: CreateTaskInput!): Task!
+  updateTask(input: UpdateTaskInput!): Task!
+  deleteTask(input: DeleteTaskInput!): Task!
+}

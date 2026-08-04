@@ -3,8 +3,11 @@ name: CI
 on:
   push:
     branches: [main]
+  # Every pull request, not only those targeting `main`. Filtering by base branch
+  # leaves a PR stacked on another PR with no checks at all — which is exactly
+  # when a second opinion is worth most, because the diff is being reviewed
+  # against a base that has not landed yet.
   pull_request:
-    branches: [main]
 
 # A new push to the same branch makes the in-flight run irrelevant, so cancel it
 # rather than paying for two runs and reading the stale one.

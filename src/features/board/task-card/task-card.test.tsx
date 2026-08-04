@@ -1,0 +1,99 @@
+import { screen, within } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+import { makeTask, makeUser } from '@/mocks/task-fixtures'
+import { renderWithProviders } from '@/test/test-utils'
+import { PointEstimate, TaskTag } from '../task-types'
+import { TaskCard } from './task-card'
+
+const now = new Date('2026-08-02T12:00:00.000Z')
+
+describe('TaskCard', () => {
+  it('shows the task name as the card heading', () => {
+    renderWithProviders(<TaskCard task={makeTask({ name: 'Slack' })} now={now} />)
+
+    expect(screen.getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
+  })
+
+  it('shows the point estimate as a count of points', () => {
+    renderWithProviders(
+      <TaskCard task={makeTask({ pointEstimate: PointEstimate.Eight })} now={now} />,
+    )
+
+    expect(screen.getByText('8 Points')).toBeInTheDocument()
+  })
+
+  it('lists every tag on the task', () => {
+    renderWithProviders(
+      <TaskCard task={makeTask({ tags: [TaskTag.Ios, TaskTag.Rails] })} now={now} />,
+    )
+
+    expect(screen.getByText('iOS app')).toBeInTheDocument()
+    expect(screen.getByText('Rails')).toBeInTheDocument()
+  })
+
+  it('renders no tag list at all when the task has no tags', () => {
+    renderWithProviders(<TaskCard task={makeTask({ tags: [] })} now={now} />)
+
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+  })
+
+  it('names the due date rather than dating it when it is today', () => {
+    renderWithProviders(
+      <TaskCard task={makeTask({ dueDate: '2026-08-02T00:00:00.000Z' })} now={now} />,
+    )
+
+    expect(screen.getByText('Today')).toBeInTheDocument()
+  })
+
+  it('states that an overdue task is overdue, instead of relying on colour alone', () => {
+    renderWithProviders(
+      <TaskCard task={makeTask({ dueDate: '2026-07-20T00:00:00.000Z' })} now={now} />,
+    )
+
+    expect(screen.getByText(/\(overdue\)/)).toBeInTheDocument()
+  })
+
+  it('does not claim a task is overdue when it is not', () => {
+    renderWithProviders(
+      <TaskCard task={makeTask({ dueDate: '2026-12-01T00:00:00.000Z' })} now={now} />,
+    )
+
+    expect(screen.queryByText(/\(overdue\)/)).not.toBeInTheDocument()
+  })
+
+  it('omits the due date badge when the API sends an unparseable date', () => {
+    renderWithProviders(<TaskCard task={makeTask({ dueDate: 'nonsense' })} now={now} />)
+
+    expect(screen.queryByText(/invalid date/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
+  })
+
+  it('names the assignee on their avatar', () => {
+    renderWithProviders(
+      <TaskCard task={makeTask({ assignee: makeUser({ fullName: 'Priya Nair' }) })} now={now} />,
+    )
+
+    expect(screen.getByRole('img', { name: 'Priya Nair' })).toBeInTheDocument()
+  })
+
+  it('says a task is unassigned rather than showing an empty avatar', () => {
+    renderWithProviders(<TaskCard task={makeTask({ assignee: null })} now={now} />)
+
+    expect(screen.getByRole('img', { name: 'Unassigned' })).toBeInTheDocument()
+  })
+
+  it('gives the options button a name that says which task it belongs to', () => {
+    // Every card has one of these, so "options" alone would be ambiguous the
+    // moment a screen reader user lists the buttons on the page.
+    renderWithProviders(<TaskCard task={makeTask({ name: 'Google' })} now={now} />)
+
+    expect(screen.getByRole('button', { name: 'Task options for Google' })).toBeInTheDocument()
+  })
+
+  it('hides the decorative counters from assistive tech, since nothing backs them', () => {
+    const { container } = renderWithProviders(<TaskCard task={makeTask()} now={now} />)
+    const card = within(container).getByRole('article')
+
+    expect(card.querySelector('[aria-hidden="true"]')).toBeInTheDocument()
+  })
+})

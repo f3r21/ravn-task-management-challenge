@@ -31,7 +31,8 @@
   --color-text-primary: var(--palette-neutral-1);
   --color-text-secondary: var(--palette-neutral-2);
 
-  /* Brand red: active navigation, the create button, and overdue due dates.
+  /* Brand red: whatever is active, selected, primary, or overdue — and the focus
+     ring at the bottom of this file.
      `danger` is an alias rather than a second value because the design uses
      one red for both meanings. Naming them separately keeps call sites honest
      about intent, and lets them diverge later without touching components. */
@@ -60,11 +61,12 @@
   --text-body-l--line-height: 32px;
   --text-body-l--letter-spacing: 0.75px;
 
-  /* Radii. `panel` is the sidebar and other full-height surfaces, `card` is a
-     task card or control, `pill` is a tag or date badge. */
-  --radius-panel: 16px;
-  --radius-card: 8px;
-  --radius-pill: 4px;
+  /* Radii. Four distinct values, each read off the node in Figma that uses it,
+     rather than a generic sm/md/lg scale that would invite picking by feel. */
+  --radius-pill: 4px; /* tag chips, due-date badge */
+  --radius-card: 8px; /* task card, icon buttons, view switcher */
+  --radius-bar: 16px; /* search bar */
+  --radius-sidebar: 24px; /* the sidebar panel */
 }
 
 /*
@@ -91,8 +93,16 @@ body {
  * A single visible focus ring for every interactive element, rather than each
  * component inventing its own. Keyboard users get a consistent affordance and
  * pointer users are not shown a ring they did not ask for.
+ *
+ * In `@layer base` on purpose. Unlayered CSS outranks every layered rule, so an
+ * unlayered version of this would beat any Tailwind utility and a component could
+ * not adjust the ring even where the default is wrong — a element clipped by an
+ * ancestor's `overflow-hidden` needs the ring drawn *inside* its own box, and
+ * that has to be expressible as `-outline-offset-2` at the call site.
  */
-:focus-visible {
-  outline: 2px solid var(--color-brand);
-  outline-offset: 2px;
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
 }
