@@ -12,4 +12,22 @@ npm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea
-.claude
+
+# corvus — managed, do not edit this block
+.corvusrc
+.claude/skills/core-coding-standards/
+.claude/skills/lang-typescript/
+.claude/skills/platform-frontend/
+.claude/skills/tech-react/
+.claude/skills/design-frontend/
+.claude/skills/design-accessibility/
+.claude/skills/platform-testing/
+.claude/skills/tech-vitest/
+.claude/skills/figma-to-react-components/
+.claude/skills/agent-pr-creator/
+.claude/skills/grill-me/
+.claude/skills/promptify/
+.claude/skills/qa-bug-fixer/
+.claude/skills/qa-happy-path/
+.claude/skills/design-variations/
+# end corvus

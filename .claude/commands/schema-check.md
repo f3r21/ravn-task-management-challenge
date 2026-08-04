@@ -1,0 +1,1 @@
+Run `npm run schema:check` to compare local `schema.graphql` against the live Railway GraphQL endpoint (`https://syn-api-production-e95c.up.railway.app/graphql`). If drift is detected, update `schema.graphql` and execute `npm run codegen` to update generated TypeScript types.

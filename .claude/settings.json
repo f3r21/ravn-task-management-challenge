@@ -1,0 +1,44 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_playwright_playwright__browser_press_key",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "mcp__plugin_playwright_playwright__browser_fill",
+      "mcp__plugin_chrome_devtools_mcp_chrome_devtools__evaluate",
+      "mcp__plugin_chrome_devtools_mcp_chrome_devtools__navigate"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|EditFile|WriteFile",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx eslint --fix \"$FILE_PATH\" 2>/dev/null || true",
+            "description": "Auto-fix ESLint issues on edited files."
+          },
+          {
+            "type": "command",
+            "command": "npx prettier --write \"$FILE_PATH\" 2>/dev/null || true",
+            "description": "Auto-format files with Prettier."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-dangerous.sh",
+            "description": "Prevent execution of destructive bash commands (e.g. rm -rf /, force push, curl|sh)."
+          }
+        ]
+      }
+    ]
+  }
+}
