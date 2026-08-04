@@ -22,7 +22,7 @@ interface MultiSelectProps {
 }
 
 /**
- * A pill that opens a checklist — the task modal's tag picker.
+ * A pill that opens a checklist — the tag picker, in the task modal and the filter bar.
  *
  * Separate from `Select` rather than a `selectionMode` prop on it, because the
  * two differ in more than selection: this one has no single "selected item" to

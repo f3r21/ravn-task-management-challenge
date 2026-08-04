@@ -1,17 +1,20 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useOverlayTriggerState } from 'react-stately'
 import { ApiError } from '@/graphql/client'
 import { parseApiDate, toDateInputValue } from '@/lib/due-date'
 import { isUsingMockApi } from '@/lib/env'
+import { Button } from '@/ui/button/button'
 import { EmptyState } from '@/ui/empty-state/empty-state'
 import { useToast } from '@/ui/toast/toast-context'
 import { Board } from './board'
 import { BoardSkeleton } from './board-skeleton'
+import { BoardFiltersBar } from './board-filters'
 import { BoardToolbar, type BoardView } from './board-toolbar'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { TaskFormDialog } from './task-form-dialog'
 import type { TaskFormFields } from './task-form-state'
 import type { Task } from './task-types'
+import { useBoardFilters } from './use-board-filters'
 import { useCreateTask } from './use-create-task'
 import { useDeleteTask } from './use-delete-task'
 import { useTasks } from './use-tasks'
@@ -71,8 +74,12 @@ function boardStatusMessage(status: 'pending' | 'error' | 'success', count: numb
 
 export function BoardPage() {
   const [view, setView] = useState<BoardView>('grid')
-  const { data: tasks, status, error, refetch } = useTasks()
   const { data: users } = useUsers()
+  // The owner ids are handed to the filters so an `?owner=` that nobody matches is
+  // dropped rather than sent on, the same as a bad status or tag.
+  const ownerIds = useMemo(() => (users ?? []).map((user) => user.id), [users])
+  const { filters, queryInput, setFilter, clearAll, isFiltered } = useBoardFilters(ownerIds)
+  const { data: tasks, status, error, refetch } = useTasks(queryInput)
   const toast = useToast()
 
   const createDialog = useOverlayTriggerState({})
@@ -169,6 +176,14 @@ export function BoardPage() {
         }}
       />
 
+      <BoardFiltersBar
+        filters={filters}
+        setFilter={setFilter}
+        clearAll={clearAll}
+        isFiltered={isFiltered}
+        users={users ?? []}
+      />
+
       {/* Mounted only while open, so every visit starts from a blank form rather
           than whatever the last one was left holding — and so the edit dialog
           is seeded from the task it was opened for. */}
@@ -221,10 +236,26 @@ export function BoardPage() {
 
       {status === 'success' ? (
         tasks.length === 0 ? (
-          <EmptyState
-            title="No tasks yet"
-            description="Create your first task with the + button above."
-          />
+          // Two different empty states, because they mean different things and
+          // need different ways out. "Nothing matched" with a "create your
+          // first task" prompt would be actively misleading on a board that is
+          // full of tasks the filters happen to exclude.
+          isFiltered ? (
+            <EmptyState
+              title="No tasks match these filters"
+              description="Try removing a filter, or search for something else."
+              action={
+                <Button variant="text" onPress={clearAll}>
+                  Clear filters
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              title="No tasks yet"
+              description="Create your first task with the + button above."
+            />
+          )
         ) : (
           <Board
             tasks={tasks}

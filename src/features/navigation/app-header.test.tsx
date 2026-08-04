@@ -1,18 +1,21 @@
 import { screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-import { renderWithProviders, userEvent } from '@/test/test-utils'
-import { AppHeader } from './app-header'
+import { describe, expect, it } from 'vitest'
+import { renderApp, userEvent } from '@/test/test-utils'
 
+/**
+ * Rendered through the real router, because the header's search field writes to
+ * the URL — that is the mechanism under test, not an implementation detail.
+ */
 describe('AppHeader', () => {
   it('renders search as a real text field, not the button the mockup draws', () => {
-    renderWithProviders(<AppHeader />)
+    renderApp('/')
 
     expect(screen.getByRole('searchbox', { name: /search tasks/i })).toBeInTheDocument()
   })
 
   it('keeps the field labelled once the placeholder is gone', async () => {
     const user = userEvent.setup()
-    renderWithProviders(<AppHeader searchValue="" onSearchChange={vi.fn()} />)
+    renderApp('/')
 
     const field = screen.getByRole('searchbox', { name: /search tasks/i })
     await user.type(field, 'a')
@@ -21,18 +24,23 @@ describe('AppHeader', () => {
     expect(screen.getByRole('searchbox', { name: /search tasks/i })).toBe(field)
   })
 
-  it('reports what the user typed', async () => {
+  it('shows what the URL already says, so a shared link arrives with search filled in', () => {
+    renderApp('/?name=slack')
+
+    expect(screen.getByRole('searchbox', { name: /search tasks/i })).toHaveValue('slack')
+  })
+
+  it('records what the user typed', async () => {
     const user = userEvent.setup()
-    const onSearchChange = vi.fn()
-    renderWithProviders(<AppHeader searchValue="" onSearchChange={onSearchChange} />)
+    renderApp('/')
 
-    await user.type(screen.getByRole('searchbox'), 'sl')
+    await user.type(screen.getByRole('searchbox', { name: /search tasks/i }), 'sla')
 
-    expect(onSearchChange).toHaveBeenCalledWith('s')
+    expect(screen.getByRole('searchbox', { name: /search tasks/i })).toHaveValue('sla')
   })
 
   it('names the icon-only notification button', () => {
-    renderWithProviders(<AppHeader />)
+    renderApp('/')
 
     expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument()
   })

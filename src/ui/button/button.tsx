@@ -16,7 +16,8 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 }
 
 /**
- * The text buttons the design uses for dialog actions.
+ * The text buttons the design uses for actions that are not the primary one on the
+ * screen: dialog confirm and cancel, clearing the filters, an empty state's way out.
  *
  * `useButton` rather than a bare `<button>` with handlers: it normalises Enter
  * versus Space, keeps press state consistent across mouse, touch and keyboard,
