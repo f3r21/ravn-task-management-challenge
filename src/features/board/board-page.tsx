@@ -1,11 +1,16 @@
 import { useState } from 'react'
+import { useOverlayTriggerState } from 'react-stately'
 import { ApiError } from '@/graphql/client'
 import { isUsingMockApi } from '@/lib/env'
 import { EmptyState } from '@/ui/empty-state/empty-state'
 import { Board } from './board'
 import { BoardSkeleton } from './board-skeleton'
 import { BoardToolbar, type BoardView } from './board-toolbar'
+import { TaskFormDialog } from './task-form-dialog'
+import type { TaskFormFields } from './task-form-state'
+import { useCreateTask } from './use-create-task'
 import { useTasks } from './use-tasks'
+import { useUsers } from './use-users'
 
 /**
  * A failure the user can act on.
@@ -61,6 +66,22 @@ function boardStatusMessage(status: 'pending' | 'error' | 'success', count: numb
 export function BoardPage() {
   const [view, setView] = useState<BoardView>('grid')
   const { data: tasks, status, error, refetch } = useTasks()
+  const { data: users } = useUsers()
+  const createDialog = useOverlayTriggerState({})
+  const createTask = useCreateTask()
+
+  async function handleCreate(fields: TaskFormFields) {
+    await createTask.mutateAsync({
+      name: fields.name.trim(),
+      status: fields.status,
+      tags: fields.tags,
+      // The input arrives as `yyyy-MM-dd`; the API wants a DateTime, and midnight
+      // UTC is the instant `due-date.ts` reads back as that calendar day.
+      dueDate: `${fields.dueDate}T00:00:00.000Z`,
+      pointEstimate: fields.pointEstimate,
+      ...(fields.assigneeId ? { assigneeId: fields.assigneeId } : {}),
+    })
+  }
 
   return (
     <main className="flex flex-col gap-6">
@@ -84,9 +105,21 @@ export function BoardPage() {
         view={view}
         onViewChange={setView}
         onCreateTask={() => {
-          // Wired up in the phase that adds the create mutation.
+          createDialog.open()
         }}
       />
+
+      {/* Mounted only while open, so every visit starts from a blank form rather
+          than whatever the last one was left holding. */}
+      {createDialog.isOpen ? (
+        <TaskFormDialog
+          state={createDialog}
+          users={users ?? []}
+          onSubmit={handleCreate}
+          title="Create task"
+          submitLabel="Create"
+        />
+      ) : null}
 
       {status === 'pending' ? <BoardSkeleton /> : null}
 

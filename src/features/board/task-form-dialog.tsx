@@ -1,0 +1,251 @@
+import { useId, useReducer, useRef, useState } from 'react'
+import { Item, type OverlayTriggerState } from 'react-stately'
+import { toDateInputValue } from '@/lib/due-date'
+import { Button } from '@/ui/button/button'
+import { Dialog } from '@/ui/dialog/dialog'
+import { AssigneeIcon, CalendarIcon, LabelIcon, PointsIcon } from '@/ui/icons/icons'
+import { MultiSelect } from '@/ui/select/multi-select'
+import { Select } from '@/ui/select/select'
+import { pointsLabel, statusLabel, tagLabel } from './task-display'
+import { taskFormReducer, validateTaskForm, type TaskFormFields } from './task-form-state'
+import {
+  ALL_POINT_ESTIMATES,
+  ALL_TAGS,
+  BOARD_STATUSES,
+  type PointEstimate,
+  type Status,
+  type TaskTag,
+  type User,
+} from './task-types'
+
+interface TaskFormDialogProps {
+  state: OverlayTriggerState
+  users: User[]
+  /** Rejects with the API's message so the dialog can show it inline. */
+  onSubmit: (fields: TaskFormFields) => Promise<void>
+  /** Title and confirm wording, so the edit flow can reuse this dialog. */
+  title: string
+  submitLabel: string
+  initialFields?: Partial<TaskFormFields>
+  /**
+   * `edit` adds the position field. `CreateTaskInput` has no `position` — the
+   * server assigns it — so offering the control on create would collect a value
+   * with nowhere to send it.
+   */
+  mode?: 'create' | 'edit'
+}
+
+function initialState(overrides: Partial<TaskFormFields> = {}): TaskFormFields {
+  return {
+    name: '',
+    status: 'BACKLOG',
+    tags: [],
+    dueDate: toDateInputValue(new Date()),
+    pointEstimate: 'ZERO',
+    assigneeId: null,
+    position: '',
+    ...overrides,
+  }
+}
+
+/**
+ * The create/edit task dialog.
+ *
+ * The submit lifecycle is a discriminated union rather than a pair of booleans:
+ * `idle | submitting | error`. An `isSubmitting` plus `errorMessage` can express
+ * "submitting while showing an error", which is not a state this form has, and
+ * the bug it produces — a stale error left visible under a spinner — is exactly
+ * the kind that survives review.
+ */
+type SubmitState =
+  { status: 'idle' } | { status: 'submitting' } | { status: 'error'; message: string }
+
+export function TaskFormDialog({
+  state,
+  users,
+  onSubmit,
+  title,
+  submitLabel,
+  initialFields,
+  mode = 'create',
+}: TaskFormDialogProps) {
+  const [fields, dispatch] = useReducer(taskFormReducer, initialFields, initialState)
+  const [submitState, setSubmitState] = useState<SubmitState>({ status: 'idle' })
+  const nameId = useId()
+  const dueDateId = useId()
+  const positionId = useId()
+  const errorId = useId()
+  const nameRef = useRef<HTMLInputElement>(null)
+
+  const validationError = validateTaskForm(fields)
+  const shownError = submitState.status === 'error' ? submitState.message : undefined
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
+
+    // Validation runs on submit, not on every keystroke: telling someone the
+    // name is required while they are still typing it is noise.
+    if (validationError) {
+      setSubmitState({ status: 'error', message: validationError })
+      nameRef.current?.focus()
+      return
+    }
+
+    setSubmitState({ status: 'submitting' })
+    try {
+      await onSubmit(fields)
+      state.close()
+    } catch (error) {
+      setSubmitState({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Could not save the task.',
+      })
+    }
+  }
+
+  const isSubmitting = submitState.status === 'submitting'
+
+  return (
+    <Dialog state={state} title={title} isDismissable={!isSubmitting}>
+      <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-6">
+        <div>
+          <label htmlFor={nameId} className="sr-only">
+            Task title
+          </label>
+          <input
+            id={nameId}
+            ref={nameRef}
+            value={fields.name}
+            onChange={(event) => {
+              dispatch({ type: 'set-name', name: event.target.value })
+            }}
+            placeholder="Task title"
+            autoFocus
+            aria-describedby={shownError ? errorId : undefined}
+            aria-invalid={shownError ? true : undefined}
+            className="text-body-xl placeholder:text-text-secondary w-full bg-transparent font-semibold outline-none"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-start gap-4">
+          <Select<{ id: string }>
+            label="Estimated points"
+            placeholder="Estimate"
+            icon={<PointsIcon className="size-6 shrink-0" />}
+            items={ALL_POINT_ESTIMATES.map((id) => ({ id }))}
+            selectedKey={fields.pointEstimate}
+            onSelectionChange={(key) => {
+              dispatch({ type: 'set-point-estimate', pointEstimate: String(key) as PointEstimate })
+            }}
+          >
+            {(item) => <Item key={item.id}>{pointsLabel(item.id as PointEstimate)}</Item>}
+          </Select>
+
+          <Select<{ id: string }>
+            label="Assignee"
+            placeholder="Assignee"
+            icon={<AssigneeIcon className="size-6 shrink-0" />}
+            items={users.map((user) => ({ id: user.id }))}
+            selectedKey={fields.assigneeId ?? undefined}
+            onSelectionChange={(key) => {
+              dispatch({ type: 'set-assignee', assigneeId: String(key) })
+            }}
+          >
+            {(item) => (
+              <Item key={item.id}>
+                {users.find((user) => user.id === item.id)?.fullName ?? item.id}
+              </Item>
+            )}
+          </Select>
+
+          <MultiSelect
+            label="Tags"
+            placeholder="Label"
+            icon={<LabelIcon className="size-6 shrink-0" />}
+            options={ALL_TAGS.map((tag) => ({ id: tag, label: tagLabel(tag) }))}
+            selectedKeys={fields.tags}
+            onSelectionChange={(keys) => {
+              dispatch({ type: 'set-tags', tags: keys as TaskTag[] })
+            }}
+          />
+
+          <Select<{ id: string }>
+            label="Status"
+            placeholder="Status"
+            items={BOARD_STATUSES.map((id) => ({ id }))}
+            selectedKey={fields.status}
+            onSelectionChange={(key) => {
+              dispatch({ type: 'set-status', status: String(key) as Status })
+            }}
+          >
+            {(item) => <Item key={item.id}>{statusLabel(item.id as Status)}</Item>}
+          </Select>
+
+          <div className="rounded-pill bg-text-secondary/10 flex items-center gap-2 px-4 py-1">
+            <CalendarIcon className="text-text-secondary size-6 shrink-0" />
+            <label htmlFor={dueDateId} className="sr-only">
+              Due date
+            </label>
+            {/* A native date input rather than a custom calendar: it brings the
+                platform's own picker, works on touch, and is already localised
+                and keyboard-accessible. */}
+            <input
+              id={dueDateId}
+              type="date"
+              value={fields.dueDate}
+              onChange={(event) => {
+                dispatch({ type: 'set-due-date', dueDate: event.target.value })
+              }}
+              className="text-body-m bg-transparent font-semibold outline-none"
+            />
+          </div>
+
+          {mode === 'edit' ? (
+            <div className="rounded-pill bg-text-secondary/10 flex items-center gap-2 px-4 py-1">
+              <PointsIcon className="text-text-secondary size-6 shrink-0" />
+              <label htmlFor={positionId} className="sr-only">
+                Position
+              </label>
+              {/* A native number input, for the same reasons the due date is a
+                  native date input: the platform supplies the stepper, the mobile
+                  keypad and the keyboard handling. `step="any"` because the field
+                  is a Float — the board leaves gaps between positions so a task can
+                  be placed between two others without renumbering the column. */}
+              <input
+                id={positionId}
+                type="number"
+                step="any"
+                value={fields.position}
+                onChange={(event) => {
+                  dispatch({ type: 'set-position', position: event.target.value })
+                }}
+                className="text-body-m w-20 bg-transparent font-semibold outline-none"
+              />
+            </div>
+          ) : null}
+        </div>
+
+        {shownError ? (
+          <p id={errorId} role="alert" className="text-danger text-body-m">
+            {shownError}
+          </p>
+        ) : null}
+
+        <div className="flex justify-end gap-6">
+          <Button
+            variant="text"
+            onPress={() => {
+              state.close()
+            }}
+            isDisabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" isDisabled={isSubmitting}>
+            {isSubmitting ? 'Saving…' : submitLabel}
+          </Button>
+        </div>
+      </form>
+    </Dialog>
+  )
+}
