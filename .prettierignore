@@ -1,0 +1,6 @@
+dist
+coverage
+node_modules
+src/graphql/generated
+public/mockServiceWorker.js
+package-lock.json

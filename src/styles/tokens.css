@@ -1,0 +1,98 @@
+@import 'tailwindcss';
+
+/*
+ * Raw palette, read straight from the Figma design system's variable
+ * definitions (neutral / primary / secondary / tertiary ramps).
+ *
+ * These deliberately live in `:root` rather than `@theme`. Tailwind only
+ * generates utilities for what it finds in `@theme`, so keeping the ramp out
+ * means `bg-neutral-4` does not exist as a class — a component physically
+ * cannot reach a colour except through a semantic name below. That is the
+ * "organize them properly" requirement enforced by the build rather than by
+ * review.
+ */
+:root {
+  --palette-neutral-1: #ffffff;
+  --palette-neutral-2: #94979a;
+  --palette-neutral-4: #2c2f33;
+  --palette-neutral-5: #222528;
+  --palette-primary-4: #da584b;
+  --palette-secondary-4: #70b252;
+  --palette-tertiary-4: #e5b454;
+}
+
+@theme {
+  /* Surfaces. The board sits on `surface`; every panel, card and control that
+     lifts off it uses `surface-raised`. */
+  --color-surface: var(--palette-neutral-5);
+  --color-surface-raised: var(--palette-neutral-4);
+
+  /* Text. Two levels only — the design never uses a third. */
+  --color-text-primary: var(--palette-neutral-1);
+  --color-text-secondary: var(--palette-neutral-2);
+
+  /* Brand red: active navigation, the create button, and overdue due dates.
+     `danger` is an alias rather than a second value because the design uses
+     one red for both meanings. Naming them separately keeps call sites honest
+     about intent, and lets them diverge later without touching components. */
+  --color-brand: var(--palette-primary-4);
+  --color-danger: var(--palette-primary-4);
+
+  /* Tag and status accents. */
+  --color-accent-green: var(--palette-secondary-4);
+  --color-accent-amber: var(--palette-tertiary-4);
+
+  /*
+   * Type scale, transcribed from the Figma text styles. The brief recommends
+   * system fonts, and the design is drawn in SF Pro Display — which *is* the
+   * system font on Apple platforms — so the stack resolves to the intended
+   * face there and degrades to each platform's own UI face elsewhere.
+   */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+
+  --text-body-m: 15px;
+  --text-body-m--line-height: 24px;
+  --text-body-m--letter-spacing: 0.75px;
+
+  --text-body-l: 18px;
+  --text-body-l--line-height: 32px;
+  --text-body-l--letter-spacing: 0.75px;
+
+  /* Radii. `panel` is the sidebar and other full-height surfaces, `card` is a
+     task card or control, `pill` is a tag or date badge. */
+  --radius-panel: 16px;
+  --radius-card: 8px;
+  --radius-pill: 4px;
+}
+
+/*
+ * The design is dark-only — there is no light variant in the Figma file, so
+ * shipping a theme toggle would mean inventing a palette the design never
+ * specified. `color-scheme` tells the browser to render form controls,
+ * scrollbars and focus rings against a dark background.
+ */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-m);
+  line-height: var(--text-body-m--line-height);
+  letter-spacing: var(--text-body-m--letter-spacing);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * A single visible focus ring for every interactive element, rather than each
+ * component inventing its own. Keyboard users get a consistent affordance and
+ * pointer users are not shown a ring they did not ask for.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
