@@ -6,6 +6,8 @@ interface BoardProps {
   tasks: Task[]
   view: BoardView
   now?: Date
+  onEditTask?: (task: Task) => void
+  onDeleteTask?: (task: Task) => void
 }
 
 /**
@@ -38,7 +40,7 @@ function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
   return grouped
 }
 
-export function Board({ tasks, view, now }: BoardProps) {
+export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps) {
   const grouped = groupByStatus(tasks)
 
   if (view === 'list') {
@@ -57,6 +59,8 @@ export function Board({ tasks, view, now }: BoardProps) {
             tasks={grouped.get(status) ?? []}
             now={now}
             itemLayout="row"
+            onEditTask={onEditTask}
+            onDeleteTask={onDeleteTask}
           />
         ))}
       </div>
@@ -83,6 +87,8 @@ export function Board({ tasks, view, now }: BoardProps) {
           tasks={grouped.get(status) ?? []}
           now={now}
           className="xl:w-87 xl:shrink-0"
+          onEditTask={onEditTask}
+          onDeleteTask={onDeleteTask}
         />
       ))}
     </div>

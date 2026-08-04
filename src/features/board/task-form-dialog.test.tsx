@@ -15,9 +15,9 @@ function OpenDialog(props: Omit<DialogProps, 'state'>) {
 }
 
 /**
- * The dialog is rendered directly here rather than through the board, because the
- * edit flow that supplies `mode="edit"` does not exist until the update mutation
- * lands. The seam is the component's own props.
+ * Rendered directly rather than through the board: the seam is the component's own
+ * props, so the position field is exercised without driving a mutation. The edit flow
+ * that supplies `mode="edit"` is covered end to end in `update-delete-task.test.tsx`.
  */
 function renderDialog(props: Partial<Omit<DialogProps, 'state'>> = {}) {
   const user = userEvent.setup()

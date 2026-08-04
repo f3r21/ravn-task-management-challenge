@@ -52,13 +52,17 @@ describe('ErrorBoundary', () => {
   it('renders nothing at all when no fallback is supplied', () => {
     silenceExpectedErrorLogs()
 
-    const { container } = renderWithProviders(
+    renderWithProviders(
       <ErrorBoundary>
         <Boom />
       </ErrorBoundary>,
     )
 
-    expect(container).toBeEmptyDOMElement()
+    // Asserted as "no output from the boundary" rather than "empty container":
+    // the provider stack renders a toast region alongside, which is not the
+    // boundary's doing.
+    expect(screen.queryByText('content')).not.toBeInTheDocument()
+    expect(screen.queryByText('fallback')).not.toBeInTheDocument()
   })
 
   it('recovers when the caller changes the key, which is the only supported retry', async () => {

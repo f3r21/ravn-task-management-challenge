@@ -53,13 +53,15 @@ export function tagLabel(tag: TaskTag): string {
 /**
  * Which accent a tag chip uses.
  *
- * The design specifies colours for exactly two tags — `iOS app` green and
- * `Android` amber — because those are the only two its mockup draws. The other
- * three are mapped onto the remaining accents the design system does define
- * rather than onto invented hex values, so every colour on screen still traces
- * back to a token that came out of Figma.
+ * The design system's Tag component defines exactly five types — General,
+ * Green, Blue, Yellow, Red — and the API defines exactly five tags, so this is
+ * a one-to-one assignment with nothing invented.
+ *
+ * Two are fixed by the mockup, which draws `iOS app` in green and `Android` in
+ * yellow. The remaining three fall out naturally: React and Rails take the blue
+ * and red of their own brands, leaving Node js on the neutral chip.
  */
-export type TagAccent = 'green' | 'amber' | 'red' | 'neutral'
+export type TagAccent = 'green' | 'amber' | 'blue' | 'red' | 'neutral'
 
 export function tagAccent(tag: TaskTag): TagAccent {
   switch (tag) {
@@ -68,9 +70,10 @@ export function tagAccent(tag: TaskTag): TagAccent {
     case 'ANDROID':
       return 'amber'
     case 'REACT':
+      return 'blue'
+    case 'RAILS':
       return 'red'
     case 'NODE_JS':
-    case 'RAILS':
       return 'neutral'
     default:
       return assertNever(tag, 'tag')

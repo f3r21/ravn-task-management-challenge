@@ -1,7 +1,9 @@
+import { Item } from 'react-stately'
 import { parseApiDate } from '@/lib/due-date'
 import { cn } from '@/lib/cn'
 import { Avatar } from '@/ui/avatar/avatar'
 import { AttachmentIcon, CommentIcon, MenuDotsIcon, SubtaskIcon } from '@/ui/icons/icons'
+import { Menu } from '@/ui/menu/menu'
 import { Tag } from '@/ui/tag/tag'
 import { pointsLabel, tagAccent, tagLabel } from '../task-display'
 import type { Task } from '../task-types'
@@ -19,6 +21,8 @@ interface TaskCardProps {
   /** Injected so tests can pin "today" without faking the clock. */
   now?: Date
   layout?: TaskCardLayout
+  onEdit?: (task: Task) => void
+  onDelete?: (task: Task) => void
 }
 
 /**
@@ -43,12 +47,13 @@ function TaskCardMeta() {
   )
 }
 
-export function TaskCard({ task, now, layout = 'card' }: TaskCardProps) {
+export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskCardProps) {
   const dueDate = parseApiDate(task.dueDate)
   const isRow = layout === 'row'
 
   // The same fields in both layouts; only the arrangement differs. Declared once
-  // so the two cannot drift into showing different information.
+  // so the two cannot drift into showing different information — including the
+  // options menu, which the list view would otherwise be missing entirely.
   const name = (
     <h3 id={`task-${task.id}-name`} className="text-body-l min-w-0 flex-1 truncate font-semibold">
       {task.name}
@@ -77,13 +82,35 @@ export function TaskCard({ task, now, layout = 'card' }: TaskCardProps) {
   const assignee = <Avatar src={task.assignee?.avatar} name={task.assignee?.fullName} />
 
   const options = (
-    <button
-      type="button"
-      aria-label={`Task options for ${task.name}`}
-      className="text-text-secondary hover:text-text-primary shrink-0 transition-colors"
+    /* Every card carries one of these, so the accessible name has to say which task
+       it belongs to — "options" alone is ambiguous the moment a screen-reader user
+       lists the buttons on the page. */
+    <Menu
+      label={`Task options for ${task.name}`}
+      icon={<MenuDotsIcon className="size-6" />}
+      triggerClassName="text-text-secondary hover:text-text-primary shrink-0 transition-colors"
+      onAction={(key) => {
+        // Deferred by a frame so the menu finishes closing first.
+        //
+        // React Aria records what to restore focus to when the dialog first
+        // renders. Opening it straight from `onAction` puts that render in the same
+        // commit that unmounts the menu item, so the recorded element is already
+        // detached, gets discarded, and focus lands on `<body>` when the dialog
+        // closes. Waiting lets the menu hand focus back to its own trigger, which
+        // is then the element the dialog records — and returns to.
+        requestAnimationFrame(() => {
+          if (key === 'edit') {
+            onEdit?.(task)
+          }
+          if (key === 'delete') {
+            onDelete?.(task)
+          }
+        })
+      }}
     >
-      <MenuDotsIcon className="size-6" />
-    </button>
+      <Item key="edit">Edit</Item>
+      <Item key="delete">Delete</Item>
+    </Menu>
   )
 
   if (isRow) {

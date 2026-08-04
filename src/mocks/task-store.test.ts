@@ -60,6 +60,14 @@ describe('listTasks', () => {
     expect(mine.map((task) => task.name)).toEqual(['Twitter'])
   })
 
+  it('tells an explicit null apart from an omitted field', () => {
+    // GraphQL distinguishes the two and so must this: omitting `assigneeId` means
+    // "leave the owner alone", passing null means "take the owner off". Conflating
+    // them makes a nullable field impossible to clear through the UI.
+    expect(taskStore.updateTask({ id: 'task-1', name: 'Renamed' })?.assignee).not.toBeNull()
+    expect(taskStore.updateTask({ id: 'task-1', assigneeId: null })?.assignee).toBeNull()
+  })
+
   it('narrows by owner, matching the creator rather than the assignee', () => {
     // The regression this exists for: every seed task used to carry creator
     // `user-0`, an id absent from the directory the owner picker is built from,

@@ -8,6 +8,12 @@ interface DialogProps extends AriaModalOverlayProps {
   title: string
   children: ReactNode
   className?: string
+  /**
+   * `alertdialog` for a consequential, interrupting decision — a delete
+   * confirmation. It makes assistive tech announce the body text on open rather
+   * than the title alone.
+   */
+  role?: 'dialog' | 'alertdialog'
 }
 
 /**
@@ -48,12 +54,25 @@ export function Dialog({ state, ...props }: DialogProps) {
  * `aria-labelledby` at it — a dialog whose name is optional is a dialog that ships
  * unnamed.
  */
-function ModalContents({ state, title, children, className, ...props }: DialogProps) {
+function ModalContents({
+  state,
+  title,
+  children,
+  className,
+  role = 'dialog',
+  ...props
+}: DialogProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
 
   const { modalProps, underlayProps } = useModalOverlay(props, state, modalRef)
-  const { dialogProps, titleProps } = useDialog({ role: 'dialog' }, dialogRef)
+  // `contentProps` is the third return value and was being dropped. For an
+  // `alertdialog` `useDialog` generates an id, points `aria-describedby` at it, and
+  // then checks in a layout effect whether any element actually carries it —
+  // `useSlotId` discards the id if nothing does. Nothing did, so the description
+  // resolved to `undefined` and the role's whole reason for being chosen (announcing
+  // the body, not just the name) was absent.
+  const { dialogProps, titleProps, contentProps } = useDialog({ role }, dialogRef)
 
   return (
     <div
@@ -65,14 +84,16 @@ function ModalContents({ state, title, children, className, ...props }: DialogPr
           {...dialogProps}
           ref={dialogRef}
           className={cn(
-            'bg-surface-overlay rounded-card flex flex-col gap-6 p-4 outline-none',
+            'bg-surface-overlay rounded-card flex flex-col p-4 outline-none',
             className,
           )}
         >
           <h2 {...titleProps} className="sr-only">
             {title}
           </h2>
-          {children}
+          <div {...contentProps} className="flex flex-col gap-6">
+            {children}
+          </div>
         </div>
       </div>
     </div>

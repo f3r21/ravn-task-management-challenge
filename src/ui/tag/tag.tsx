@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 
-export type TagTone = 'green' | 'amber' | 'red' | 'neutral'
+export type TagTone = 'green' | 'amber' | 'blue' | 'red' | 'neutral'
 
 interface TagProps {
   tone?: TagTone
@@ -22,6 +22,7 @@ interface TagProps {
 const TONE_CLASSES: Record<TagTone, string> = {
   green: 'bg-accent-green/10 text-accent-green',
   amber: 'bg-accent-amber/10 text-accent-amber',
+  blue: 'bg-accent-blue/10 text-accent-blue',
   red: 'bg-danger/10 text-danger',
   neutral: 'bg-text-secondary/10 text-text-primary',
 }

@@ -9,7 +9,7 @@ interface PopoverProps extends Omit<AriaPopoverProps, 'popoverRef'> {
 }
 
 /**
- * The floating panel a select or multi-select opens into.
+ * The floating panel a select, a multi-select or the card menu opens into.
  *
  * `usePopover` handles positioning against the trigger, flipping when there is
  * no room below, and closing on outside interaction. The `DismissButton`s above
