@@ -30,9 +30,9 @@ export function AppHeader() {
   const value = params.get('name') ?? ''
 
   return (
-    <header className="bg-surface-raised rounded-bar flex items-center justify-between gap-6 px-6 py-3">
+    <header className="bg-surface-panel rounded-md flex items-center justify-between gap-6 px-6 py-3">
       <div className="flex flex-1 items-center gap-6">
-        <SearchIcon className="text-text-secondary size-6 shrink-0" />
+        <SearchIcon className="text-muted size-6 shrink-0" />
         <label htmlFor={searchId} className="sr-only">
           Search tasks
         </label>
@@ -57,7 +57,7 @@ export function AppHeader() {
               { replace: true },
             )
           }}
-          className="text-body-m placeholder:text-text-secondary w-full min-w-0 flex-1 bg-transparent outline-none"
+          className="text-body-m placeholder:text-muted w-full min-w-0 flex-1 bg-transparent outline-none"
         />
       </div>
 
@@ -65,7 +65,7 @@ export function AppHeader() {
         <button
           type="button"
           aria-label="Notifications"
-          className="text-text-secondary hover:text-text-primary transition-colors"
+          className="text-muted hover:text-main transition-colors"
         >
           <BellIcon className="size-6" />
         </button>

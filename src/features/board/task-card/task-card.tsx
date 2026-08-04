@@ -35,7 +35,7 @@ interface TaskCardProps {
  */
 function TaskCardMeta() {
   return (
-    <div className="text-text-primary flex items-center gap-4" aria-hidden="true">
+    <div className="text-main flex items-center gap-4" aria-hidden="true">
       <AttachmentIcon className="size-4" />
       <span className="text-body-m flex items-center gap-1">
         5 <SubtaskIcon className="size-4" />
@@ -88,7 +88,7 @@ export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskC
     <Menu
       label={`Task options for ${task.name}`}
       icon={<MenuDotsIcon className="size-6" />}
-      triggerClassName="text-text-secondary hover:text-text-primary shrink-0 transition-colors"
+      triggerClassName="text-muted hover:text-main shrink-0 transition-colors"
       onAction={(key) => {
         // Deferred by a frame so the menu finishes closing first.
         //
@@ -116,7 +116,7 @@ export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskC
   if (isRow) {
     return (
       <article
-        className="bg-surface-raised rounded-card flex flex-wrap items-center gap-x-6 gap-y-3 p-4"
+        className="bg-surface-panel rounded-sm flex flex-wrap items-center gap-x-6 gap-y-3 p-4"
         aria-labelledby={`task-${task.id}-name`}
       >
         {/* The name takes the slack and truncates; everything after it keeps its
@@ -138,7 +138,7 @@ export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskC
 
   return (
     <article
-      className={cn('bg-surface-raised rounded-card flex flex-col gap-4 p-4')}
+      className={cn('bg-surface-panel rounded-sm flex flex-col gap-4 p-4')}
       aria-labelledby={`task-${task.id}-name`}
     >
       <div className="flex h-8 items-center gap-2">

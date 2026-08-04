@@ -121,8 +121,8 @@ export function BoardFiltersBar({
         )}
       </Select>
 
-      <div className="rounded-pill bg-text-secondary/10 flex items-center gap-2 px-4 py-1">
-        <CalendarIcon className="text-text-secondary size-6 shrink-0" />
+      <div className="rounded-4 bg-muted/10 flex items-center gap-2 px-4 py-1">
+        <CalendarIcon className="text-muted size-6 shrink-0" />
         <label htmlFor="filter-due-date" className="sr-only">
           Filter by due date
         </label>

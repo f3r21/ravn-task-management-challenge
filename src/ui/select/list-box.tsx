@@ -47,8 +47,8 @@ function Option<T>({ item, state }: { item: Node<T>; state: ListState<T> }) {
         'text-body-m flex cursor-pointer items-center justify-between gap-4 px-4 py-1',
         // Focus and selection are different things and look different. Merging
         // them would leave a keyboard user unable to tell where they are.
-        isFocused && 'bg-text-secondary/10',
-        isSelected ? 'text-brand font-semibold' : 'text-text-primary',
+        isFocused && 'bg-muted/10',
+        isSelected ? 'text-interactive font-semibold' : 'text-main',
         isDisabled && 'cursor-not-allowed opacity-50',
       )}
     >

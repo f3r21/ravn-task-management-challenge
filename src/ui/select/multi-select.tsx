@@ -84,9 +84,9 @@ export function MultiSelect({
         aria-expanded={overlayState.isOpen}
         aria-haspopup="listbox"
         className={cn(
-          'rounded-pill bg-text-secondary/10 flex items-center gap-2 px-4 py-1',
+          'rounded-4 bg-muted/10 flex items-center gap-2 px-4 py-1',
           'text-body-m font-semibold whitespace-nowrap',
-          count > 0 ? 'text-text-primary' : 'text-text-secondary',
+          count > 0 ? 'text-main' : 'text-muted',
         )}
       >
         {icon}

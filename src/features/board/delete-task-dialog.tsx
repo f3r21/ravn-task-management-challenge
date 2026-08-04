@@ -50,7 +50,7 @@ export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogPro
       isDismissable={!isDeleting}
     >
       <p className="text-body-l font-semibold">Delete “{task.name}”?</p>
-      <p className="text-text-secondary text-body-m">This cannot be undone.</p>
+      <p className="text-muted text-body-m">This cannot be undone.</p>
 
       <div className="flex justify-end gap-6">
         <Button

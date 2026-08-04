@@ -131,7 +131,7 @@ export function TaskFormDialog({
             autoFocus
             aria-describedby={shownError ? errorId : undefined}
             aria-invalid={shownError ? true : undefined}
-            className="text-body-xl placeholder:text-text-secondary w-full bg-transparent font-semibold outline-none"
+            className="text-body-xl placeholder:text-muted w-full bg-transparent font-semibold outline-none"
           />
         </div>
 
@@ -197,8 +197,8 @@ export function TaskFormDialog({
             {(item) => <Item key={item.id}>{statusLabel(item.id as Status)}</Item>}
           </Select>
 
-          <div className="rounded-pill bg-text-secondary/10 flex items-center gap-2 px-4 py-1">
-            <CalendarIcon className="text-text-secondary size-6 shrink-0" />
+          <div className="rounded-4 bg-muted/10 flex items-center gap-2 px-4 py-1">
+            <CalendarIcon className="text-muted size-6 shrink-0" />
             <label htmlFor={dueDateId} className="sr-only">
               Due date
             </label>
@@ -217,8 +217,8 @@ export function TaskFormDialog({
           </div>
 
           {mode === 'edit' ? (
-            <div className="rounded-pill bg-text-secondary/10 flex items-center gap-2 px-4 py-1">
-              <PointsIcon className="text-text-secondary size-6 shrink-0" />
+            <div className="rounded-4 bg-muted/10 flex items-center gap-2 px-4 py-1">
+              <PointsIcon className="text-muted size-6 shrink-0" />
               <label htmlFor={positionId} className="sr-only">
                 Position
               </label>

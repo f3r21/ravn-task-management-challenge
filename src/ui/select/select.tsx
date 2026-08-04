@@ -50,9 +50,9 @@ export function Select<T extends object>({
         {...buttonProps}
         ref={triggerRef}
         className={cn(
-          'rounded-pill bg-text-secondary/10 flex items-center gap-2 px-4 py-1',
+          'rounded-4 bg-muted/10 flex items-center gap-2 px-4 py-1',
           'text-body-m font-semibold whitespace-nowrap',
-          state.selectedItem ? 'text-text-primary' : 'text-text-secondary',
+          state.selectedItem ? 'text-main' : 'text-muted',
         )}
       >
         {icon}
