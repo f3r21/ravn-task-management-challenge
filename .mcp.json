@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "eslint": {
+      "command": "npx",
+      "args": ["@eslint/mcp@latest"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "graphql": {
+      "command": "npx",
+      "args": ["-y", "mcp-graphql"],
+      "env": {
+        "ENDPOINT": "https://syn-api-production-e95c.up.railway.app/graphql",
+        "HEADERS": "{\"Authorization\":\"Bearer ${VITE_API_TOKEN}\"}"
+      }
+    }
+  }
+}

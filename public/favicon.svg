@@ -1,0 +1,13 @@
+<!--
+  The design's logo mark, on the surface colour the app renders against, so the tab
+  icon does not become an invisible white glyph on a light browser chrome.
+  Kept as its own file rather than imported from `src/ui/icons/assets`: the browser
+  requests this before any bundle exists.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <rect width="48" height="48" rx="10" fill="#222528" />
+  <path
+    d="M28.4 28.6C33.7 27.2 37.6 22.3 37.6 16.5C37.6 9.7 32.2 4.2 25.5 4h-.1V4H10.1H4l6.7 8.3h1.4v0h15.1c2.3 0 4.1 1.9 4.1 4.2 0 2.3-1.9 4.2-4.2 4.2h-3H13.4L28.9 40h10.7L28.4 28.6Z"
+    fill="#ffffff"
+  />
+</svg>

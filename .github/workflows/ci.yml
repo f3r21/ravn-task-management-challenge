@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  # Every pull request, not only those targeting `main`. Filtering by base branch
+  # leaves a PR stacked on another PR with no checks at all — which is exactly
+  # when a second opinion is worth most, because the diff is being reviewed
+  # against a base that has not landed yet.
+  pull_request:
+
+# A new push to the same branch makes the in-flight run irrelevant, so cancel it
+# rather than paying for two runs and reading the stale one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, format, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` rather than `npm install`: it installs exactly the lockfile and
+      # fails if package.json and the lockfile have drifted apart, which is the
+      # difference between CI proving something and CI guessing.
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm run lint
+
+      - run: npm run format:check
+
+      # Runs the suite with the coverage thresholds enforced, so a PR that adds
+      # untested code fails here rather than in review.
+      - run: npm run coverage
+
+      # `typecheck` proves the types; only a real bundle proves it ships. A broken
+      # asset import or a dependency that resolves in dev but not in a production
+      # build fails nowhere else in this pipeline.
+      - run: npm run build

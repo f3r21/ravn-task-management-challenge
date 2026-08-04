@@ -1,0 +1,3 @@
+skills=core-coding-standards:4,lang-typescript:4,platform-frontend:5,tech-react:7,design-frontend:6,design-accessibility:5,platform-testing:5,tech-vitest:6,figma-to-react-components:4,agent-pr-creator:5,grill-me:8,promptify:10,qa-bug-fixer:1,qa-happy-path:1,design-variations:11
+
+install_dir=.claude/skills

@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
+  },
+  // `vite.config.ts` is excluded on purpose: Vitest bundles its own copy of Vite
+  // alongside the one the app builds with, so typechecking the config reports a
+  // spurious clash between two structurally identical `Plugin` types. Both Vite
+  // and Vitest fail loudly at startup on a malformed config, so nothing real is
+  // lost by not typechecking it here.
+  "include": ["src", "vitest.setup.ts", "codegen.ts"]
+}

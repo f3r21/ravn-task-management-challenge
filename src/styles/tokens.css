@@ -1,0 +1,121 @@
+@import 'tailwindcss';
+
+/*
+ * Raw palette, read straight from the Figma design system's variable
+ * definitions (neutral / primary / secondary / tertiary ramps).
+ *
+ * These deliberately live in `:root` rather than `@theme`. Tailwind only
+ * generates utilities for what it finds in `@theme`, so keeping the ramp out
+ * means `bg-neutral-4` does not exist as a class — a component physically
+ * cannot reach a colour except through a semantic name below. That is the
+ * "organize them properly" requirement enforced by the build rather than by
+ * review.
+ */
+:root {
+  --palette-neutral-1: #ffffff;
+  --palette-neutral-2: #94979a;
+  --palette-neutral-3: #393d41;
+  --palette-neutral-4: #2c2f33;
+  --palette-neutral-5: #222528;
+  --palette-primary-4: #da584b;
+  --palette-secondary-4: #70b252;
+  --palette-tertiary-4: #e5b454;
+  /* The Tag component's Blue variant. Unlike the ramps above it is not bound to
+     a Figma variable, so it is read off the component's own fill. */
+  --palette-blue: #2f61bf;
+}
+
+@theme {
+  /* Surfaces, in the order they stack. The board sits on `surface`; panels,
+     cards and controls lift onto `surface-raised`; a modal sits above both on
+     `surface-overlay`, which is why the design gives it a lighter grey. */
+  --color-surface: var(--palette-neutral-5);
+  --color-surface-raised: var(--palette-neutral-4);
+  --color-surface-overlay: var(--palette-neutral-3);
+
+  /* Text. Two levels only — the design never uses a third. */
+  --color-text-primary: var(--palette-neutral-1);
+  --color-text-secondary: var(--palette-neutral-2);
+
+  /* Brand red: whatever is active, selected, primary, or overdue — and the focus
+     ring at the bottom of this file.
+     `danger` is an alias rather than a second value because the design uses
+     one red for both meanings. Naming them separately keeps call sites honest
+     about intent, and lets them diverge later without touching components. */
+  --color-brand: var(--palette-primary-4);
+  --color-danger: var(--palette-primary-4);
+
+  /* Tag accents. The design system's Tag component has exactly five types —
+     General, Green, Blue, Yellow, Red — which is also how many tags the API
+     defines, so every tag gets its own colour and none is invented. */
+  --color-accent-green: var(--palette-secondary-4);
+  --color-accent-amber: var(--palette-tertiary-4);
+  --color-accent-blue: var(--palette-blue);
+
+  /*
+   * Type scale, transcribed from the Figma text styles. The brief recommends
+   * system fonts, and the design is drawn in SF Pro Display — which *is* the
+   * system font on Apple platforms — so the stack resolves to the intended
+   * face there and degrades to each platform's own UI face elsewhere.
+   */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+
+  --text-body-m: 15px;
+  --text-body-m--line-height: 24px;
+  --text-body-m--letter-spacing: 0.75px;
+
+  --text-body-l: 18px;
+  --text-body-l--line-height: 32px;
+  --text-body-l--letter-spacing: 0.75px;
+
+  --text-body-xl: 20px;
+  --text-body-xl--line-height: 32px;
+  --text-body-xl--letter-spacing: 0.75px;
+
+  /* Radii. Four distinct values, each read off the node in Figma that uses it,
+     rather than a generic sm/md/lg scale that would invite picking by feel. */
+  --radius-pill: 4px; /* tag chips, due-date badge */
+  --radius-card: 8px; /* task card, icon buttons, view switcher */
+  --radius-bar: 16px; /* search bar */
+  --radius-sidebar: 24px; /* the sidebar panel */
+}
+
+/*
+ * The design is dark-only — there is no light variant in the Figma file, so
+ * shipping a theme toggle would mean inventing a palette the design never
+ * specified. `color-scheme` tells the browser to render form controls,
+ * scrollbars and focus rings against a dark background.
+ */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-m);
+  line-height: var(--text-body-m--line-height);
+  letter-spacing: var(--text-body-m--letter-spacing);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * A single visible focus ring for every interactive element, rather than each
+ * component inventing its own. Keyboard users get a consistent affordance and
+ * pointer users are not shown a ring they did not ask for.
+ *
+ * In `@layer base` on purpose. Unlayered CSS outranks every layered rule, so an
+ * unlayered version of this would beat any Tailwind utility and a component could
+ * not adjust the ring even where the default is wrong — a element clipped by an
+ * ancestor's `overflow-hidden` needs the ring drawn *inside* its own box, and
+ * that has to be expressible as `-outline-offset-2` at the call site.
+ */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
