@@ -1,11 +1,4 @@
-import {
-  PointEstimate,
-  Status,
-  TaskTag,
-  UserType,
-  type Task,
-  type User,
-} from '@/features/board/task-types'
+import type { Task, User } from '@/features/board/task-types'
 
 /**
  * Seed data shared by the MSW handlers and the tests.
@@ -21,7 +14,7 @@ export function makeUser(overrides: Partial<User> = {}): User {
     fullName: 'Alicia Koch',
     email: 'alicia@ravn.co',
     avatar: null,
-    type: UserType.Candidate,
+    type: 'CANDIDATE',
     createdAt: '2026-01-04T09:00:00.000Z',
     updatedAt: '2026-01-04T09:00:00.000Z',
     ...overrides,
@@ -29,92 +22,102 @@ export function makeUser(overrides: Partial<User> = {}): User {
 }
 
 export function makeTask(overrides: Partial<Task> = {}): Task {
-  const creator = makeUser({ id: 'user-0', fullName: 'Marcus Chen' })
   return {
     id: 'task-1',
     name: 'Slack',
-    status: Status.Todo,
-    tags: [TaskTag.Ios, TaskTag.Android],
+    status: 'TODO',
+    tags: ['IOS', 'ANDROID'],
     dueDate: '2026-08-14T00:00:00.000Z',
-    pointEstimate: PointEstimate.Four,
+    pointEstimate: 'FOUR',
     position: 1,
     createdAt: '2026-08-01T09:00:00.000Z',
     assignee: makeUser(),
-    creator,
+    // A creator drawn from the same directory the `users` query returns. This used
+    // to be `user-0`, an id absent from `SEED_USERS`, and since no seed task
+    // overrode it *every* task had a creator who did not exist — so the owner
+    // filter matched nothing for every name its picker offered.
+    creator: makeUser({ id: 'user-2', fullName: 'Marcus Chen', email: 'marcus@ravn.co' }),
     ...overrides,
   }
 }
 
-/** A board with something in every column, so no column is only ever empty. */
 export const SEED_USERS: User[] = [
   makeUser(),
   makeUser({ id: 'user-2', fullName: 'Marcus Chen', email: 'marcus@ravn.co' }),
   makeUser({ id: 'user-3', fullName: 'Priya Nair', email: 'priya@ravn.co' }),
-  makeUser({ id: 'user-4', fullName: 'Tom Rivera', email: 'tom@ravn.co', type: UserType.Admin }),
+  makeUser({ id: 'user-4', fullName: 'Tom Rivera', email: 'tom@ravn.co', type: 'ADMIN' }),
 ]
 
+/** A board with something in every column, so no column is only ever empty. */
 export const SEED_TASKS: Task[] = [
   makeTask({
     id: 'task-1',
     name: 'Slack',
-    status: Status.Todo,
-    tags: [TaskTag.Ios, TaskTag.Android],
-    pointEstimate: PointEstimate.Four,
+    status: 'TODO',
+    tags: ['IOS', 'ANDROID'],
+    pointEstimate: 'FOUR',
     dueDate: '2026-08-14T00:00:00.000Z',
     assignee: SEED_USERS[0],
+    creator: SEED_USERS[0],
   }),
   makeTask({
     id: 'task-2',
     name: 'Google',
-    status: Status.Todo,
-    tags: [TaskTag.Android, TaskTag.Ios, TaskTag.React],
-    pointEstimate: PointEstimate.Two,
+    status: 'TODO',
+    tags: ['ANDROID', 'IOS', 'REACT'],
+    pointEstimate: 'TWO',
     dueDate: '2026-08-30T00:00:00.000Z',
     assignee: SEED_USERS[1],
+    creator: SEED_USERS[1],
   }),
   makeTask({
     id: 'task-3',
     name: 'Twitter',
-    status: Status.InProgress,
-    tags: [TaskTag.Ios, TaskTag.Android],
-    pointEstimate: PointEstimate.One,
+    status: 'IN_PROGRESS',
+    tags: ['IOS', 'ANDROID'],
+    pointEstimate: 'ONE',
     dueDate: '2026-07-28T00:00:00.000Z',
     assignee: SEED_USERS[2],
+    creator: SEED_USERS[0],
   }),
   makeTask({
     id: 'task-4',
     name: 'Maxxis Tyres',
-    status: Status.InProgress,
-    tags: [TaskTag.NodeJs],
-    pointEstimate: PointEstimate.Four,
+    status: 'IN_PROGRESS',
+    tags: ['NODE_JS'],
+    pointEstimate: 'FOUR',
     dueDate: '2026-09-06T00:00:00.000Z',
     assignee: SEED_USERS[3],
+    creator: SEED_USERS[2],
   }),
   makeTask({
     id: 'task-5',
     name: 'Samsung',
-    status: Status.Backlog,
-    tags: [TaskTag.Rails, TaskTag.React],
-    pointEstimate: PointEstimate.Eight,
+    status: 'BACKLOG',
+    tags: ['RAILS', 'REACT'],
+    pointEstimate: 'EIGHT',
     dueDate: '2026-09-20T00:00:00.000Z',
     assignee: SEED_USERS[0],
+    creator: SEED_USERS[1],
   }),
   makeTask({
     id: 'task-6',
     name: 'Tesla',
-    status: Status.Done,
-    tags: [TaskTag.Ios, TaskTag.Android],
-    pointEstimate: PointEstimate.Four,
+    status: 'DONE',
+    tags: ['IOS', 'ANDROID'],
+    pointEstimate: 'FOUR',
     dueDate: '2026-07-30T00:00:00.000Z',
     assignee: SEED_USERS[1],
+    creator: SEED_USERS[3],
   }),
   makeTask({
     id: 'task-7',
     name: 'Netflix redesign',
-    status: Status.Cancelled,
-    tags: [TaskTag.React],
-    pointEstimate: PointEstimate.Zero,
+    status: 'CANCELLED',
+    tags: ['REACT'],
+    pointEstimate: 'ZERO',
     dueDate: '2026-08-25T00:00:00.000Z',
     assignee: null,
+    creator: SEED_USERS[0],
   }),
 ]

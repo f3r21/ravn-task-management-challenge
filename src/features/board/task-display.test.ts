@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { pointsLabel, pointValue, statusLabel, tagAccent, tagLabel } from './task-display'
-import { BOARD_STATUSES, PointEstimate, type Status, TaskTag } from './task-types'
+import { ALL_POINT_ESTIMATES, ALL_TAGS, BOARD_STATUSES, type Status } from './task-types'
 
 describe('statusLabel', () => {
   it('gives every board status a human label', () => {
@@ -20,24 +20,18 @@ describe('statusLabel', () => {
 
 describe('tagLabel', () => {
   it('labels every tag in natural case, so text queries and screen readers work', () => {
-    expect(Object.values(TaskTag).map(tagLabel)).toEqual([
-      'Android',
-      'iOS app',
-      'Node js',
-      'Rails',
-      'React',
-    ])
+    expect(ALL_TAGS.map(tagLabel)).toEqual(['Android', 'iOS app', 'Node js', 'Rails', 'React'])
   })
 })
 
 describe('tagAccent', () => {
   it('uses the two accents the design specifies', () => {
-    expect(tagAccent(TaskTag.Ios)).toBe('green')
-    expect(tagAccent(TaskTag.Android)).toBe('amber')
+    expect(tagAccent('IOS')).toBe('green')
+    expect(tagAccent('ANDROID')).toBe('amber')
   })
 
   it('resolves every remaining tag to a palette accent rather than undefined', () => {
-    const accents = Object.values(TaskTag).map(tagAccent)
+    const accents = ALL_TAGS.map(tagAccent)
 
     expect(accents).toHaveLength(5)
     expect(accents.every((accent) => accent !== undefined)).toBe(true)
@@ -46,15 +40,15 @@ describe('tagAccent', () => {
 
 describe('pointValue', () => {
   it('maps each estimate to its number', () => {
-    expect(Object.values(PointEstimate).map(pointValue)).toEqual([0, 1, 2, 4, 8])
+    expect(ALL_POINT_ESTIMATES.map(pointValue)).toEqual([0, 1, 2, 4, 8])
   })
 
   it('labels an estimate the way the card shows it', () => {
-    expect(pointsLabel(PointEstimate.Four)).toBe('4 Points')
-    expect(pointsLabel(PointEstimate.Zero)).toBe('0 Points')
+    expect(pointsLabel('FOUR')).toBe('4 Points')
+    expect(pointsLabel('ZERO')).toBe('0 Points')
   })
 
   it('says "1 Point", not "1 Points"', () => {
-    expect(pointsLabel(PointEstimate.One)).toBe('1 Point')
+    expect(pointsLabel('ONE')).toBe('1 Point')
   })
 })

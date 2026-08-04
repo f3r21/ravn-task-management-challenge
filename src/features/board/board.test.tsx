@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { makeTask } from '@/mocks/task-fixtures'
 import { renderWithProviders } from '@/test/test-utils'
 import { Board } from './board'
-import { Status } from './task-types'
+import type { Status } from './task-types'
 
 const now = new Date('2026-08-02T12:00:00.000Z')
 
@@ -20,8 +20,8 @@ describe('Board', () => {
     renderWithProviders(
       <Board
         tasks={[
-          makeTask({ id: 't1', name: 'Slack', status: Status.Todo }),
-          makeTask({ id: 't2', name: 'Twitter', status: Status.Done }),
+          makeTask({ id: 't1', name: 'Slack', status: 'TODO' }),
+          makeTask({ id: 't2', name: 'Twitter', status: 'DONE' }),
         ]}
         view="grid"
         now={now}
@@ -36,13 +36,33 @@ describe('Board', () => {
     expect(within(todo).queryByRole('heading', { name: 'Twitter' })).not.toBeInTheDocument()
   })
 
-  it('counts the tasks in each column, zero-padded like the design', () => {
+  it('orders a column by position, not by the order the API returned', () => {
+    // `position` was selected by the query and read by nothing, so the board
+    // rendered in whatever order the response happened to arrive in.
     renderWithProviders(
       <Board
         tasks={[
-          makeTask({ id: 't1', status: Status.Todo }),
-          makeTask({ id: 't2', status: Status.Todo }),
+          makeTask({ id: 't1', name: 'Third', status: 'TODO', position: 30 }),
+          makeTask({ id: 't2', name: 'First', status: 'TODO', position: 10 }),
+          makeTask({ id: 't3', name: 'Second', status: 'TODO', position: 20 }),
         ]}
+        view="grid"
+        now={now}
+      />,
+    )
+
+    const todo = screen.getByRole('region', { name: /todo/i })
+    const names = within(todo)
+      .getAllByRole('heading', { level: 3 })
+      .map((heading) => heading.textContent)
+
+    expect(names).toEqual(['First', 'Second', 'Third'])
+  })
+
+  it('counts the tasks in each column, zero-padded like the design', () => {
+    renderWithProviders(
+      <Board
+        tasks={[makeTask({ id: 't1', status: 'TODO' }), makeTask({ id: 't2', status: 'TODO' })]}
         view="grid"
         now={now}
       />,

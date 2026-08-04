@@ -2,7 +2,6 @@ import { screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { makeTask, makeUser } from '@/mocks/task-fixtures'
 import { renderWithProviders } from '@/test/test-utils'
-import { PointEstimate, TaskTag } from '../task-types'
 import { TaskCard } from './task-card'
 
 const now = new Date('2026-08-02T12:00:00.000Z')
@@ -15,17 +14,13 @@ describe('TaskCard', () => {
   })
 
   it('shows the point estimate as a count of points', () => {
-    renderWithProviders(
-      <TaskCard task={makeTask({ pointEstimate: PointEstimate.Eight })} now={now} />,
-    )
+    renderWithProviders(<TaskCard task={makeTask({ pointEstimate: 'EIGHT' })} now={now} />)
 
     expect(screen.getByText('8 Points')).toBeInTheDocument()
   })
 
   it('lists every tag on the task', () => {
-    renderWithProviders(
-      <TaskCard task={makeTask({ tags: [TaskTag.Ios, TaskTag.Rails] })} now={now} />,
-    )
+    renderWithProviders(<TaskCard task={makeTask({ tags: ['IOS', 'RAILS'] })} now={now} />)
 
     expect(screen.getByText('iOS app')).toBeInTheDocument()
     expect(screen.getByText('Rails')).toBeInTheDocument()
