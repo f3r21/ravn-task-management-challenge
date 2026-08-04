@@ -60,31 +60,30 @@ coverage, so nothing caught it.
 per-developer, so whether it is filled in varies by machine — check with
 `grep -c '^VITE_API_TOKEN=.\+' .env` (or the absence of the mock banner after `npm run dev`)
 rather than assuming either way. When both `.env` values are present, reads —
-`Tasks`/`Users`/`Profile` queries and `npm run schema:check` — can be run live with
-confidence. Mutations (`createTask`/`updateTask`/`deleteTask`) still call for the same
-confirmation as any other change to shared, live data.
+`Tasks`/`Users`/`Profile` queries, `npm run schema:check`, and the `graphql` MCP server's
+`introspect-schema`/`query-graphql` tools — can be run live with confidence. Mutations
+(`createTask`/`updateTask`/`deleteTask`) still call for the same confirmation as any other
+change to shared, live data.
 
-**The `graphql` MCP server (`.mcp.json`) is configured but unreliable — verify before
-trusting it.** It needs `VITE_API_TOKEN` exported into the shell before `claude` starts
-(e.g. `export $(grep -v '^#' .env | xargs) && claude`), since `${VAR}`-style expansion in
-`.mcp.json` reads the launching shell's environment, not `.env` directly. `ALLOW_MUTATIONS`
-is deliberately left unset, so the tool structurally cannot mutate regardless of what this
-file says. Even correctly configured, though, `query-graphql`/`introspect-schema` have been
-seen failing with a generic `TypeError: fetch failed` in this environment (Claude Code
-2.1.221) — a transport-level error thrown before any HTTP response, reproduced even with a
-verified-correct token and endpoint, and not resolved by fixing the config (confirmed by
-manually driving the identical `npx -y mcp-graphql` process outside Claude Code, which
-works every time). This looks like an undocumented quirk in how that Claude Code version
-spawns MCP subprocesses, not a problem with the credential or endpoint. If the MCP tool
-throws that error, fall back to a direct authenticated request instead — this has been
-reliable every time it's been tried:
+**The `graphql` MCP server (`.mcp.json`) needs `VITE_API_TOKEN` exported into the shell
+before `claude` starts** (e.g. `export $(grep -v '^#' .env | xargs) && claude`), since
+`${VAR}`-style expansion in `.mcp.json` reads the launching shell's environment, not `.env`
+directly. `ALLOW_MUTATIONS` is deliberately left unset, so the tool structurally cannot
+mutate regardless of what this file says.
 
-```bash
-curl -s "$VITE_API_URL" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $VITE_API_TOKEN" \
-  -d '{"query":"{ __typename }"}'
-```
+**MCP servers can exist in more than one scope with the same name, and the wrong one wins
+silently.** `claude mcp add` writes to a per-project "local" scope in `~/.claude.json`,
+completely separate from the "project" scope `.mcp.json` provides — and a local-scope
+entry shadows a project-scope one of the same name without any warning that it's doing so.
+This project's `graphql` server was broken for an entire debugging session for exactly this
+reason: an empty-`env` local-scope entry from an earlier `claude mcp add` (missing both the
+correct `ENDPOINT` key and any `HEADERS`) kept silently winning over the correctly-configured
+`.mcp.json` entry, producing a generic `TypeError: fetch failed` on every query regardless of
+how correct `.mcp.json` was. `claude mcp remove <name>` on a server that exists in multiple
+scopes fails loudly and requires a scope flag (`claude mcp remove graphql -s local`) — but
+nothing surfaces the conflict _before_ that point, so if an MCP tool that should work is
+failing outright, check `claude mcp remove <name>` first: if it complains about multiple
+scopes, that's the bug.
 
 ### The data path
 
