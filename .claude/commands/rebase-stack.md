@@ -1,0 +1,1 @@
+Verify all 8 stacked git branches (`feat/01-project-setup` through `feat/08-readme-polish`). Check out each branch in order, run `npm run gate` at each tip, and ensure no regressions were introduced across the branch stack.

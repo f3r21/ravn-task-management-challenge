@@ -1,0 +1,1 @@
+Run `npm run gate` in the project root. If any step fails (typecheck, lint, format, or coverage), analyze the exact error output, identify the root cause in source files, and propose or apply the fix. Ensure 85%+ coverage on all v8 metrics is maintained.
