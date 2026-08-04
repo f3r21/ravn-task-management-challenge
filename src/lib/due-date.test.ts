@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   daysUntilDue,
   dueDateTone,
   formatDueDate,
+  formatUtcTimestamp,
   parseApiDate,
   toDateInputValue,
 } from './due-date'
@@ -104,5 +105,43 @@ describe('parseApiDate', () => {
 describe('toDateInputValue', () => {
   it('formats for a date input in the same UTC frame the badge reads', () => {
     expect(toDateInputValue(new Date('2026-08-02T00:00:00.000Z'))).toBe('2026-08-02')
+  })
+})
+
+describe('formatUtcTimestamp', () => {
+  it('renders an account timestamp in UTC, labelled', () => {
+    expect(formatUtcTimestamp('2026-01-04T09:30:00.000Z')).toBe('4 January 2026 at 09:30 UTC')
+  })
+
+  it('does not shift the wall clock into the viewer’s zone', () => {
+    // The suite runs at UTC+14, so a formatter reading local fields would print
+    // 13:30 on 5 January for this instant — wrong hour and wrong day. 23:30 is what
+    // reading UTC gives, which is what the assertion below pins.
+    expect(formatUtcTimestamp('2026-01-04T23:30:00.000Z')).toBe('4 January 2026 at 23:30 UTC')
+  })
+
+  it('says so rather than producing "Invalid Date"', () => {
+    expect(formatUtcTimestamp('not a date')).toBe('Unknown')
+  })
+
+  // The suite's own zone is UTC+14, a fixed offset with no daylight saving — so it
+  // cannot reach the one failure a local-field round trip actually introduces. These
+  // zones each skip an hour at midnight, which means the local wall clock the
+  // formatter was reconstructing does not exist and the engine resolves it forward.
+  describe.each([
+    ['America/Santiago', '2022-09-11T00:30:00.000Z', '11 September 2022 at 00:30 UTC'],
+    ['Asia/Beirut', '2023-03-26T00:30:00.000Z', '26 March 2023 at 00:30 UTC'],
+    ['America/Havana', '2024-03-10T00:30:00.000Z', '10 March 2024 at 00:30 UTC'],
+  ])('in %s', (zone, instant, expected) => {
+    it('prints the UTC hour even when the matching local hour does not exist', () => {
+      // `vi.stubEnv` rather than touching `process.env` directly: it is typed, and it
+      // is undone by `unstubAllEnvs` so the zone cannot leak into another test.
+      vi.stubEnv('TZ', zone)
+      try {
+        expect(formatUtcTimestamp(instant)).toBe(expected)
+      } finally {
+        vi.unstubAllEnvs()
+      }
+    })
   })
 })
