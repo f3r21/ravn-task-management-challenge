@@ -1,0 +1,5 @@
+# Vercel turns every file under `api/` into a deployed function, so a colocated
+# test would become a public endpoint that imports Vitest. This repo keeps a test
+# beside its subject, so the file is excluded from the upload rather than moved
+# somewhere it does not belong.
+api/*.test.ts
