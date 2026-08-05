@@ -1,5 +1,6 @@
 import { AriaButtonProps } from 'react-aria';
 import { AriaListBoxOptions } from 'react-aria';
+import { AriaMenuProps } from 'react-aria';
 import { AriaPopoverProps } from 'react-aria';
 import { AriaSelectProps } from 'react-aria';
 import { AriaTextFieldProps } from 'react-aria';
@@ -455,6 +456,15 @@ export declare interface EstimationCellProps {
  * assistive-tech users an explicit way to close the popover from either end
  * of its content, matching `Popover`'s reasoning.
  *
+ * Wrapped in `FocusScope restoreFocus` (no `autoFocus` here, unlike
+ * `Popover`'s — initial focus placement is left to whichever composing
+ * component renders inside, e.g. `ListBox`/`MenuList`'s own `autoFocus`)
+ * so closing returns focus to the trigger that opened it, matching
+ * `Popover`'s same restoration for the non-portalled family. Without it,
+ * closing removes the focused option/item from the DOM and the browser
+ * drops focus to `<body>` instead.
+ *
+
  * Escape is handled here in the capture phase rather than left to
  * `usePopover`'s own dismissal for two reasons found by driving this in a
  * real browser rather than trusting jsdom: `ListBox` binds Escape for its
@@ -613,6 +623,52 @@ export declare interface ListBoxProps<T extends object> extends AriaListBoxOptio
     listBoxRef?: React.RefObject<HTMLUListElement | null>;
     /** Additional class names applied to the `<ul>`, merged last via `cn()`. */
     className?: string;
+}
+
+/**
+ * Menu
+ *
+ * A dropdown/context menu of actions — e.g. the task card's three-dot
+ * options menu (`MIGRATION_GAPS.md` Section 4). Composes `FloatingPopover`
+ * (the same portalled, anchored surface `Select`/`MultiSelect` use) over
+ * react-stately's `useMenuTriggerState`/`useTreeState` and react-aria's
+ * `useMenuTrigger`/`useMenu`/`useMenuItem`. Fully generic over item type via
+ * the same Collection/`<Item>` composition `Select`/`ListBox`/`Tabs` use, not
+ * a kit-invented `{ id, label }` shape.
+ *
+ * Unlike `Select`'s pill trigger, this component bakes in no default visual
+ * chrome for the trigger button beyond focus/disabled affordances — only
+ * interaction states, reusing the `primary-4`/`opacity-50` values already
+ * established everywhere else in the kit, not new ones. There is no verified
+ * Figma source for a kit-generic menu-trigger surface (the task card's
+ * three-dot button lives in the consuming app, not this kit), and trigger
+ * content is fully consumer-supplied rather than a fixed icon+value shape —
+ * baking in fixed dimensions would fight arbitrary content. `triggerClassName`
+ * is expected to supply size/background/radius per call site.
+ *
+ * This also deliberately does not offer a way to mark an item "destructive"
+ * (the reference implementation this was built from special-cased a
+ * `'delete'`-keyed item with `text-danger`). That's app-specific convenience
+ * tied to one consumer's key naming, not something a generic kit component
+ * should assume — a consumer wanting a destructive-looking item can style it
+ * directly in the `<Item>`'s own children, the same way `MenuItem` below
+ * always renders `item.rendered` untouched.
+ */
+export declare function Menu<T extends object>({ label, triggerContent, isDisabled, triggerClassName, ...menuProps }: MenuProps<T>): JSX.Element;
+
+export declare interface MenuProps<T extends object> extends Omit<AriaMenuProps<T>, 'selectionMode' | 'selectedKeys' | 'defaultSelectedKeys' | 'onSelectionChange' | 'disallowEmptySelection' | 'onClose'> {
+    /** Accessible name for the trigger button. Required — an icon-only trigger has no name without it. */
+    label: string;
+    /** Content rendered inside the trigger button — an icon for the common icon-only case, but any content is accepted. */
+    triggerContent: ReactNode;
+    /** Disables the trigger, preventing the menu from opening. */
+    isDisabled?: boolean;
+    /**
+     * Additional class names applied to the trigger button, merged last via
+     * `cn()`. No default background/size/radius is applied — see the
+     * component doc comment for why.
+     */
+    triggerClassName?: string;
 }
 
 /**
