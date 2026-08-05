@@ -40,24 +40,30 @@ const TIMEOUT_MS = 10_000
  * means the app's existing error path renders this — rather than the parse
  * failure a plain-text body would produce two layers away from the cause.
  */
-function errorResponse(
-  message: string,
-  status: number,
-  headers: Record<string, string> = {},
-): Response {
+function errorResponse(message: string, status: number): Response {
   return new Response(JSON.stringify({ errors: [{ message }] }), {
     status,
-    headers: { 'Content-Type': 'application/json', ...headers },
+    headers: { 'Content-Type': 'application/json' },
   })
 }
 
-export default async function handler(request: Request): Promise<Response> {
-  if (request.method !== 'POST') {
-    // Answered here rather than forwarded, so a crawler following the path does
-    // not spend RAVN's rate limit on requests the app never makes.
-    return errorResponse('This endpoint accepts POST requests only.', 405, { Allow: 'POST' })
-  }
-
+/**
+ * Named `POST` rather than exported as a default handler, and that is load-bearing
+ * twice over.
+ *
+ * It selects the signature: Vercel reads a default export as Node's
+ * `(req, res) => void`, ignores whatever it returns, and leaves the request
+ * hanging until the platform times it out — which is exactly what the first
+ * deploy of this file did, silently, with the answer only in the runtime log.
+ * A named HTTP method is the Web `fetch`-style API, where returning a `Response`
+ * is the contract.
+ *
+ * It is also the method restriction. Anything that is not a POST — a crawler
+ * following the path, a reviewer opening it in a tab — is refused by the
+ * platform before this code runs, so it costs nothing and spends none of RAVN's
+ * rate limit. A branch here could only re-implement that less well.
+ */
+export async function POST(request: Request): Promise<Response> {
   const token = process.env.API_TOKEN?.trim()
   if (!token) {
     // A misconfigured deployment, not a bad request. Forwarding without the
