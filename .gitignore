@@ -39,3 +39,10 @@ UI_KIT_MIGRATION_NEXT_PROMPT.md
 .claude/skills/qa-happy-path/
 .claude/skills/design-variations/
 # end corvus
+
+# The local project link, and the OIDC token `vercel link` writes into
+# `.env.local`. The `.env` rules near the top already cover the latter — the
+# CLI also appends its own `.env*`, which has to be removed each time, because
+# landing after `!.env.example` it quietly re-ignores the one env file this
+# repo does track.
+.vercel
