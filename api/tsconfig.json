@@ -1,0 +1,33 @@
+{
+  // A second project rather than another entry in the root `include`, because
+  // the two halves need opposite globals. This code needs `process`; the app
+  // must never see it, since `process.env` typechecking in `src/` would compile
+  // fine and be `undefined` in a browser. The root config keeps `types` narrow
+  // for exactly that reason, so widening it there to reach one file would give
+  // the whole app a global it cannot use.
+  //
+  // Named `api/tsconfig.json` rather than `tsconfig.api.json` at the root so
+  // typescript-eslint's project service finds it by walking up from the file,
+  // the same way an editor does. `npm run typecheck` builds both.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // `node` for `process`, and for the `fetch`/`Request`/`Response` globals the
+    // Node runtime provides — this file deliberately does not pull in the DOM
+    // lib, so those come from Node's own declarations, not the browser's.
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["."]
+}
