@@ -1,0 +1,21 @@
+# Local env files must never be uploaded.
+#
+# This is not belt-and-braces, it is the actual bug: when a `.vercelignore`
+# exists the Vercel CLI uses it *instead of* `.gitignore`, so adding this file
+# for the reason below silently removed the protection `.gitignore` was
+# providing. `vercel deploy` then uploaded the developer's `.env`, Vite read it
+# at build time as it would locally, and inlined `VITE_API_TOKEN` into
+# `dist/assets/index-*.js` — publishing on a public URL the exact credential
+# the proxy in `api/graphql.ts` exists to keep out of the bundle.
+#
+# `vercel.json` also pins `VITE_API_TOKEN` to an empty string at build time, so
+# neither of these alone is load-bearing. A credential deserves both.
+.env
+.env.*
+.vercel
+
+# Vercel turns every file under `api/` into a deployed function, so a colocated
+# test would become a public endpoint that imports Vitest. This repo keeps a test
+# beside its subject, so the file is excluded from the upload rather than moved
+# somewhere it does not belong.
+api/*.test.ts
