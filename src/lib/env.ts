@@ -19,15 +19,46 @@ export type ApiConfig =
   { mode: 'direct'; url: string; token: string } | { mode: 'proxied'; url: string }
 
 /**
+ * A host no real deployment can be served from, used only to resolve against.
+ *
+ * `.invalid` is reserved by RFC 2606 precisely so it can never be registered,
+ * so a URL that resolves to this origin can only have done so by being relative
+ * — which is the question `isSameOriginPath` is asking.
+ */
+const RESOLUTION_BASE = 'https://same-origin.invalid'
+
+/**
  * Whether a configured URL points at this app's own origin.
  *
- * A single leading slash, and specifically not two: `//host/path` is
- * protocol-relative, so it starts the same way and resolves somewhere else
- * entirely. Treating that as same-origin would hand `VITE_API_URL=//anywhere` a
- * credential-free connection the checks below exist to withhold.
+ * Asked of a URL parser rather than of the string, because the string is not
+ * what a browser will act on. `//host/path` is the obvious protocol-relative
+ * spelling, but it is not the only one: a backslash is normalised to a forward
+ * slash in the authority position, and tab, line feed and carriage return are
+ * stripped outright before parsing. So `/\host`, `/<tab>/host`, `/<lf>/host`
+ * and `/<cr>/host` all resolve off-origin while reading, character by
+ * character, as ordinary rooted paths.
+ *
+ * This check originally rejected `//` alone and accepted the other four. That
+ * was not reachable by an attacker — `VITE_API_URL` is build configuration, not
+ * anything a visitor supplies — but it is the wrong shape of answer: resolving
+ * the URL answers "is this our origin" for every spelling at once, including
+ * the ones nobody has thought of yet.
+ *
+ * The leading-slash requirement stays. Resolution alone would accept an
+ * absolute URL that happens to name the base host, and a path-relative
+ * `api/graphql` resolves against whatever route the router is on rather than a
+ * fixed endpoint.
  */
 function isSameOriginPath(url: string): boolean {
-  return url.startsWith('/') && !url.startsWith('//')
+  if (!url.startsWith('/')) {
+    return false
+  }
+  try {
+    return new URL(url, RESOLUTION_BASE).origin === RESOLUTION_BASE
+  } catch {
+    // A string `URL` cannot parse at all is not a path this app should post to.
+    return false
+  }
 }
 
 /**

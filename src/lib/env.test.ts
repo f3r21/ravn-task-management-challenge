@@ -70,6 +70,46 @@ const cases: { name: string; env: Partial<ImportMetaEnv>; expected: ApiConfig | 
     env: { VITE_API_URL: '//other.test/graphql' },
     expected: undefined,
   },
+  // The four other spellings of the case above. A URL parser does not read these
+  // literally: a backslash is normalised to a forward slash in the authority
+  // position, and tab, line feed and carriage return are *stripped entirely*
+  // before parsing. So each of these resolves to `//other.test/graphql` — a
+  // different origin — while looking like an ordinary rooted path.
+  //
+  // `VITE_API_URL` is build configuration rather than anything a visitor
+  // supplies, so none of these is reachable by an attacker. They are here
+  // because the check is meant to answer "is this our own origin", and a check
+  // that only recognises one way of writing "no" is not answering that question
+  // — it is pattern-matching the one example its author had in mind.
+  {
+    name: 'a backslash authority is not same-origin (browsers read it as a slash)',
+    env: { VITE_API_URL: '/\\other.test/graphql' },
+    expected: undefined,
+  },
+  {
+    name: 'a tab inside the authority is not same-origin (the parser strips it)',
+    env: { VITE_API_URL: '/\t/other.test/graphql' },
+    expected: undefined,
+  },
+  {
+    name: 'a line feed inside the authority is not same-origin (the parser strips it)',
+    env: { VITE_API_URL: '/\n/other.test/graphql' },
+    expected: undefined,
+  },
+  {
+    name: 'a carriage return inside the authority is not same-origin (the parser strips it)',
+    env: { VITE_API_URL: '/\r/other.test/graphql' },
+    expected: undefined,
+  },
+  {
+    // A bare `//` is protocol-relative with no host at all, which `URL` rejects
+    // outright rather than resolving — so this is the one input that reaches
+    // `isSameOriginPath`'s catch. Unparseable is not same-origin, and a parser
+    // throwing at module load would white-screen the app rather than fall back.
+    name: 'a URL the parser refuses entirely falls back to the mock',
+    env: { VITE_API_URL: '//' },
+    expected: undefined,
+  },
   {
     // Relative to whatever path the router happens to be on, which is not a
     // stable endpoint. Only a root-absolute path is unambiguous.
