@@ -1,7 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { coverageConfigDefaults, defineConfig } from 'vitest/config'
+import { configDefaults, coverageConfigDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -35,6 +35,14 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     css: true,
+    // Vitest's default excludes cover `node_modules`/`dist` but not a git worktree
+    // checked out inside the repo. One lived at `.worktrees/` and was collected on
+    // every run — and because the `@` alias below resolves to *this* `src/`, those
+    // tests loaded the worktree's modules and the root's into one graph: two
+    // `TaskCard`s, two `src/ui` trees, ~20 failures that belonged to neither
+    // checkout. `.git/info/exclude` hides the directory from git but not from a
+    // test runner, so it has to be named here.
+    exclude: [...configDefaults.exclude, '.worktrees/**'],
     env: {
       // The suite runs 14 hours ahead of UTC on purpose. Due dates arrive from the
       // API as midnight-UTC instants and are read as calendar dates, so any code
