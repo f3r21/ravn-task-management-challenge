@@ -4,7 +4,8 @@
   "outputDirectory": "dist",
   "build": {
     "env": {
-      "VITE_API_URL": "/api/graphql"
+      "VITE_API_URL": "/api/graphql",
+      "VITE_API_TOKEN": ""
     }
   },
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
