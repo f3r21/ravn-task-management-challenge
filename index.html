@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      Opens the TCP and TLS connection to the API while the bundle is still being
+      fetched and parsed, so the first GraphQL request does not pay DNS, TCP and
+      TLS serially once React has mounted.
+
+      Hardcoded rather than derived from VITE_API_URL: this is static HTML with no
+      build-time templating, and being wrong is cheap — an unused preconnect costs
+      one idle socket the browser closes on its own, and the mock backend never
+      reaches the network at all. Update it if the endpoint in `.env.example`
+      moves.
+    -->
+    <link rel="preconnect" href="https://syn-api-production-e95c.up.railway.app" crossorigin />
     <title>Task Management</title>
   </head>
   <body>
