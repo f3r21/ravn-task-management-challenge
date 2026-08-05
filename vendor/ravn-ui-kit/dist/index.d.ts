@@ -1,8 +1,14 @@
 import { AriaButtonProps } from 'react-aria';
+import { AriaListBoxOptions } from 'react-aria';
+import { AriaPopoverProps } from 'react-aria';
+import { AriaSelectProps } from 'react-aria';
 import { AriaTextFieldProps } from 'react-aria';
 import { ClassValue } from 'clsx';
 import { default as default_2 } from 'react';
 import { JSX } from 'react';
+import { ListProps } from 'react-stately';
+import { ListState } from 'react-stately';
+import { OverlayTriggerState } from 'react-stately';
 import { ReactNode } from 'react';
 
 /**
@@ -425,6 +431,58 @@ export declare interface EstimationCellProps {
     points: number;
 }
 
+/**
+ * FloatingPopover
+ *
+ * A second, deliberately separate popover primitive from `./popover.tsx`'s
+ * `Popover` — not a mode flag on it. `Popover` (Section 2 of
+ * `MIGRATION_GAPS.md`) is explicitly non-portalled and CSS-anchored
+ * (`absolute` inside a `relative` wrapper), which is the right shape for the
+ * modal-shaped popovers it serves (`AssigneeModal`/`EstimateModal`/
+ * `LabelModal`/`DatePickerMenu`) but the wrong shape for a dropdown: those
+ * anchor inside layout contexts (a filter bar, a table cell) that routinely
+ * clip `overflow: hidden`, and CSS `absolute` positioning can't escape that
+ * ancestor no matter how the z-index is tuned. `Select`/`MultiSelect` need
+ * real anchored-floating positioning that survives being clipped —
+ * react-aria's `usePopover` + `Overlay` (portal to `document.body`, flip when
+ * there's no room, track the trigger's position) — which is a different
+ * enough contract (portalled vs. not, position-tracking vs. not) that
+ * overloading `Popover` with an `isPortalled` flag would leave every consumer
+ * of that component branching on a mode instead of picking the primitive
+ * that already matches their layout.
+ *
+ * The two `DismissButton`s are visually-hidden bookend controls giving
+ * assistive-tech users an explicit way to close the popover from either end
+ * of its content, matching `Popover`'s reasoning.
+ *
+ * Escape is handled here in the capture phase rather than left to
+ * `usePopover`'s own dismissal for two reasons found by driving this in a
+ * real browser rather than trusting jsdom: `ListBox` binds Escape for its
+ * own purposes (clearing selection) and stops the event there, so a
+ * bubble-phase handler on this element never sees it and the popover stays
+ * open; and because this popover is portalled to the end of `<body>`, React
+ * still replays the event up the *component* tree, so an Escape that did get
+ * through would also reach whatever dialog rendered the trigger and close
+ * both layers at once. Capturing before the list gets the event, then
+ * stopping propagation after closing, makes Escape dismiss exactly the
+ * topmost layer.
+ */
+export declare function FloatingPopover({ state, children, popoverRef, className, ...props }: FloatingPopoverProps): JSX.Element;
+
+export declare interface FloatingPopoverProps extends Omit<AriaPopoverProps, 'popoverRef'> {
+    /**
+     * react-stately overlay-trigger state driving open/close (from
+     * `useSelectState`/`useOverlayTriggerState`) — `usePopover` reads/closes
+     * through this rather than a bare `isOpen`/`onClose` pair.
+     */
+    state: OverlayTriggerState;
+    children: React.ReactNode;
+    /** Ref to the popover element. Provide only if a caller needs to measure/observe it directly. */
+    popoverRef?: React.RefObject<HTMLDivElement | null>;
+    /** Additional class names applied to the popover surface, merged last via `cn()`. */
+    className?: string;
+}
+
 export declare function Input({ label, error, className, ...props }: InputProps): JSX.Element;
 
 export declare interface InputProps extends AriaTextFieldProps {
@@ -524,13 +582,47 @@ export declare interface LabelModalProps {
 }
 
 /**
+ * ListBox
+ *
+ * Headless option list — the `role="listbox"`/`role="option"` surface shared
+ * by `Select` and `MultiSelect`'s popovers, and usable standalone. Built on
+ * react-aria's `useListBox`/`useOption` over a react-stately `ListState`,
+ * populated via the same `items` + `children` render-function
+ * `<Item>`/Collection composition pattern `Tabs` uses for its state hook —
+ * not a kit-invented flat prop-array shape — so `ListBox` is generic over
+ * any item type/shape rather than a hardcoded `{ id, label }`.
+ *
+ * Keyboard behavior (arrow keys move focus, Home/End jump to the ends,
+ * typeahead-to-select, Enter/Space to select) comes from
+ * `useListBox`/`useOption` for free; this component only renders what they
+ * report.
+ */
+export declare function ListBox<T extends object>({ state, listBoxRef, className, ...props }: ListBoxProps<T>): JSX.Element;
+
+export declare interface ListBoxProps<T extends object> extends AriaListBoxOptions<T> {
+    /**
+     * react-stately list state driving this listbox's collection, selection,
+     * and focus. `ListBox` never builds its own state — it's built by
+     * `useListState` for a standalone list, or by whichever hook a composing
+     * component uses (`Select` uses `useSelectState`, `MultiSelect` uses
+     * `useListState` with `selectionBehavior: 'toggle'`) — so the same
+     * rendering/keyboard logic works no matter which hook produced the state.
+     */
+    state: ListState<T>;
+    /** Ref to the underlying `<ul>` element. */
+    listBoxRef?: React.RefObject<HTMLUListElement | null>;
+    /** Additional class names applied to the `<ul>`, merged last via `cn()`. */
+    className?: string;
+}
+
+/**
  * Modal shell used by all modal variants.
  * Uses react-aria's useModalOverlay (composed of useOverlay + usePreventScroll +
  * aria-hide) so that, while open, body scroll is locked and everything outside
  * the dialog is `inert`/`aria-hidden` to assistive tech — not just visually
  * obscured behind the backdrop.
  */
-export declare function Modal({ title, isOpen, onClose, children, width }: ModalProps): default_2.JSX.Element | null;
+export declare function Modal({ title, isOpen, onClose, children, width, role }: ModalProps): default_2.JSX.Element | null;
 
 export declare interface ModalProps {
     /** Dialog heading, rendered in the header and programmatically associated via `aria-labelledby`. */
@@ -546,6 +638,52 @@ export declare interface ModalProps {
      * @default 'max-w-md'
      */
     width?: string;
+    /**
+     * ARIA role for the dialog. Use `'alertdialog'` for a destructive-action
+     * confirmation (e.g. a delete confirmation) — it tells assistive tech
+     * this dialog demands an immediate response, distinct from an ordinary
+     * `'dialog'`.
+     * @default 'dialog'
+     */
+    role?: 'dialog' | 'alertdialog';
+}
+
+/**
+ * MultiSelect
+ *
+ * The tag/multi-value picker the app currently hand-rolls (`TaskFormDialog`'s
+ * tags field, `BoardFiltersBar`'s tags filter — `MIGRATION_GAPS.md` Section
+ * 4). Composes `ListBox` and `FloatingPopover` like `Select` does, but over
+ * react-stately's `useListState` instead of `useSelectState`: there is no
+ * native multi-select element or single "selected item" to show in the
+ * trigger, and the popover should stay open while the user picks several
+ * items rather than closing after one — different enough in kind from
+ * `Select` that folding them into one component behind a `selectionMode`
+ * prop would leave every branch of it asking which mode it's in. No
+ * `HiddenSelect` counterpart here for the same reason: a native
+ * `<select multiple>` is a scrolling list box that looks nothing like this
+ * design, and the control is never submitted as a form field directly — a
+ * consuming form reads the selection from `onSelectionChange`.
+ *
+ * Selected items render as `Tag` chips in the trigger — visual only, no
+ * `onRemove`, so the trigger stays a single real `<button>` rather than a
+ * button nesting more buttons (invalid and a screen-reader trap). Removal
+ * happens the same way selection does: reopen the list and toggle the item
+ * off, where its checkmark already shows which items are selected.
+ */
+export declare function MultiSelect<T extends object>({ label, placeholder, icon, isDisabled, className, ...props }: MultiSelectProps<T>): JSX.Element;
+
+export declare interface MultiSelectProps<T extends object> extends Omit<ListProps<T>, 'selectionMode' | 'selectionBehavior'> {
+    /** Accessible name for the control, announced on the trigger and the option list. */
+    label: string;
+    /** Shown inside the trigger when no item is selected yet. */
+    placeholder: string;
+    /** Optional leading icon rendered in the trigger, ahead of the value. */
+    icon?: React.ReactNode;
+    /** Disables the whole control, preventing the popover from opening. */
+    isDisabled?: boolean;
+    /** Additional class names applied to the trigger's wrapping container, merged last via `cn()`. */
+    className?: string;
 }
 
 /**
@@ -719,6 +857,35 @@ export declare interface SegmentedControlProps {
     /** Called with the newly selected option's `id` whenever the user picks a segment. */
     onChange?: (value: string) => void;
     /** Additional class names, merged last via `cn()` so they can override defaults. */
+    className?: string;
+}
+
+/**
+ * Select
+ *
+ * The single-value dropdown the app currently hand-rolls in several places
+ * (`BoardFiltersBar`'s status/estimate/owner filters, `TaskFormDialog`'s
+ * points/assignee/status fields — `MIGRATION_GAPS.md` Section 4). Composes
+ * `ListBox` (the option list) and `FloatingPopover` (the portalled, anchored
+ * surface) over react-stately's `useSelectState` and react-aria's
+ * `useSelect`. Fully generic over item type via `AriaSelectProps<T>`'s own
+ * `items`/`children` Collection composition (the same pattern `Tabs` and
+ * `ListBox` use), not a kit-invented `{ id, label }` shape.
+ *
+ * `HiddenSelect` renders a real `<select>` element off-screen, wired to the
+ * same state. That isn't redundant with the visible trigger — it's what
+ * makes the control work inside a `<form>`, gives mobile browsers their
+ * native picker UI, and lets autofill/password managers see a field they
+ * recognize. The visible pill-shaped trigger below is purely presentational.
+ */
+export declare function Select<T extends object>({ placeholder, icon, className, ...props }: SelectProps<T>): JSX.Element;
+
+export declare interface SelectProps<T extends object> extends AriaSelectProps<T> {
+    /** Shown inside the trigger when no item is selected yet. */
+    placeholder?: string;
+    /** Optional leading icon rendered in the trigger, ahead of the value. */
+    icon?: React.ReactNode;
+    /** Additional class names applied to the trigger's wrapping container, merged last via `cn()`. */
     className?: string;
 }
 
