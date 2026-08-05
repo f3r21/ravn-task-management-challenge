@@ -35,13 +35,13 @@ export function EmptyState({
       role="group"
       aria-label={label}
       className={cn(
-        'border-text-secondary/20 rounded-card flex flex-col items-center gap-2',
+        'border-muted/20 rounded-sm flex flex-col items-center gap-2',
         'border border-dashed px-6 py-10 text-center',
         className,
       )}
     >
       <p className="text-body-m font-semibold">{title}</p>
-      {description ? <p className="text-text-secondary text-body-m">{description}</p> : null}
+      {description ? <p className="text-muted text-body-m">{description}</p> : null}
       {action}
     </div>
   )

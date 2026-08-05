@@ -15,8 +15,8 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
 }
 
 const VARIANT_CLASSES: Record<IconButtonVariant, string> = {
-  primary: 'bg-brand text-text-primary',
-  ghost: 'text-text-secondary hover:text-text-primary',
+  primary: 'bg-interactive text-main',
+  ghost: 'text-muted hover:text-main',
 }
 
 /**
@@ -39,7 +39,7 @@ export function IconButton({
       type={type}
       aria-label={label}
       className={cn(
-        'rounded-card inline-flex size-10 shrink-0 items-center justify-center',
+        'rounded-sm inline-flex size-10 shrink-0 items-center justify-center',
         'transition-colors',
         VARIANT_CLASSES[variant],
         className,

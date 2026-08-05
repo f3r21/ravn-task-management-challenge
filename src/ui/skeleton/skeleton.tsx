@@ -14,7 +14,7 @@ export function Skeleton({ className }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={cn('bg-text-secondary/10 block rounded motion-safe:animate-pulse', className)}
+      className={cn('bg-muted/10 block rounded motion-safe:animate-pulse', className)}
     />
   )
 }

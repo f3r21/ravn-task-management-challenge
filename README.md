@@ -66,21 +66,22 @@ switch on.
 
 ## Stack, and why
 
-| Choice                                    | Why                                                                                                                                                                                                                                                                              |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **React 19 + TypeScript (strict)**        | `any` and `@ts-ignore` are lint errors, not warnings.                                                                                                                                                                                                                            |
-| **Vite 8**                                | Fast dev server; the build is `tsc --noEmit` then bundle, so types gate the build.                                                                                                                                                                                               |
-| **Tailwind v4**                           | RAVN's published frontend standard. Tailwind v4 configures through CSS custom properties in `@theme`, so the Figma palette becomes semantic design tokens rather than a JS config object.                                                                                        |
-| **TanStack Query v5**                     | Server state has different needs from client state — caching, deduplication, invalidation. RAVN's `state-server-vs-client` rule says to separate them, and this is the library its own examples use.                                                                             |
-| **A hand-written `fetch` GraphQL client** | React Query already owns caching. A GraphQL client with its own normalised cache underneath it would put two sources of truth under the same task, and two places to look when the board disagrees with itself. What was actually needed is one typed function.                  |
-| **graphql-codegen**                       | Operations are typed from the schema, so reading a field a query did not select is a compile error.                                                                                                                                                                              |
-| **React Aria (hooks)**                    | Modals, menus, selects, radio groups and toasts are where accessibility is easy to get subtly wrong — focus containment and restoration, Escape, inerting the page behind, roving tabindex, typeahead. RAVN's `aria-use-react-aria-hooks` rule calls for the hooks specifically. |
-| **MSW v2**                                | RAVN's `mock-msw-external-apis` rule. It intercepts at the network layer, so tests exercise the real client code rather than a stubbed module — and the same handlers let the app run without credentials.                                                                       |
-| **Vitest + Testing Library**              | Queries by role and label, never by test id.                                                                                                                                                                                                                                     |
-| **react-router 8**                        | §1's routing requirement. Pinned rather than caret-ranged: every 7.x release falls inside at least one published advisory range. The route table is a plain array so tests mount the real thing and navigate for real.                                                           |
-| **date-fns**                              | Parsing and validating API dates. Formatting is `Intl` with an explicit `timeZone` — see the UTC note below for why a date library reading local fields was the wrong tool for that half.                                                                                        |
-| **react-stately**                         | The state half of the React Aria hooks: collections, overlay triggers, radio groups, the toast queue.                                                                                                                                                                            |
-| **clsx + tailwind-merge**                 | One `cn` helper, so a component's own class can override a variant's instead of both landing in the output and letting source order decide.                                                                                                                                      |
+| Choice                                                     | Why                                                                                                                                                                                                                                                                              |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** | The Figma file for this challenge is a component library, so it was built as one — a separate package with its own Storybook, tests and CI, consumed here. See [The design system is a separate package](#the-design-system-is-a-separate-package).                              |
+| **React 19 + TypeScript (strict)**                         | `any` and `@ts-ignore` are lint errors, not warnings.                                                                                                                                                                                                                            |
+| **Vite 8**                                                 | Fast dev server; the build is `tsc --noEmit` then bundle, so types gate the build.                                                                                                                                                                                               |
+| **Tailwind v4**                                            | RAVN's published frontend standard. Tailwind v4 configures through CSS custom properties in `@theme`, so the Figma palette becomes semantic design tokens rather than a JS config object.                                                                                        |
+| **TanStack Query v5**                                      | Server state has different needs from client state — caching, deduplication, invalidation. RAVN's `state-server-vs-client` rule says to separate them, and this is the library its own examples use.                                                                             |
+| **A hand-written `fetch` GraphQL client**                  | React Query already owns caching. A GraphQL client with its own normalised cache underneath it would put two sources of truth under the same task, and two places to look when the board disagrees with itself. What was actually needed is one typed function.                  |
+| **graphql-codegen**                                        | Operations are typed from the schema, so reading a field a query did not select is a compile error.                                                                                                                                                                              |
+| **React Aria (hooks)**                                     | Modals, menus, selects, radio groups and toasts are where accessibility is easy to get subtly wrong — focus containment and restoration, Escape, inerting the page behind, roving tabindex, typeahead. RAVN's `aria-use-react-aria-hooks` rule calls for the hooks specifically. |
+| **MSW v2**                                                 | RAVN's `mock-msw-external-apis` rule. It intercepts at the network layer, so tests exercise the real client code rather than a stubbed module — and the same handlers let the app run without credentials.                                                                       |
+| **Vitest + Testing Library**                               | Queries by role and label, never by test id.                                                                                                                                                                                                                                     |
+| **react-router 8**                                         | §1's routing requirement. Pinned rather than caret-ranged: every 7.x release falls inside at least one published advisory range. The route table is a plain array so tests mount the real thing and navigate for real.                                                           |
+| **date-fns**                                               | Parsing and validating API dates. Formatting is `Intl` with an explicit `timeZone` — see the UTC note below for why a date library reading local fields was the wrong tool for that half.                                                                                        |
+| **react-stately**                                          | The state half of the React Aria hooks: collections, overlay triggers, radio groups, the toast queue.                                                                                                                                                                            |
+| **clsx + tailwind-merge**                                  | One `cn` helper, so a component's own class can override a variant's instead of both landing in the output and letting source order decide.                                                                                                                                      |
 
 Those RAVN rules are published at
 [`ravnhq/ai-toolkit`](https://github.com/ravnhq/ai-toolkit) — `platform-frontend`,
@@ -96,7 +97,7 @@ src/
 ├── main.tsx     bootstrap: starts MSW when unconfigured, then renders
 ├── app/         routing, providers, query client, error boundary
 ├── features/    board/ · profile/ · navigation/
-├── ui/          design-system pieces: button, dialog, menu, select, tag, toast, …
+├── ui/          design-system pieces still owned here: button, dialog, tag, toast, …
 ├── graphql/     operations, the fetch client, generated types
 ├── lib/         cn, dates, env, assertNever, exhaustive
 ├── shared/      debounce
@@ -108,14 +109,48 @@ src/
 A component lives inside the feature that uses it, and moves to `ui/` only once something
 else needs it.
 
+## The design system is a separate package
+
+The Figma file for this challenge is not a set of screens — it is a component library, with
+a style guide, per-component specs and variant states. Building those components inline in
+`src/ui/` would have meant a design system that only existed as a side effect of one app.
+
+So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 36
+components built from the Figma export, each with Storybook stories, its own test suite and
+its own CI. This app is its first consumer, and consuming it is what proves the package
+works: several real defects (a popover that could not escape an `overflow: hidden` ancestor,
+a focus ring that computed a colour and painted nothing, `onAction` firing twice per menu
+pick) were found only by wiring it into something real, and were fixed in the kit rather
+than patched around here.
+
+The migration is deliberately incomplete and tracked as such. `Modal`, `Select`,
+`MultiSelect` and `Menu` come from the kit today; `Avatar`, `Button`, `Tag`, `Skeleton` and
+the board components are still app-owned and queued to move. `EmptyState`, `ErrorBoundary`,
+the toast system and the icon set stay here for now because the kit has no equivalent yet.
+
+### Why there is a `vendor/` directory
+
+`@ravn/ui-kit` has no npm registry to publish to, so this app depends on it by path. Locally
+that would be `file:../ravn-ui-kit` — but CI clones only _this_ repository, so that path can
+never resolve there and `npm ci` would fail on the first import.
+
+The fix is to vendor a built copy: `vendor/ravn-ui-kit/` holds the package's `dist/` output
+and a trimmed `package.json`, and the dependency is `file:./vendor/ravn-ui-kit`. It is build
+output, never hand-edited — `vendor/ravn-ui-kit/README.md` documents the re-sync procedure,
+and every re-sync lands as its own commit so a kit change is never mixed into an app change.
+
+The alternative was a monorepo. It was not chosen because the kit is meant to outlive this
+app, and a package that can only be built from inside its one consumer is not really a
+package.
+
 ## Decisions worth explaining
 
-**Design tokens are read out of Figma, not eyeballed.** The raw colour ramp lives in
-`:root` and only _semantic_ names go into Tailwind's `@theme` — so `bg-neutral-4` is not a
-class that exists, and a component physically cannot reach a colour except through a name
-that says what it is for. Icons are the design's own SVG exports, kept verbatim in
-`src/ui/icons/assets/` for comparison, with the baked `fill` swapped for `currentColor` so
-colour comes from the token layer.
+**Design tokens are read out of Figma, not eyeballed.** They live in the kit
+(`@ravn/ui-kit/theme.css`), which this app imports as its single token layer — the app
+defines none of its own. Colours reach a component only through a semantic name that says
+what the colour is _for_ (`text-main`, `bg-surface-panel`, `border-subtle`), so a component
+cannot quietly reach past the system for a raw hex. Icons are the design's own SVG exports
+with the baked `fill` swapped for `currentColor`, so colour still comes from the token layer.
 
 **The board shows five columns where the mockup shows three.** The brief lists five
 statuses; the mockup predates the schema. Five equal shares of a 1440px viewport leaves
@@ -197,9 +232,15 @@ options menu, which exercises the same `updateTask` mutation a drop would.
 
 ## Testing
 
-237 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
+247 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
 threshold on every metric; CI runs the same thing, plus a production build, on every pull
 request.
+
+The suite pins `VITE_API_URL`/`VITE_API_TOKEN` empty in `vite.config.ts`'s `test.env`, so it
+always runs against the MSW mock. That is not belt-and-braces — Vitest loads `.env` through
+Vite like any other build, and `.env` here is gitignored and per-developer, so without the
+pin two tests passed or failed depending on whether the machine running them happened to
+have real credentials configured. CI never saw it, because CI has no `.env`.
 
 A few conventions:
 

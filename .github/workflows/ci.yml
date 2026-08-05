@@ -15,6 +15,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege. Without this the job runs with whatever the repository default
+# grants, which for a public repo is read-only today but is a setting, not a
+# guarantee — and nothing here needs to write.
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: Typecheck, lint, format, test, build
@@ -32,17 +38,41 @@ jobs:
       # difference between CI proving something and CI guessing.
       - run: npm ci
 
-      - run: npm run typecheck
-
-      - run: npm run lint
-
-      - run: npm run format:check
-
-      # Runs the suite with the coverage thresholds enforced, so a PR that adds
-      # untested code fails here rather than in review.
-      - run: npm run coverage
+      # One command rather than four, so this file and the `gate` script cannot
+      # drift apart. `gate` is typecheck -> lint -> format:check -> coverage, it
+      # is what CONTRIBUTING-style guidance tells a developer to run locally, and
+      # inlining its steps here meant its own composition was never exercised in
+      # CI — a break in the script itself would have shipped silently.
+      - run: npm run gate
 
       # `typecheck` proves the types; only a real bundle proves it ships. A broken
       # asset import or a dependency that resolves in dev but not in a production
       # build fails nowhere else in this pipeline.
       - run: npm run build
+
+      # A budget, not a benchmark. The entry chunk was 760 kB before the vendor
+      # split in `vite.config.ts`; this fails the build if it climbs back.
+      #
+      # `browser-*.js` is excluded by name: it is the MSW runtime, deliberately
+      # shipped so the app runs with no configuration — see the comment in
+      # `src/main.tsx`. Budgeting it would either fail permanently or pressure
+      # someone into removing it.
+      - name: Bundle size budget
+        run: |
+          LIMIT=450000
+          FAILED=0
+          for f in dist/assets/*.js; do
+            case "$(basename "$f")" in browser-*) continue ;; esac
+            SIZE=$(wc -c < "$f")
+            printf '%8d B  %s\n' "$SIZE" "$(basename "$f")"
+            if [ "$SIZE" -gt "$LIMIT" ]; then
+              echo "::error file=$f::$(basename "$f") is ${SIZE}B, over the ${LIMIT}B budget"
+              FAILED=1
+            fi
+          done
+          exit $FAILED
+
+      # The README argues react-router was pinned because "every 7.x release falls
+      # inside at least one published advisory range" — reasoning about advisories
+      # in prose while never running one. This runs one.
+      - run: npm audit --audit-level=high

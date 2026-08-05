@@ -1,6 +1,11 @@
 node_modules
 dist
 dist-ssr
+# `dist` above matches at any depth, which would also swallow the vendored
+# @ravn/ui-kit build CI depends on — see vendor/ravn-ui-kit/README.md for why
+# it's committed rather than built from a sibling checkout.
+!vendor/ravn-ui-kit/dist/
+!vendor/ravn-ui-kit/dist/**
 coverage
 *.local
 .DS_Store
@@ -13,6 +18,8 @@ npm-debug.log*
 !.vscode/extensions.json
 .idea
 .claude/settings.local.json
+UI_KIT_MIGRATION_PLAN.md
+UI_KIT_MIGRATION_NEXT_PROMPT.md
 
 # corvus — managed, do not edit this block
 .corvusrc

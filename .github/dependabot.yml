@@ -1,0 +1,42 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # Grouped so a routine week is one PR to review rather than fifteen. Security
+    # updates are deliberately left ungrouped by Dependabot itself and still
+    # arrive as their own PRs.
+    groups:
+      react:
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
+      react-aria:
+        patterns:
+          - react-aria
+          - react-stately
+          - '@internationalized/*'
+      dev-tooling:
+        patterns:
+          - eslint*
+          - '@eslint/*'
+          - typescript-eslint
+          - prettier
+          - vitest
+          - '@vitest/*'
+          - '@testing-library/*'
+    ignore:
+      # Pinned exactly, not caret-ranged: every published 7.x release falls inside
+      # at least one advisory range, so the version here is a deliberate choice
+      # rather than "whatever resolves". A Dependabot bump would silently undo
+      # that — upgrade it by hand, after checking the advisories.
+      - dependency-name: react-router
+      # A `file:` dependency on the sibling design-system repo. Dependabot cannot
+      # resolve it and re-syncing it is a manual, documented procedure
+      # (`vendor/ravn-ui-kit/README.md`).
+      - dependency-name: '@ravn/ui-kit'

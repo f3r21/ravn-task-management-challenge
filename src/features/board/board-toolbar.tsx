@@ -55,11 +55,11 @@ function ViewRadio({
     <label
       {...labelProps}
       className={cn(
-        'rounded-card inline-flex size-10 cursor-pointer items-center justify-center transition-colors',
+        'rounded-sm inline-flex size-10 cursor-pointer items-center justify-center transition-colors',
         // The ring belongs on the label, because the input it would normally sit on
         // is clipped to a pixel.
-        'has-[:focus-visible]:outline-brand has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2',
-        isSelected ? 'border-brand text-brand border' : 'text-text-secondary',
+        'has-[:focus-visible]:outline-interactive has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2',
+        isSelected ? 'border-interactive text-interactive border' : 'text-muted',
       )}
     >
       <VisuallyHidden>
@@ -101,7 +101,7 @@ export function BoardToolbar({ view, onViewChange, onCreateTask }: BoardToolbarP
 
   return (
     <div className="flex items-center justify-between">
-      <div {...radioGroupProps} className="bg-surface rounded-card flex">
+      <div {...radioGroupProps} className="bg-surface-shell rounded-sm flex">
         {VIEWS.map(({ value, label, icon }) => (
           <ViewRadio key={value} value={value} label={label} icon={icon} state={state} />
         ))}

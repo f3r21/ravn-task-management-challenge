@@ -229,17 +229,23 @@ Break the code, watch the test fail, restore. Two rules learned the hard way:
 
 ## Branch layout
 
-Eight branches in a stack, one per step of the brief: `feat/01-project-setup` →
-`feat/02-dashboard-ui` → `feat/03-connect-api` → `feat/04-create-task` →
-`feat/05-update-delete` → `feat/06-search-filter` → `feat/07-profile` → `feat/08-readme-polish`.
+`dev` is the standing integration branch — all new work branches off `dev` and PRs back into
+it. `main` only receives periodic promotions of a verified-stable `dev` (gate green, and for
+anything MCP-related, live-checked, not just "connected") via a `dev` → `main` PR. Nothing
+merges into `main` directly.
 
-Each PR targets the branch below it. A fix belongs on the branch that **introduced** the code,
-and its test on the earliest branch where the test can be written — those are not always the
-same branch. After changing a branch, rebase its descendants and re-run `gate` at each tip;
-`gate` must be green at all eight, not only the top.
+This wasn't always the layout. The six brief sections plus the README shipped as eight
+stacked branches, `feat/01-project-setup` → `feat/02-dashboard-ui` → `feat/03-connect-api` →
+`feat/04-create-task` → `feat/05-update-delete` → `feat/06-search-filter` → `feat/07-profile`
+→ `feat/08-readme-polish`, each PR targeting the one below it, each merged in order into
+`dev` and deleted once merged — that history is preserved as individual merged PRs, not
+squashed away. One of those merges (`feat/02-dashboard-ui`) had to be redone as a fresh PR
+after its predecessor branch was deleted before merging: GitHub permanently closes a PR when
+its base branch is deleted, rather than retargeting it — retarget the _next_ PR in a chain to
+its new base **before** deleting the branch it used to point at, never after.
 
-Note that a comment can be _true_ on one branch and false on a later one — several "stale
-comment" fixes had to be applied further up the stack than the file's owner, because that is
+A comment can still be _true_ on one piece of work and false on a later one — several "stale
+comment" fixes had to land further along than the file's original owner, because that is
 where the second caller or the changed behaviour arrives. Check with `git log -S` before
 assuming.
 

@@ -1,0 +1,49 @@
+/*
+ * This is the app's own Tailwind entry point — `@ravn/ui-kit` ships only its
+ * raw tokens via `theme.css` (no compiled utilities), so this file's own
+ * `@tailwindcss/vite` build (see vite.config.ts) is what actually generates
+ * every utility class the app uses. Without the `@source` line below,
+ * `node_modules` is excluded from Tailwind's automatic scanning, so classes
+ * the kit's own compiled components rely on (baked into its `dist/index.js`
+ * as class-name string literals) would silently never be generated.
+ */
+@import 'tailwindcss';
+@import '@ravn/ui-kit/theme.css';
+@source "../../node_modules/@ravn/ui-kit/dist";
+
+/*
+ * This file defines no tokens of its own — see @ravn/ui-kit's theme.css for
+ * the color, radius and text token vocabulary.
+ */
+
+/*
+ * The design is dark-only. `color-scheme` tells the browser to render form
+ * controls, scrollbars and focus rings against a dark background.
+ */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-surface-shell);
+  color: var(--color-main);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-m);
+  line-height: var(--text-body-m--line-height);
+  letter-spacing: var(--text-body-m--letter-spacing);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * A single visible focus ring for every interactive element, rather than each
+ * component inventing its own. In `@layer base` on purpose: unlayered CSS
+ * outranks every layered rule, so an unlayered version of this would beat any
+ * Tailwind utility and a component could not adjust the ring even where the
+ * default is wrong.
+ */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-interactive);
+    outline-offset: 2px;
+  }
+}

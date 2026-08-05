@@ -93,7 +93,11 @@ describe('BoardPage', () => {
   })
 
   it('says when the board is running on mocked data rather than the live API', async () => {
-    // Tests always run without a token configured, which is the mock path.
+    // The mock path, which `vite.config.ts`'s `test.env` pins by blanking
+    // `VITE_API_URL`/`VITE_API_TOKEN`. This comment used to assert that tests
+    // "always run without a token configured" and left it at that — but Vitest
+    // loads the gitignored, per-developer `.env`, so on a machine with real
+    // credentials this failed. Pinned now rather than assumed.
     renderApp('/')
     await waitForBoard()
 

@@ -20,18 +20,18 @@ interface TagProps {
  * Splitting them here would mean two implementations drifting apart on padding.
  */
 const TONE_CLASSES: Record<TagTone, string> = {
-  green: 'bg-accent-green/10 text-accent-green',
-  amber: 'bg-accent-amber/10 text-accent-amber',
-  blue: 'bg-accent-blue/10 text-accent-blue',
+  green: 'bg-secondary-4/10 text-secondary-4',
+  amber: 'bg-tertiary-4/10 text-tertiary-4',
+  blue: 'bg-blue/10 text-blue',
   red: 'bg-danger/10 text-danger',
-  neutral: 'bg-text-secondary/10 text-text-primary',
+  neutral: 'bg-muted/10 text-main',
 }
 
 export function Tag({ tone = 'neutral', icon, children, className }: TagProps) {
   return (
     <span
       className={cn(
-        'rounded-pill inline-flex items-center gap-2 px-4 py-1',
+        'rounded-4 inline-flex items-center gap-2 px-4 py-1',
         // The design draws every chip on a single line. Without `nowrap` a
         // spelled-out date breaks across three lines in a narrow column and the
         // badge stops looking like a badge.

@@ -1,3 +1,4 @@
+import { isInaccessible } from '@testing-library/dom'
 import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react'
 import { graphql, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -129,6 +130,24 @@ describe('creating a task', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
+  it('keeps the status list open past the first frame it opens in', async () => {
+    const { user, dialog } = await openCreateDialog()
+
+    await user.click(within(dialog).getByRole('button', { name: /status/i }))
+    expect(await screen.findByRole('option', { name: 'Done' })).toBeInTheDocument()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByRole('option', { name: 'Done' })).toBeInTheDocument()
+  })
+
+  it('keeps the tags list open past the first frame it opens in', async () => {
+    const { user, dialog } = await openCreateDialog()
+
+    await user.click(within(dialog).getByRole('button', { name: /tags/i }))
+    expect(await screen.findByRole('option', { name: 'React' })).toBeInTheDocument()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByRole('option', { name: 'React' })).toBeInTheDocument()
+  })
+
   it('lets the user pick a status, and files the task under it', async () => {
     const { user, dialog } = await openCreateDialog()
 
@@ -139,6 +158,31 @@ describe('creating a task', () => {
 
     const done = await screen.findByRole('region', { name: /done/i })
     expect(await within(done).findByRole('heading', { name: 'Ship it' })).toBeInTheDocument()
+  })
+
+  it('keeps the points list open past the first frame it opens in', async () => {
+    // Regression canary for the cross-module FocusScope bug: the kit's Modal once
+    // resolved a different react-aria module instance than this app's own Select,
+    // so a popover it nested lost focus-scope recognition and snapped shut a
+    // couple of `requestAnimationFrame` ticks after opening. A bare synchronous
+    // assertion right after the click would have passed even in that broken
+    // state, since the close only happened a frame later — so this explicitly
+    // waits past that frame before re-checking.
+    const { user, dialog } = await openCreateDialog()
+
+    await user.click(within(dialog).getByRole('button', { name: /estimated points/i }))
+    expect(await screen.findByRole('option', { name: '1 Point' })).toBeInTheDocument()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByRole('option', { name: '1 Point' })).toBeInTheDocument()
+  })
+
+  it('keeps the assignee list open past the first frame it opens in', async () => {
+    const { user, dialog } = await openCreateDialog()
+
+    await user.click(within(dialog).getByRole('button', { name: /assignee/i }))
+    expect(await screen.findByRole('option', { name: /unassigned/i })).toBeInTheDocument()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByRole('option', { name: /unassigned/i })).toBeInTheDocument()
   })
 
   it('lets the user pick several tags at once', async () => {
@@ -153,10 +197,13 @@ describe('creating a task', () => {
 
     // Picking the second must not drop the first. React Aria's default
     // behaviour for a multi-selection list is to replace on a plain click, so
-    // this is asserted on the trigger's own count, not only on the result.
+    // this is asserted on the trigger's own chips, not only on the result.
+    // The kit's MultiSelect renders each selected item as a Tag chip in the
+    // trigger, rather than the app's own MultiSelect's "Label (2)" count.
     expect(screen.getByRole('option', { name: 'React' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('option', { name: 'Rails' })).toHaveAttribute('aria-selected', 'true')
-    expect(tagsTrigger).toHaveTextContent('Label (2)')
+    expect(within(tagsTrigger).getByText('React')).toBeInTheDocument()
+    expect(within(tagsTrigger).getByText('Rails')).toBeInTheDocument()
 
     await user.click(tagsTrigger)
 
@@ -182,6 +229,22 @@ describe('creating a task', () => {
     })
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /task title/i })).toHaveValue('Still here')
+  })
+
+  it('hides the board behind it from assistive tech, same as the delete dialog', async () => {
+    // Was a disclosed kit limitation, now fixed: the kit's Modal previously only
+    // called react-aria's useOverlay + useDialog, never useModal/useModalOverlay,
+    // so it never applied aria-hidden to the rest of the page the way the app's
+    // own Dialog does for DeleteTaskDialog (see update-delete-task.test.tsx's
+    // "reports a failed deletion..." test for that `hidden: true` case). The kit
+    // now uses useModalOverlay, so both dialogs behave the same way here.
+    await openCreateDialog()
+
+    // `hidden: true` because the heading is now outside the accessibility
+    // tree — which is the point of this test — and getByRole excludes
+    // aria-hidden elements by default (see update-delete-task.test.tsx's
+    // "reports a failed deletion..." test for the same pattern).
+    expect(isInaccessible(screen.getByRole('heading', { name: 'Slack', hidden: true }))).toBe(true)
   })
 
   it('starts from a blank form each time it is opened', async () => {
