@@ -197,13 +197,14 @@ describe('creating a task', () => {
 
     // Picking the second must not drop the first. React Aria's default
     // behaviour for a multi-selection list is to replace on a plain click, so
-    // this is asserted on the trigger's own chips, not only on the result.
-    // The kit's MultiSelect renders each selected item as a Tag chip in the
-    // trigger, rather than the app's own MultiSelect's "Label (2)" count.
+    // this is asserted on what the trigger paints, not only on the result.
+    // The kit's MultiSelect shows the selection as the trigger's own
+    // comma-separated value — one string, in the list's order, not the app's
+    // old "Tags (2)" count and not the nested Tag chips the kit rendered while
+    // its trigger was a white field.
     expect(screen.getByRole('option', { name: 'React' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('option', { name: 'Rails' })).toHaveAttribute('aria-selected', 'true')
-    expect(within(tagsTrigger).getByText('React')).toBeInTheDocument()
-    expect(within(tagsTrigger).getByText('Rails')).toBeInTheDocument()
+    expect(tagsTrigger).toHaveTextContent('Rails, React')
 
     await user.click(tagsTrigger)
 
