@@ -94,4 +94,25 @@ describe('TaskFormDialog', () => {
 
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ position: '' }))
   })
+
+  it("offers a delete action when editing, wired to the caller's onDelete", async () => {
+    const onDelete = vi.fn()
+    const { user } = renderDialog({ mode: 'edit', onDelete })
+
+    await user.click(screen.getByRole('button', { name: /delete task/i }))
+
+    expect(onDelete).toHaveBeenCalledTimes(1)
+  })
+
+  it('offers no delete action when creating, even if onDelete is somehow passed', () => {
+    renderDialog({ onDelete: vi.fn() })
+
+    expect(screen.queryByRole('button', { name: /delete task/i })).not.toBeInTheDocument()
+  })
+
+  it('renders no delete action when editing without an onDelete handler', () => {
+    renderDialog({ mode: 'edit' })
+
+    expect(screen.queryByRole('button', { name: /delete task/i })).not.toBeInTheDocument()
+  })
 })

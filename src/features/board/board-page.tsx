@@ -205,6 +205,10 @@ export function BoardPage() {
           mode="edit"
           title={`Edit ${taskUnderAction.name}`}
           submitLabel="Save"
+          onDelete={() => {
+            editDialog.close()
+            deleteDialog.open()
+          }}
           initialFields={{
             name: taskUnderAction.name,
             status: taskUnderAction.status,
@@ -263,10 +267,6 @@ export function BoardPage() {
             onEditTask={(task) => {
               setTaskUnderAction(task)
               editDialog.open()
-            }}
-            onDeleteTask={(task) => {
-              setTaskUnderAction(task)
-              deleteDialog.open()
             }}
           />
         )

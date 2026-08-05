@@ -33,6 +33,13 @@ interface TaskFormDialogProps {
    * with nowhere to send it.
    */
   mode?: 'create' | 'edit'
+  /**
+   * Renders a "Delete task" button when set, edit mode only — creating a task
+   * has nothing to delete yet. Cards no longer carry an options menu now that
+   * they render through the kit's `TaskCard`, so deletion's only trigger left
+   * is here.
+   */
+  onDelete?: () => void
 }
 
 /**
@@ -76,6 +83,7 @@ export function TaskFormDialog({
   submitLabel,
   initialFields,
   mode = 'create',
+  onDelete,
 }: TaskFormDialogProps) {
   const [fields, dispatch] = useReducer(taskFormReducer, initialFields, initialState)
   const [submitState, setSubmitState] = useState<SubmitState>({ status: 'idle' })
@@ -256,19 +264,33 @@ export function TaskFormDialog({
           </p>
         ) : null}
 
-        <div className="flex justify-end gap-6">
-          <Button
-            variant="text"
-            onPress={() => {
-              state.close()
-            }}
-            isDisabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button variant="primary" type="submit" isDisabled={isSubmitting}>
-            {isSubmitting ? 'Saving…' : submitLabel}
-          </Button>
+        <div className="flex justify-between gap-6">
+          {mode === 'edit' && onDelete ? (
+            <Button
+              variant="text"
+              onPress={onDelete}
+              isDisabled={isSubmitting}
+              className="text-danger"
+            >
+              Delete task
+            </Button>
+          ) : (
+            <span />
+          )}
+          <div className="flex gap-6">
+            <Button
+              variant="text"
+              onPress={() => {
+                state.close()
+              }}
+              isDisabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" isDisabled={isSubmitting}>
+              {isSubmitting ? 'Saving…' : submitLabel}
+            </Button>
+          </div>
         </div>
       </form>
     </Modal>
