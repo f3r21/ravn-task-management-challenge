@@ -1,64 +1,32 @@
+import { TaskListView } from '@ravn/ui-kit'
 import { cn } from '@/lib/cn'
 import { statusLabel } from './task-display'
+import { toKitCardProps } from './task-card/to-kit-props'
 import type { Status, Task } from './task-types'
-import { TaskCard, type TaskCardLayout } from './task-card/task-card'
 
 interface BoardColumnProps {
   status: Status
   tasks: Task[]
-  now?: Date
+  now: Date
   className?: string
-  /** How each task is arranged. `row` is the list view; `card` is the board. */
-  itemLayout?: TaskCardLayout
   onEditTask?: (task: Task) => void
-  onDeleteTask?: (task: Task) => void
 }
 
 /**
- * One status column: a heading with its count, then the cards.
- *
- * The count is zero-padded to two digits — "In Progress (03)" — because the
- * design is, and because a fixed-width count stops the heading reflowing every
- * time a task moves in or out.
+ * One status column, wrapped in a landmark the kit's `TaskListView` doesn't
+ * provide on its own (it renders a plain `<div>` with no `section`/region role) —
+ * `aria-label` rather than `aria-labelledby`, since the kit renders its own `<h3>`
+ * internally with no `id` this component can point at.
  */
-export function BoardColumn({
-  status,
-  tasks,
-  now,
-  className,
-  itemLayout = 'card',
-  onEditTask,
-  onDeleteTask,
-}: BoardColumnProps) {
-  const label = statusLabel(status)
-  const count = String(tasks.length).padStart(2, '0')
+export function BoardColumn({ status, tasks, now, className, onEditTask }: BoardColumnProps) {
+  const title = `${statusLabel(status)} (${String(tasks.length).padStart(2, '0')})`
 
   return (
-    <section
-      aria-labelledby={`column-${status}`}
-      className={cn('flex min-w-0 flex-col gap-4', className)}
-    >
-      <h2 id={`column-${status}`} className="text-body-l flex h-8 items-center font-semibold">
-        {label} ({count})
-      </h2>
-
-      {tasks.length === 0 ? (
-        <p className="text-muted text-body-m">No tasks here yet.</p>
-      ) : (
-        <ul className={cn('flex flex-col', itemLayout === 'row' ? 'gap-2' : 'gap-4')}>
-          {tasks.map((task) => (
-            <li key={task.id}>
-              <TaskCard
-                task={task}
-                now={now}
-                layout={itemLayout}
-                onEdit={onEditTask}
-                onDelete={onDeleteTask}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+    <section aria-label={title} className={cn('min-w-0', className)}>
+      <TaskListView
+        title={title}
+        tasks={tasks.map((task) => toKitCardProps(task, now, () => onEditTask?.(task)))}
+      />
     </section>
   )
 }

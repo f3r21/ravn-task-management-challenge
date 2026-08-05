@@ -1,5 +1,8 @@
+import { TaskTable } from '@ravn/ui-kit'
 import { BoardColumn } from './board-column'
 import type { BoardView } from './board-toolbar'
+import { statusLabel } from './task-display'
+import { toKitTableRowProps } from './task-card/to-kit-props'
 import { BOARD_STATUSES, type Status, type Task } from './task-types'
 
 interface BoardProps {
@@ -7,7 +10,6 @@ interface BoardProps {
   view: BoardView
   now?: Date
   onEditTask?: (task: Task) => void
-  onDeleteTask?: (task: Task) => void
 }
 
 /**
@@ -40,30 +42,32 @@ function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
   return grouped
 }
 
-export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps) {
+export function Board({ tasks, view, now, onEditTask }: BoardProps) {
+  // The adapter (`toKitCardProps`/`toKitTableRowProps`) takes a required `Date`,
+  // not an optional one — it's meant to be a pure function with no hidden clock
+  // read of its own, so `Board` resolves "now" once, here, for both branches.
+  const effectiveNow = now ?? new Date()
   const grouped = groupByStatus(tasks)
 
   if (view === 'list') {
+    /*
+     * The list view is not the board stacked — see the grid branch's own comment
+     * for why. The kit's `TaskTable` already groups by section internally (one
+     * bordered `<table>` per group), so this is one component call for the whole
+     * board, not one per status the way the grid branch's columns are.
+     */
     return (
-      /*
-       * The list view is not the board stacked — that is what the board already
-       * does at narrow widths, so a switcher between the two would do nothing on a
-       * phone. Each status becomes a full-width section and each task a single row,
-       * so the fields line up down the page and far more tasks fit on screen.
-       */
-      <div className="flex flex-col gap-8">
-        {BOARD_STATUSES.map((status) => (
-          <BoardColumn
-            key={status}
-            status={status}
-            tasks={grouped.get(status) ?? []}
-            now={now}
-            itemLayout="row"
-            onEditTask={onEditTask}
-            onDeleteTask={onDeleteTask}
-          />
-        ))}
-      </div>
+      <TaskTable
+        groups={BOARD_STATUSES.map((status) => {
+          const tasksInStatus = grouped.get(status) ?? []
+          return {
+            title: `${statusLabel(status)} (${String(tasksInStatus.length).padStart(2, '0')})`,
+            rows: tasksInStatus.map((task, index) =>
+              toKitTableRowProps(task, index + 1, effectiveNow, () => onEditTask?.(task)),
+            ),
+          }
+        })}
+      />
     )
   }
 
@@ -85,10 +89,9 @@ export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps
           key={status}
           status={status}
           tasks={grouped.get(status) ?? []}
-          now={now}
+          now={effectiveNow}
           className="xl:w-87 xl:shrink-0"
           onEditTask={onEditTask}
-          onDeleteTask={onDeleteTask}
         />
       ))}
     </div>
