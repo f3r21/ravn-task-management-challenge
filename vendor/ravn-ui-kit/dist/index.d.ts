@@ -174,20 +174,26 @@ export declare interface Assignee {
  * Figma: "Assignee Modal" COMPONENT inside "Task Column" frame (Task Column01.md L762-1386).
  * A small anchored popover (239×432 for the full 7-row export, height scales with the list here),
  * neutral-3 bg, 1px neutral-2 border, 8px radius — not a centered dialog, so unlike the shared
- * `Modal` shell this has no backdrop/close chrome and no isOpen/onClose: the parent conditionally
- * mounts it, same convention as `DatePickerMenu`. Anatomy is a decorative header label (Figma's
- * "Input text" placeholder style, Desktop/Body/XL/bold, neutral-2) followed by one 56px-tall "User"
- * row (Avatar + name, reusing `UserRow`) per assignee, no selection checkmark and no footer —
- * clicking a row is the assign action (every real "User" row instance renders identically, with
- * no highlighted/selected variant anywhere in the export).
+ * `Modal` shell this has no backdrop/close chrome: the parent conditionally mounts it, same
+ * convention as `DatePickerMenu`. Built on the shared `Popover` primitive (see that file's doc
+ * comment) for real Escape/outside-click dismissal and focus management, previously missing
+ * entirely. Anatomy is a decorative header label (Figma's "Input text" placeholder style,
+ * Desktop/Body/XL/bold, neutral-2) followed by one 56px-tall "User" row (Avatar + name, reusing
+ * `UserRow`) per assignee, no selection checkmark and no footer — clicking a row is the assign
+ * action (every real "User" row instance renders identically, with no highlighted/selected
+ * variant anywhere in the export).
  */
-export declare function AssigneeModal({ assignees, onSelect, className }: AssigneeModalProps): JSX.Element;
+export declare function AssigneeModal({ assignees, onSelect, onClose, triggerRef, className }: AssigneeModalProps): JSX.Element;
 
 export declare interface AssigneeModalProps {
     /** Full list of assignable people shown as rows. */
     assignees: Assignee[];
     /** Called with the assignee of the row the user clicked. */
     onSelect: (assignee: Assignee) => void;
+    /** Called when the popover should close without a selection — Escape or an outside click. */
+    onClose: () => void;
+    /** Ref to the trigger button that opens this popover — see `Popover`'s `triggerRef`. */
+    triggerRef?: PopoverProps['triggerRef'];
     /** Additional class names, merged last via `cn()` so they can override defaults (e.g. absolute positioning). */
     className?: string;
 }
@@ -315,8 +321,26 @@ export declare function Datepicker({ label, error, className, ...props }: Datepi
  *   only captured the layer name "Button" and couldn't distinguish it from actual rendered
  *   text) that the button's real content is literally "Today", matching the "jump to today"
  *   behavior already implemented -- this was a correct guess, now a confirmed fact.
+ *
+ * Accessibility: built on the shared `Popover` primitive (see that file's doc comment) plus
+ * react-stately's `useCalendarState` + react-aria's `useCalendar`/`useCalendarGrid`/
+ * `useCalendarCell` for the day grid — previously a fully hand-rolled 42-individually-tabbed-
+ * button grid with no `role="grid"`/`role="gridcell"` and no arrow-key navigation. The month-nav
+ * chevrons use `useCalendar`'s `prevButtonProps`/`nextButtonProps`; the year-nav chevrons (which
+ * react-aria's calendar hooks have no built-in equivalent for) call
+ * `state.focusPreviousSection(true)`/`focusNextSection(true)` directly, the same "jump by the
+ * next larger unit" primitive `Shift+PageUp`/`Shift+PageDown` use internally.
+ *
+ * One deliberate behavior change from adopting real calendar semantics: lead/trail days from
+ * adjacent months (`isOutsideMonth`) are now non-interactive (not focusable, not selectable) —
+ * react-aria's `useCalendarCell` treats `isOutsideMonth` cells as disabled by design, matching
+ * how most calendar widgets treat context-only adjacent-month days. Previously every one of the
+ * 42 cells was independently clickable/selectable regardless of month; that was never confirmed
+ * against Figma (only the dimmed *styling* of those cells is spec'd), so trading it for
+ * correct, standard grid semantics is a net accessibility improvement, not a regression against
+ * verified spec.
  */
-export declare function DatePickerMenu({ value: controlledValue, defaultValue, onChange, className, }: DatePickerMenuProps): JSX.Element;
+export declare function DatePickerMenu({ value: controlledValue, defaultValue, onChange, onClose, triggerRef, className, }: DatePickerMenuProps): JSX.Element;
 
 export declare interface DatePickerMenuProps {
     /**
@@ -328,6 +352,10 @@ export declare interface DatePickerMenuProps {
     defaultValue?: Date;
     /** Called with the newly selected date when the user clicks a day or the "Today" footer action. */
     onChange?: (date: Date) => void;
+    /** Called when the popover should close without a selection — Escape or an outside click. */
+    onClose: () => void;
+    /** Ref to the trigger button that opens this popover — see `Popover`'s `triggerRef`. */
+    triggerRef?: PopoverProps['triggerRef'];
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
@@ -362,19 +390,25 @@ export declare interface DueDateCellProps {
  *
  * Figma: "Estimate Modal" COMPONENT inside "Task Column" frame (Task Column01.md L1800-2231).
  * A small anchored popover (122×208, neutral-3 bg, 1px neutral-2 border, 8px radius) — not a
- * centered dialog, so unlike the shared `Modal` shell this has no backdrop/close chrome and no
- * isOpen/onClose: the parent conditionally mounts it, same convention as `DatePickerMenu`.
- * Anatomy is a decorative header label (Figma's "Input text" placeholder style, Desktop/Body/XL/bold,
- * neutral-2) followed by 5 point-value rows (icon + label, 4px/16px padding, 4px radius, no
- * background by default) with no footer — clicking a row is the confirm action.
+ * centered dialog, so unlike the shared `Modal` shell this has no backdrop/close chrome: the
+ * parent conditionally mounts it, same convention as `DatePickerMenu`. Built on the shared
+ * `Popover` primitive (see that file's doc comment) for real Escape/outside-click dismissal and
+ * focus management, previously missing entirely. Anatomy is a decorative header label (Figma's
+ * "Input text" placeholder style, Desktop/Body/XL/bold, neutral-2) followed by 5 point-value rows
+ * (icon + label, 4px/16px padding, 4px radius, no background by default) with no footer —
+ * clicking a row is the confirm action.
  */
-export declare function EstimateModal({ value, onSelect, className }: EstimateModalProps): JSX.Element;
+export declare function EstimateModal({ value, onSelect, onClose, triggerRef, className }: EstimateModalProps): JSX.Element;
 
 export declare interface EstimateModalProps {
     /** Currently selected point value, if any — highlights the matching row. */
     value?: number;
     /** Called with the point value of the row the user clicked. */
     onSelect: (points: number) => void;
+    /** Called when the popover should close without a selection — Escape or an outside click. */
+    onClose: () => void;
+    /** Ref to the trigger button that opens this popover — see `Popover`'s `triggerRef`. */
+    triggerRef?: PopoverProps['triggerRef'];
     /** Additional class names, merged last via `cn()` so they can override defaults (e.g. absolute positioning). */
     className?: string;
 }
@@ -470,22 +504,31 @@ export declare interface LabelCheckboxProps {
  * separately captured as their own components. This popover's shell, list layout, and selection
  * behavior are therefore an engineering-only addition, modeled on the real `AssigneeModal` shell
  * for visual consistency with its siblings -- same "kept because genuinely useful and doesn't
- * contradict spec" bar as `Skeleton`/`Datepicker`'s native input.
+ * contradict spec" bar as `Skeleton`/`Datepicker`'s native input. Built on the shared `Popover`
+ * primitive (see that file's doc comment) for real Escape/outside-click dismissal and focus
+ * management, previously missing entirely, same as its `AssigneeModal`/`EstimateModal` siblings.
  */
-export declare function LabelModal({ labels, onSelect, className }: LabelModalProps): JSX.Element;
+export declare function LabelModal({ labels, onSelect, onClose, triggerRef, className }: LabelModalProps): JSX.Element;
 
 export declare interface LabelModalProps {
     /** Full list of selectable labels shown as rows. */
     labels: Label[];
     /** Called with the label of the row the user clicked. */
     onSelect: (label: Label) => void;
+    /** Called when the popover should close without a selection — Escape or an outside click. */
+    onClose: () => void;
+    /** Ref to the trigger button that opens this popover — see `Popover`'s `triggerRef`. */
+    triggerRef?: PopoverProps['triggerRef'];
     /** Additional class names, merged last via `cn()` so they can override defaults (e.g. absolute positioning). */
     className?: string;
 }
 
 /**
  * Modal shell used by all modal variants.
- * Uses react-aria useDialog + useOverlay for accessibility.
+ * Uses react-aria's useModalOverlay (composed of useOverlay + usePreventScroll +
+ * aria-hide) so that, while open, body scroll is locked and everything outside
+ * the dialog is `inert`/`aria-hidden` to assistive tech — not just visually
+ * obscured behind the backdrop.
  */
 export declare function Modal({ title, isOpen, onClose, children, width }: ModalProps): default_2.JSX.Element | null;
 
@@ -503,6 +546,66 @@ export declare interface ModalProps {
      * @default 'max-w-md'
      */
     width?: string;
+}
+
+/**
+ * Popover
+ *
+ * The shared floating-surface shell behind `DatePickerMenu`, `AssigneeModal`,
+ * `EstimateModal`, and `LabelModal` — previously each was an independent
+ * plain `<div>` with no `useOverlay`, `FocusScope`, dismissal, or role at all
+ * (see `MIGRATION_GAPS.md` Section 2). Those four all anchor to a trigger via
+ * plain CSS (`absolute` positioning inside a `relative` wrapper, set by the
+ * caller's `className`), not a portal — so this primitive is built on
+ * react-aria's `useOverlay` + `DismissButton` + `FocusScope` directly rather
+ * than `usePopover` (which adds portalling via `Overlay` and floating-ui-style
+ * anchored positioning neither this kit nor its current consumer needs yet;
+ * see `ravn-task-management-challenge/src/ui/select/popover.tsx` for what
+ * that heavier version looks like when a future headless `Select`/`ListBox`
+ * family — Section 4 — needs real anchor positioning and viewport clipping
+ * escape).
+ *
+ * Non-modal by design: `FocusScope` here moves focus in on open and restores
+ * it on close, but does not `contain` — Tab can move past the popover to the
+ * next element on the page, same as a native `<select>` dropdown. The two
+ * `DismissButton`s are visually-hidden bookend controls so an assistive-tech
+ * user tabbing (or swiping, on a screen reader) past either end of the
+ * content has an explicit way to close the popover, rather than needing to
+ * know Escape or find the trigger again.
+ */
+export declare function Popover({ isOpen, onClose, triggerRef, role, children, className, ...ariaProps }: PopoverProps): default_2.JSX.Element | null;
+
+export declare interface PopoverProps {
+    /** Whether the popover is currently open. When `false`, nothing is rendered. */
+    isOpen: boolean;
+    /** Called when the popover should close — Escape, an outside click, or a `DismissButton`. */
+    onClose: () => void;
+    /**
+     * Ref to the element that toggles this popover open/closed. Clicking it is
+     * excluded from "outside interaction" so a toggle-button trigger doesn't
+     * immediately reopen the popover it just closed (react-aria's outside-click
+     * handling runs in the click event's capture phase, before the trigger's
+     * own `onClick` fires).
+     */
+    triggerRef?: default_2.RefObject<HTMLElement | null>;
+    /**
+     * ARIA role for the popover surface. `'dialog'` fits every current consumer:
+     * `DatePickerMenu` (a calendar grid — `role="grid"` — inside a dialog
+     * popover, the same composition a native date input's popup uses) and the
+     * `Assignee`/`Estimate`/`Label` pick-one-option lists, none of which
+     * implement full `listbox`/`option` semantics (roving tabindex,
+     * `aria-selected`) yet — that's the bigger `ListBox`/`Select` family
+     * tracked separately in `MIGRATION_GAPS.md` Section 4, out of scope here.
+     * `'dialog'` is the honest role for "a floating region with interactive
+     * content and no listbox wiring," not a placeholder for one.
+     * @default 'dialog'
+     */
+    role?: 'dialog';
+    /** Accessible name for the popover surface, read by screen readers on open. */
+    'aria-label'?: string;
+    children: default_2.ReactNode;
+    /** Additional class names controlling the popover surface's position/size/appearance. */
+    className?: string;
 }
 
 /**
@@ -581,6 +684,19 @@ export declare interface SearchBarProps {
  *   `shadow-small` (a `box-shadow`, which always renders behind the full
  *   element box) there would draw a visible phantom rectangle that doesn't
  *   exist in the reference; intentionally omitted.
+ *
+ * Accessibility: this renders `role="radio"` pill `<button>`s, so per WAI-ARIA
+ * they must be contained by `role="radiogroup"` (not `role="group"`, the
+ * previous — invalid — wrapper role). Navigation is hand-implemented (roving
+ * tabindex + arrow keys) rather than via react-aria's `useRadio`/`useRadioGroup`:
+ * those hooks return `inputProps` for a real `<input type="radio">` element
+ * (native radio inputs are how they get keyboard/arrow-key behavior for free),
+ * which doesn't fit this component's single-`<button>`-per-segment pill shape
+ * without swapping in a hidden-native-input + `<label>` structure — a
+ * disruptive rewrite of the visual design for a control this small. The
+ * arrow-key/roving-tabindex behavior below follows the same WAI-ARIA APG
+ * radiogroup pattern those hooks implement (selection follows focus, one
+ * tab stop for the whole group).
  */
 export declare function SegmentedControl({ options, value: controlledValue, defaultValue, onChange, className, }: SegmentedControlProps): default_2.JSX.Element;
 
@@ -710,14 +826,15 @@ export declare interface TabItem {
  * per-tab indicator strip is real) and has been removed.
  *
  * @remarks
- * This is a hand-rolled `role="tablist"`/`role="tab"`/`role="tabpanel"`
- * implementation with click-based selection only — it does not use
- * react-aria's `useTabListState`/`useTabList`/`useTab`/`useTabPanel` hooks
- * and does not yet support the WAI-ARIA APG's arrow-key tab navigation.
- * Tracked as a follow-up accessibility improvement, not a Figma-fidelity
- * issue.
+ * Uses react-stately's `useTabListState` + react-aria's
+ * `useTabList`/`useTab`/`useTabPanel` for `role="tablist"`/`role="tab"`/
+ * `role="tabpanel"` wiring, which gets WAI-ARIA APG arrow-key navigation
+ * (Left/Right, Home/End) and roving tabindex for free — matching how
+ * `Input`/`Datepicker`/`SearchBar` already lean on react-aria hooks rather
+ * than hand-rolled ARIA. Previously this was a hand-rolled, click-only
+ * implementation with no arrow-key support.
  */
-export declare function Tabs({ items, panels, defaultSelectedKey, selectedKey: controlledKey, onSelectionChange, className, }: TabsProps): default_2.JSX.Element;
+export declare function Tabs({ items, panels, defaultSelectedKey, selectedKey, onSelectionChange, className, }: TabsProps): default_2.JSX.Element;
 
 export declare interface TabsProps {
     /** Tab item definitions */
@@ -1103,8 +1220,12 @@ export declare interface TopNavProps {
     className?: string;
 }
 
-/** Convenience hook for uncontrolled modal open/close state */
-export declare function useModal(defaultOpen?: boolean): {
+/**
+ * Convenience hook for uncontrolled modal open/close state.
+ * Named `useModalState` (not `useModal`) to avoid shadowing react-aria's own
+ * `useModal` hook now that `useModalOverlay` (which composes it) is used above.
+ */
+export declare function useModalState(defaultOpen?: boolean): {
     isOpen: boolean;
     open: () => void;
     close: () => void;
