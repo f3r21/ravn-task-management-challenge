@@ -1,11 +1,9 @@
 import { useId, useReducer, useRef, useState } from 'react'
 import { Item, type OverlayTriggerState } from 'react-stately'
-import { Modal } from '@ravn/ui-kit'
+import { Modal, MultiSelect, Select } from '@ravn/ui-kit'
 import { toDateInputValue } from '@/lib/due-date'
 import { Button } from '@/ui/button/button'
 import { AssigneeIcon, CalendarIcon, LabelIcon, PointsIcon } from '@/ui/icons/icons'
-import { MultiSelect } from '@/ui/select/multi-select'
-import { Select } from '@/ui/select/select'
 import { pointsLabel, statusLabel, tagLabel } from './task-display'
 import { taskFormReducer, validateTaskForm, type TaskFormFields } from './task-form-state'
 import {
@@ -183,16 +181,20 @@ export function TaskFormDialog({
             )}
           </Select>
 
-          <MultiSelect
+          <MultiSelect<{ id: TaskTag }>
             label="Tags"
             placeholder="Label"
             icon={<LabelIcon className="size-6 shrink-0" />}
-            options={ALL_TAGS.map((tag) => ({ id: tag, label: tagLabel(tag) }))}
+            items={ALL_TAGS.map((id) => ({ id }))}
             selectedKeys={fields.tags}
             onSelectionChange={(keys) => {
-              dispatch({ type: 'set-tags', tags: keys as TaskTag[] })
+              const tags: TaskTag[] =
+                keys === 'all' ? [...ALL_TAGS] : ([...keys].map(String) as TaskTag[])
+              dispatch({ type: 'set-tags', tags })
             }}
-          />
+          >
+            {(item) => <Item key={item.id}>{tagLabel(item.id)}</Item>}
+          </MultiSelect>
 
           <Select<{ id: string }>
             label="Status"
