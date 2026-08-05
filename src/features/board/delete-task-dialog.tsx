@@ -23,8 +23,11 @@ interface DeleteTaskDialogProps {
  *
  * Stays on the app's own `Dialog`, permanently, not as a TODO: `@ravn/ui-kit`'s
  * `Modal` has no `role` prop, so it cannot produce `alertdialog` naming and has
- * no substitute for it. See `UI_KIT_MIGRATION_PLAN.md` for why `TaskFormDialog`
- * stayed on this same `Dialog` too, for an unrelated reason.
+ * no substitute for it. `TaskFormDialog` used to stay on this same `Dialog` for
+ * an unrelated reason (a cross-module `FocusScope` bug in the kit's `Modal`,
+ * since fixed upstream) — see `UI_KIT_MIGRATION_PLAN.md`'s Phase 1 retry
+ * writeup. It has since migrated; this dialog stays on the app's own `Dialog`
+ * permanently, on the `role`/`alertdialog` grounds above.
  */
 export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false)
