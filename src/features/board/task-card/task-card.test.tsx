@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { makeTask, makeUser } from '@/mocks/task-fixtures'
-import { renderWithProviders } from '@/test/test-utils'
+import { renderWithProviders, userEvent } from '@/test/test-utils'
 import { TaskCard } from './task-card'
 
 const now = new Date('2026-08-02T12:00:00.000Z')
@@ -90,5 +90,27 @@ describe('TaskCard', () => {
     const card = within(container).getByRole('article')
 
     expect(card.querySelector('[aria-hidden="true"]')).toBeInTheDocument()
+  })
+
+  it('keeps the delete option type-selectable despite its text being wrapped', async () => {
+    // The Delete item's label is wrapped in a <span> so it can be coloured as a
+    // destructive action, which costs it the `textValue` that plain-string
+    // children supply for free — react-stately derives typeahead and the
+    // accessible name from that, and warns when it cannot. An explicit
+    // `textValue` restores both.
+    //
+    // Asserting on the warning rather than on typeahead itself is deliberate:
+    // react-aria's typeahead is timer-driven and does not settle reliably in
+    // jsdom, so a keystroke-based test here would be flaky. The warning fires
+    // synchronously at collection-build time and is exact. Real typeahead was
+    // confirmed separately in a browser.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const user = userEvent.setup()
+    renderWithProviders(<TaskCard task={makeTask({ name: 'Slack' })} now={now} />)
+
+    await user.click(screen.getByRole('button', { name: 'Task options for Slack' }))
+
+    expect(await screen.findByRole('menuitem', { name: 'Delete' })).toBeInTheDocument()
+    expect(warn.mock.calls.flat().join('\n')).not.toMatch(/textValue/i)
   })
 })

@@ -197,10 +197,13 @@ describe('creating a task', () => {
 
     // Picking the second must not drop the first. React Aria's default
     // behaviour for a multi-selection list is to replace on a plain click, so
-    // this is asserted on the trigger's own count, not only on the result.
+    // this is asserted on the trigger's own chips, not only on the result.
+    // The kit's MultiSelect renders each selected item as a Tag chip in the
+    // trigger, rather than the app's own MultiSelect's "Label (2)" count.
     expect(screen.getByRole('option', { name: 'React' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('option', { name: 'Rails' })).toHaveAttribute('aria-selected', 'true')
-    expect(tagsTrigger).toHaveTextContent('Label (2)')
+    expect(within(tagsTrigger).getByText('React')).toBeInTheDocument()
+    expect(within(tagsTrigger).getByText('Rails')).toBeInTheDocument()
 
     await user.click(tagsTrigger)
 
@@ -228,19 +231,20 @@ describe('creating a task', () => {
     expect(screen.getByRole('textbox', { name: /task title/i })).toHaveValue('Still here')
   })
 
-  it('does not hide the board behind it from assistive tech, unlike the delete dialog', async () => {
-    // A disclosed kit limitation, not a regression: the kit's Modal only calls
-    // react-aria's useOverlay + useDialog, never useModal/useModalOverlay, so it
-    // never applies aria-hidden to the rest of the page the way the app's own
-    // Dialog does for DeleteTaskDialog (see update-delete-task.test.tsx's "reports
-    // a failed deletion..." test for the contrasting `hidden: true` case). Keyboard
-    // Tab containment still works; a screen-reader user browsing outside Tab order
-    // can still reach the board behind this dialog. Pinned here so a future kit fix
-    // (or regression) changes this test's result rather than passing silently
-    // either way.
+  it('hides the board behind it from assistive tech, same as the delete dialog', async () => {
+    // Was a disclosed kit limitation, now fixed: the kit's Modal previously only
+    // called react-aria's useOverlay + useDialog, never useModal/useModalOverlay,
+    // so it never applied aria-hidden to the rest of the page the way the app's
+    // own Dialog does for DeleteTaskDialog (see update-delete-task.test.tsx's
+    // "reports a failed deletion..." test for that `hidden: true` case). The kit
+    // now uses useModalOverlay, so both dialogs behave the same way here.
     await openCreateDialog()
 
-    expect(isInaccessible(screen.getByRole('heading', { name: 'Slack' }))).toBe(false)
+    // `hidden: true` because the heading is now outside the accessibility
+    // tree — which is the point of this test — and getByRole excludes
+    // aria-hidden elements by default (see update-delete-task.test.tsx's
+    // "reports a failed deletion..." test for the same pattern).
+    expect(isInaccessible(screen.getByRole('heading', { name: 'Slack', hidden: true }))).toBe(true)
   })
 
   it('starts from a blank form each time it is opened', async () => {

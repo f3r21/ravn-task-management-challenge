@@ -19,6 +19,13 @@ export default tseslint.config(
       'src/graphql/generated',
       // Shipped verbatim by `msw init`.
       'public/mockServiceWorker.js',
+      // A git worktree checked out inside the repo is a second, complete copy of
+      // this source tree. `.git/info/exclude` hides it from git, but ESLint and
+      // Prettier do not read that file — only `.gitignore` and their own ignore
+      // lists — so without this both would lint another branch's code as if it
+      // were this one's. See the matching entries in `.prettierignore` and
+      // `vite.config.ts`.
+      '.worktrees',
     ],
   },
   js.configs.recommended,
