@@ -1,7 +1,19 @@
 /*
- * Base styles built on @ravn/ui-kit's token layer (imported separately at the
- * app entry point). This file defines no tokens of its own — see
- * @ravn/ui-kit's theme.css for the color, radius and text token vocabulary.
+ * This is the app's own Tailwind entry point — `@ravn/ui-kit` ships only its
+ * raw tokens via `theme.css` (no compiled utilities), so this file's own
+ * `@tailwindcss/vite` build (see vite.config.ts) is what actually generates
+ * every utility class the app uses. Without the `@source` line below,
+ * `node_modules` is excluded from Tailwind's automatic scanning, so classes
+ * the kit's own compiled components rely on (baked into its `dist/index.js`
+ * as class-name string literals) would silently never be generated.
+ */
+@import 'tailwindcss';
+@import '@ravn/ui-kit/theme.css';
+@source "../../node_modules/@ravn/ui-kit/dist";
+
+/*
+ * This file defines no tokens of its own — see @ravn/ui-kit's theme.css for
+ * the color, radius and text token vocabulary.
  */
 
 /*

@@ -3659,36 +3659,46 @@ const ne = [
   { key: "dueDate", label: "Due Date" }
 ];
 function Yr({ groups: e, isLoading: r = !1, className: o }) {
-  return /* @__PURE__ */ t("div", { className: b("w-full overflow-x-auto", o), children: /* @__PURE__ */ d("div", { className: "flex flex-col gap-4 min-w-[1108px]", children: [
-    /* @__PURE__ */ t("div", { className: "flex", children: ne.map(({ key: n, label: s }, l) => /* @__PURE__ */ t(
-      "div",
-      {
-        className: b(
-          E,
-          "px-4",
-          l === 0 && "border-l rounded-l-4",
-          l === ne.length - 1 && "rounded-r-4"
-        ),
-        style: { width: D[n] },
-        children: /* @__PURE__ */ t("span", { className: J, children: s })
-      },
-      n
-    )) }),
-    r ? /* @__PURE__ */ d("table", { className: "border-collapse table-fixed", children: [
-      /* @__PURE__ */ t("colgroup", { children: ne.map(({ key: n }) => /* @__PURE__ */ t("col", { style: { width: D[n] } }, n)) }),
-      /* @__PURE__ */ t("tbody", { children: Array.from({ length: 5 }).map((n, s) => /* @__PURE__ */ t(xr, {}, s)) })
-    ] }) : e.length === 0 ? /* @__PURE__ */ t("div", { className: "flex items-center justify-center py-16 text-muted font-sans text-sm", children: "No tasks yet." }) : e.map((n, s) => /* @__PURE__ */ d("table", { className: "border-collapse table-fixed", children: [
-      /* @__PURE__ */ t("colgroup", { children: ne.map(({ key: l }) => /* @__PURE__ */ t("col", { style: { width: D[l] } }, l)) }),
-      /* @__PURE__ */ d("tbody", { children: [
-        /* @__PURE__ */ t("tr", { children: /* @__PURE__ */ t("td", { colSpan: ne.length, className: "p-0 border border-neutral-3", children: /* @__PURE__ */ d("div", { className: "flex items-center gap-2 h-14 px-4 bg-surface-panel rounded-t-4", children: [
-          /* @__PURE__ */ t(cr, { className: "w-6 h-6 shrink-0 text-muted" }),
-          /* @__PURE__ */ t("h3", { className: "flex-1 min-w-0 truncate text-body-l font-semibold text-main font-sans", children: n.title }),
-          n.actions
-        ] }) }) }),
-        n.rows.map((l, i) => /* @__PURE__ */ t(gr, { ...l }, i))
+  return /* @__PURE__ */ t(
+    "div",
+    {
+      className: b(
+        "w-full overflow-x-auto",
+        "[scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-3 [&::-webkit-scrollbar-thumb]:rounded-full",
+        o
+      ),
+      children: /* @__PURE__ */ d("div", { className: "flex flex-col gap-4 min-w-[1108px]", children: [
+        /* @__PURE__ */ t("div", { className: "flex", children: ne.map(({ key: n, label: s }, l) => /* @__PURE__ */ t(
+          "div",
+          {
+            className: b(
+              E,
+              "px-4",
+              l === 0 && "border-l rounded-l-4",
+              l === ne.length - 1 && "rounded-r-4"
+            ),
+            style: { width: D[n] },
+            children: /* @__PURE__ */ t("span", { className: J, children: s })
+          },
+          n
+        )) }),
+        r ? /* @__PURE__ */ d("table", { className: "border-collapse table-fixed", children: [
+          /* @__PURE__ */ t("colgroup", { children: ne.map(({ key: n }) => /* @__PURE__ */ t("col", { style: { width: D[n] } }, n)) }),
+          /* @__PURE__ */ t("tbody", { children: Array.from({ length: 5 }).map((n, s) => /* @__PURE__ */ t(xr, {}, s)) })
+        ] }) : e.length === 0 ? /* @__PURE__ */ t("div", { className: "flex items-center justify-center py-16 text-muted font-sans text-sm", children: "No tasks yet." }) : e.map((n, s) => /* @__PURE__ */ d("table", { className: "border-collapse table-fixed", children: [
+          /* @__PURE__ */ t("colgroup", { children: ne.map(({ key: l }) => /* @__PURE__ */ t("col", { style: { width: D[l] } }, l)) }),
+          /* @__PURE__ */ d("tbody", { children: [
+            /* @__PURE__ */ t("tr", { children: /* @__PURE__ */ t("td", { colSpan: ne.length, className: "p-0 border border-neutral-3", children: /* @__PURE__ */ d("div", { className: "flex items-center gap-2 h-14 px-4 bg-surface-panel rounded-t-4", children: [
+              /* @__PURE__ */ t(cr, { className: "w-6 h-6 shrink-0 text-muted" }),
+              /* @__PURE__ */ t("h3", { className: "flex-1 min-w-0 truncate text-body-l font-semibold text-main font-sans", children: n.title }),
+              n.actions
+            ] }) }) }),
+            n.rows.map((l, i) => /* @__PURE__ */ t(gr, { ...l }, i))
+          ] })
+        ] }, s))
       ] })
-    ] }, s))
-  ] }) });
+    }
+  );
 }
 function Hr({ title: e, isOpen: r, onClose: o, children: n, width: s = "max-w-md" }) {
   const l = X(null), i = X(null), { overlayProps: a, underlayProps: p } = nt(
@@ -3900,7 +3910,7 @@ function Lr({ value: e, onSelect: r, className: o }) {
         o
       ),
       children: [
-        /* @__PURE__ */ t("div", { className: "flex items-center h-8 px-4", children: /* @__PURE__ */ t("span", { className: "text-body-xl font-semibold text-muted font-sans truncate", children: "Estimate" }) }),
+        /* @__PURE__ */ t("div", { className: "flex items-center h-8 px-4", children: /* @__PURE__ */ t("span", { className: "text-body-xl font-semibold text-muted font-sans whitespace-nowrap", children: "Estimate" }) }),
         zr.map((n) => /* @__PURE__ */ d(
           "button",
           {
@@ -3913,9 +3923,11 @@ function Lr({ value: e, onSelect: r, className: o }) {
             ),
             children: [
               /* @__PURE__ */ t("span", { className: "w-6 h-6 shrink-0", children: /* @__PURE__ */ t(Sr, {}) }),
-              n,
-              " Point",
-              n !== 1 ? "s" : ""
+              /* @__PURE__ */ d("span", { className: "whitespace-nowrap", children: [
+                n,
+                " Point",
+                n !== 1 ? "s" : ""
+              ] })
             ]
           },
           n

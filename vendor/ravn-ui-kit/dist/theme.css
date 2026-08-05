@@ -1,0 +1,182 @@
+@theme {
+  /* Neutral Ramp */
+  --color-neutral-1: #ffffff;
+  --color-neutral-2: #94979a;
+  --color-neutral-3: #393d41;
+  --color-neutral-4: #2c2f33;
+  --color-neutral-5: #222528;
+
+  /* Primary Ramp */
+  --color-primary-1: #f4ccc8;
+  --color-primary-2: #eba59e;
+  --color-primary-3: #e27d73;
+  --color-primary-4: #da584b;
+
+  /* Secondary Ramp */
+  --color-secondary-1: #c8e1bc;
+  --color-secondary-2: #aad199;
+  --color-secondary-3: #8dc275;
+  --color-secondary-4: #70b252;
+
+  /* Tertiary Ramp */
+  --color-tertiary-1: #f9eed7;
+  --color-tertiary-2: #f2daab;
+  --color-tertiary-3: #ebc77f;
+  --color-tertiary-4: #e5b454;
+
+  /* Success Ramp */
+  --color-success-1: #f6ffed;
+  --color-success-2: #d9f7be;
+  --color-success-3: #a5e46c;
+  --color-success-4: #80da5b;
+
+  /* Warning Ramp */
+  --color-warning-1: #fff8f3;
+  --color-warning-2: #ffdbc7;
+  --color-warning-3: #ffb388;
+  --color-warning-4: #ff9a61;
+  --color-warning-5: #fe833d;
+  --color-warning-6: #8e4f0b;
+
+  /* Danger Ramp */
+  --color-danger-1: #fff1f0;
+  --color-danger-2: #ffdedb;
+  --color-danger-3: #ffa19e;
+  --color-danger-4: #ff7875;
+  --color-danger-5: #e82f39;
+  --color-danger-6: #a8071a;
+
+  /* Transparent Overlays */
+  --color-transparent-light-10: rgba(239, 240, 246, 0.1);
+  --color-transparent-light-25: rgba(239, 240, 246, 0.25);
+  --color-transparent-light-40: rgba(239, 240, 246, 0.4);
+  --color-transparent-light-65: rgba(239, 240, 246, 0.65);
+  --color-transparent-light-75: rgba(239, 240, 246, 0.75);
+  --color-transparent-light-95: rgba(239, 240, 246, 0.95);
+
+  --color-transparent-dark-10: rgba(20, 20, 43, 0.1);
+  --color-transparent-dark-25: rgba(20, 20, 43, 0.25);
+  --color-transparent-dark-40: rgba(20, 20, 43, 0.4);
+  --color-transparent-dark-65: rgba(20, 20, 43, 0.65);
+  --color-transparent-dark-75: rgba(20, 20, 43, 0.75);
+  --color-transparent-dark-95: rgba(20, 20, 43, 0.95);
+
+  /* Standalone accent - Tags "Blue" type only, not part of any core ramp
+     (Components/Tags00.md, Tags01.md) */
+  --color-blue: #2f61bf;
+
+  /* Semantic aliases - role-based names over the raw ramps above, added so
+     components can express intent (e.g. "this is muted text") instead of a
+     ramp position. Every value aliases an already-verified token above, no
+     new hex introduced. Named as bare nouns (not e.g. `--color-text-main`)
+     because Tailwind v4 generates `{property}-{token-name}` utilities -
+     prefixing the name with the property would double up (`text-text-main`)
+     instead of the intended `text-main`. */
+  --color-main: var(--color-neutral-1); /* primary readable text on the dark shell */
+  --color-muted: var(--color-neutral-2); /* secondary/de-emphasized text, placeholders */
+  --color-interactive: var(--color-primary-4); /* active/interactive text & icons */
+  --color-danger: var(--color-danger-5); /* error/validation text */
+  --color-surface-neutral: var(--color-neutral-1); /* light input/card background */
+  --color-subtle: var(--color-neutral-2); /* default hairline border */
+  /* Note: --color-muted and --color-subtle both alias neutral-2 on purpose -
+     same ramp step, different role depending on which property consumes it. */
+
+  /* Dark-surface-hierarchy aliases (Chunk 29) - one per ramp step, for the single
+     most consistent role each actually plays across 3+ real consumers. Named as
+     part of the same surface-* family as --color-surface-neutral above, at
+     different depth tiers, rather than a bare `--color-surface` that would read
+     confusingly next to `surface-neutral`. Each ramp step also plays other,
+     genuinely inconsistent roles (hover/selected backgrounds, borders, disabled
+     text, body text) that are deliberately NOT aliased here - forcing them into
+     one name would misrepresent roles that don't actually share a common intent;
+     see colors.mdx for the full list of what's intentionally left un-aliased. */
+  --color-surface-overlay: var(--color-neutral-3); /* floating popover/dialog/modal backgrounds */
+  --color-surface-panel: var(--color-neutral-4); /* card/container/panel backgrounds */
+  --color-surface-shell: var(--color-neutral-5); /* outermost app-shell / deepest dropdown backgrounds */
+
+  /* Typography Families */
+  /* Re-verified directly against UI Guidelines/Branding. Desktop.md: every
+     "Desktop/Display/*" and "Desktop/Body/*" layer (the real component type
+     scale) renders in SF Pro Display. DM Sans only appears on the unrelated
+     "Body/xL/..." specimen labels inside that file's own "Documentation"
+     section (the Key=Value showcase text describing the scale) - it never
+     appears on a real Desktop/* component style, so no separate display
+     family is needed. */
+  --font-sans: 'SF Pro Display', system-ui, sans-serif;
+
+  /* Border Radii */
+  /* sm/md/lg re-verified directly against ground truth: sm=8px (Button,
+     Switch Button00/01.md icon buttons), md=16px (Top Navigation Bar00/01.md
+     search bar), lg=24px (ApplicationSidebar00/01.md inner sidebar). */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+  /* --radius-xl (40px) removed in Chunk 15: it was UNVERIFIED as a real distinct
+     radius from the start (Chunk 1) - its only ground-truth occurrence is a
+     40x40px button with border-radius:40px, i.e. a circle (radius = half of
+     width/height), which is `rounded-full`, not a standalone 40px token. Its 3
+     flagged consumers are now all resolved without it: project-info.tsx and
+     task-column.tsx in Chunks 11/14 (the latter deleted outright), task-table.tsx
+     in Chunk 15 (rebuilt around the real `--radius-4` header/group-header corners
+     instead). Zero remaining consumers - same fabricated-token precedent as
+     --radius-20's removal in Chunk 14. */
+
+  /* Added via Chunk 1 ground-truth audit - values confirmed present in real
+     component specs but missing from the sm/md/lg/xl ladder above (they
+     don't fit that scale numerically, so kept as bare numeric tokens rather
+     than forcing an artificial t-shirt name): */
+  --radius-2: 2px; /* Datepicker.md day-grid cell (24x24px cells) */
+  --radius-4: 4px; /* Tags00/01.md chips/pills; Task Column tag chips (most common radius in the kit) */
+  --radius-10: 10px; /* Button, Switch Button00/01.md segmented-control track */
+  /* --radius-20 removed in Chunk 14: its only sources (Task Column00/02/03.md,
+     ApplicationSidebar00.md "outer container frame") turned out to be the same
+     reused 1470x1818 neutral.5 documentation-page canvas template that backs
+     nearly every Components/*.md export (confirmed via a cross-file "utils/
+     frameHeader" grep) - never a real shipped component, and not even
+     internally consistent (Datepicker.md's copy of the same canvas uses
+     border-radius: 0px). See task-list-view.tsx for the real "Task List
+     View"/"Project Info" shape this token was fabricated to support. */
+
+  /* Shadows */
+  /* Only tokenizing shadows confirmed used on a real component - "Drop
+     Shadow Large" (0 0 72px) only ever appears on the Branding guideline
+     documentation page frame itself, never on a product component, so it is
+     intentionally NOT tokenized here. */
+  --shadow-small: 0px 0px 16px rgba(0, 0, 0, 0.04); /* Button, Switch Button00/01.md - segmented-control active pill */
+  --shadow-elevation: 0px 9px 28px 8px rgba(0, 0, 0, 0.05), 0px 6px 16px rgba(0, 0, 0, 0.08), 0px 3px 6px -4px rgba(0, 0, 0, 0.12); /* Datepicker.md dropdown */
+  --shadow-nav: 0px 2px 0px #2c2f33; /* Top Navigation Bar00.md hard-edge separator */
+
+  /* Type scale - consolidated from the values already in use across
+     components (not Figma's Branding-spec Desktop/Display+Body ladder,
+     which isn't linked in this repo yet); each tuple below matches an
+     existing, already-shipped call site exactly, no invented values. Weight
+     stays a separate font-normal/font-semibold utility applied alongside the
+     size token, since e.g. body-m is used at both weights in real code. */
+  --text-body-m: 15px; /* text-button, reactions, task-card, task-table, add-task-modal, estimate-modal, sidebar-item, label-checkbox, tag, search-bar, user-row (Desktop/Body/M) */
+  --text-body-m--line-height: 1.5rem;
+  --text-body-m--letter-spacing: 0.05em;
+
+  --text-body-l: 18px; /* project-info, task-table (Desktop/Body/L/bold) */
+  --text-body-l--line-height: 2rem;
+  --text-body-l--letter-spacing: 0.75px;
+
+  --text-body-xl: 20px; /* add-task-modal, assignee-modal, estimate-modal (Desktop/Body/XL/bold) */
+  --text-body-xl--line-height: 2rem;
+  --text-body-xl--letter-spacing: 0.75px;
+
+  --text-body-sm: 14px; /* datepicker-menu - code-consolidated only, no documented Figma name */
+  --text-body-sm--line-height: 22px;
+
+  --text-field-label: 12px; /* input, datepicker uppercase field labels - code-consolidated only */
+  --text-field-label--line-height: 1rem;
+  --text-field-label--letter-spacing: 0.05em;
+
+  --text-tab-label: 13px; /* tabs (Android/Body/S/regular) */
+  --text-tab-label--line-height: 1.25rem;
+  --text-tab-label--letter-spacing: 0.25px;
+
+  --text-control-label: 13px; /* segmented-control (iOS/Subheadline/S/regular) */
+  --text-control-label--line-height: 13px;
+  --text-control-label--letter-spacing: 1px;
+}
