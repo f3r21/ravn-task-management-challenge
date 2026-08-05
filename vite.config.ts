@@ -13,14 +13,22 @@ export default defineConfig({
     // own `node_modules` — Node resolves `react`/`react-dom` from *that* copy before
     // walking up to this project's, so any hook a kit component calls throws
     // "Invalid hook call" (two React instances, two dispatchers). `dedupe` forces
-    // both import graphs onto this project's single copy of each. Not needed yet —
-    // nothing currently renders a kit component that calls a hook — but it will be
-    // the moment Phase 2+ does, so it's here ahead of that rather than after the
-    // first confusing crash. `react-aria`/`react-stately` do NOT need an entry here:
-    // the kit's build bundles their source directly into `dist/index.js` rather than
-    // importing them (see `UI_KIT_MIGRATION_PLAN.md`'s Phase 1 writeup) — there is no
-    // bare specifier for `dedupe` to redirect.
-    dedupe: ['react', 'react-dom'],
+    // both import graphs onto this project's single copy of each.
+    //
+    // `react-aria`/`react-stately` need an entry here too, now that `@ravn/ui-kit`'s
+    // build imports them as bare specifiers instead of bundling their source (see
+    // `UI_KIT_MIGRATION_PLAN.md`'s Phase 1 retry writeup). The kit's own
+    // `package.json` lists both as peerDependencies *and* devDependencies — the
+    // devDependency copy is not a mistake to chase upstream, it's what the kit's own
+    // Storybook/vitest run against — so `node_modules/@ravn/ui-kit/node_modules/react-aria`
+    // genuinely exists and is a second, physically distinct installed copy at the
+    // same version as this project's own. Same shape of problem as `react`/`react-dom`
+    // above, one layer removed: a duplicate *installed* copy rather than duplicated
+    // bundled source. Without this entry, React Aria's `FocusScope` context
+    // (module-scoped) exists twice, and a `FocusScope` rendered by one of this app's
+    // own components (e.g. `Select`'s popover) can never be recognised as nested
+    // inside a `FocusScope` the kit's `Modal` renders.
+    dedupe: ['react', 'react-dom', 'react-aria', 'react-stately'],
   },
   test: {
     globals: true,
