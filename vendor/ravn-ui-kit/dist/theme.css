@@ -73,13 +73,48 @@
      prefixing the name with the property would double up (`text-text-main`)
      instead of the intended `text-main`. */
   --color-main: var(--color-neutral-1); /* primary readable text on the dark shell */
-  --color-muted: var(--color-neutral-2); /* secondary/de-emphasized text, placeholders */
-  --color-interactive: var(--color-primary-4); /* active/interactive text & icons */
-  --color-danger: var(--color-danger-5); /* error/validation text */
+  --color-muted: var(--color-neutral-2); /* secondary/de-emphasized text on DARK surfaces */
+  --color-interactive: var(--color-primary-4); /* active/interactive FILLS and borders, not text */
+  --color-danger: var(--color-danger-5); /* error/validation borders, not text */
   --color-surface-neutral: var(--color-neutral-1); /* light input/card background */
   --color-subtle: var(--color-neutral-2); /* default hairline border */
   /* Note: --color-muted and --color-subtle both alias neutral-2 on purpose -
      same ramp step, different role depending on which property consumes it. */
+
+  /* Contrast-safe text roles (Phase 1 follow-up).
+
+     Three aliases above are safe for *some* properties and not others, which is
+     what produced a set of WCAG AA failures across the form surface. Each is
+     annotated with what it must not be used for, and these three exist so a call
+     site can reach for a role rather than remember the caveat:
+
+     --color-muted is fine on the three dark surfaces (4.58:1 on neutral-4,
+     5.25:1 on neutral-5) but measures 2.94:1 inside a light field, so
+     placeholders and unselected values on --color-surface-neutral use
+     --color-muted-on-light instead. transparent-dark-65 composites over white to
+     roughly #666675 = 5.64:1, and it is a real palette token rather than an
+     invented grey - the neutral ramp has no step between #94979A (too light) and
+     #393D41 (as dark as the value text it must be distinguishable from).
+
+     --color-interactive (primary-4) is a fill and border colour. As *text* it
+     fails on every dark surface: 2.86:1 on an overlay, 3.51:1 on a panel,
+     4.02:1 on the shell. --color-interactive-text steps two rungs up the ramp to
+     clear AA on all three (5.43 / 6.67 / 7.64:1). Borders and focus rings need
+     only 3:1 and keep using primary-4.
+
+     --color-danger (danger-5) is likewise a border colour: 3.59:1 on the shell,
+     2.55:1 on an overlay. Error *text* uses --color-danger-text. */
+  --color-muted-on-light: var(--color-transparent-dark-65);
+  --color-muted-on-dark: var(--color-transparent-light-65);
+  --color-interactive-text: var(--color-primary-2);
+  --color-danger-text: var(--color-danger-3);
+  /* --color-muted-on-dark exists because --color-muted is not safe on *every* dark
+     surface, only most of them: neutral-2 measures 5.25:1 on the shell and 4.58:1 on
+     a panel, but 3.73:1 on surface-overlay - the modal card and popover, which is
+     exactly where a form is most likely to appear. transparent-light-65 composites
+     against whatever it sits on, so it clears AA on all three (6.55 / 6.27 / 5.11:1).
+     Use --color-muted for secondary text that is known to sit on the shell or a panel;
+     use this where the surface is not known, or is an overlay. */
 
   /* Dark-surface-hierarchy aliases (Chunk 29) - one per ramp step, for the single
      most consistent role each actually plays across 3+ real consumers. Named as
