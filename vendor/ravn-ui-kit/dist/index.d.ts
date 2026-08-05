@@ -1,4 +1,5 @@
 import { AriaButtonProps } from 'react-aria';
+import { AriaFieldProps } from 'react-aria';
 import { AriaListBoxOptions } from 'react-aria';
 import { AriaMenuProps } from 'react-aria';
 import { AriaPopoverProps } from 'react-aria';
@@ -12,6 +13,73 @@ import { ListState } from 'react-stately';
 import { OverlayTriggerState } from 'react-stately';
 import { ReactNode } from 'react';
 import { SVGProps } from 'react';
+
+/**
+ * The kit's shared colour vocabularies.
+ *
+ * ## The problem this fixes
+ *
+ * Four small colour-ish string unions had grown up independently, and two of them used
+ * the *same words* for different things:
+ *
+ * | Component(s)                                   | Union                                                     |
+ * | ---------------------------------------------- | --------------------------------------------------------- |
+ * | `Button` / `TextButton`                        | `'primary' \| 'secondary'`                                 |
+ * | `Tag` / `TaskCard.tags` / `TaskTableRow.tags`  | `'primary' \| 'secondary' \| 'tertiary' \| 'neutral' \| 'blue'` |
+ * | `Badge`                                        | `'neutral' \| 'success' \| 'warning' \| 'danger'`          |
+ * | due-date urgency                               | `'normal' \| 'warning' \| 'overdue'`                       |
+ *
+ * `variant="primary"` on a `Button` meant *this is the primary action* (and happens to
+ * be red). `variant="primary"` on a `Tag` meant *this chip is red*. Nothing in either
+ * name said which system you were in, so moving between them meant relearning. The tag
+ * union was internally inconsistent too — `primary`/`secondary`/`tertiary` are rank
+ * words sitting next to `blue`, which is a colour — and `warning` meant two unrelated
+ * things depending on whether you were on a `Badge` or a due date.
+ *
+ * ## The fix, and what deliberately did *not* change
+ *
+ * These are genuinely three different axes, so collapsing them into one union would
+ * have been wrong. Instead each axis gets one named, exported, documented type, and no
+ * word is reused across two of them:
+ *
+ * - `AccentColor` — "which of the palette's accent colours is this", named the way the
+ *   design names it.
+ * - `StatusTone` — "what does this state mean", on the design's separate status ramp.
+ * - `DueDateUrgency` — the one domain-specific status the kit models directly.
+ *
+ * `Button`/`TextButton`'s `variant` is **not** in this file on purpose. It is Figma's
+ * own "Property 1" on the "Button" COMPONENT_SET (Primary/Secondary), an action-
+ * hierarchy axis whose colour is a consequence rather than the point. Folding it in
+ * here would recreate exactly the collision this file exists to remove.
+ */
+/**
+ * A categorical accent colour: which of the palette's accent hues a chip, tag or
+ * indicator is painted in, with no meaning attached to the choice.
+ *
+ * Named by colour rather than by ramp position because that is how the design itself
+ * names them — Figma's "Tag" COMPONENT_SET carries a `Type` property whose values are
+ * literally `General`/`Green`/`Blue`/`Yellow`/`Red` (Tags00.md, Tags01.md). The kit
+ * previously renamed those to `neutral`/`secondary`/`blue`/`tertiary`/`primary`, which
+ * both obscured the source and collided with `Button`'s hierarchy words. The consuming
+ * app independently arrived at the same colour-named vocabulary for its own `Tag`
+ * (`'green' | 'amber' | 'blue' | 'red' | 'neutral'`), which is corroboration rather
+ * than coincidence.
+ *
+ * Each value maps to a verified ramp token, confirmed against `Tags01.md`:
+ *
+ * | Value     | Figma `Type` | Token         | Hex       |
+ * | --------- | ------------ | ------------- | --------- |
+ * | `neutral` | General      | `neutral-2`   | `#94979A` |
+ * | `red`     | Red          | `primary-4`   | `#DA584B` |
+ * | `green`   | Green        | `secondary-4` | `#70B252` |
+ * | `yellow`  | Yellow       | `tertiary-4`  | `#E5B454` |
+ * | `blue`    | Blue         | `blue`        | `#2F61BF` |
+ *
+ * Note `red` is `primary-4`, **not** the `danger` ramp — those are two different reds
+ * (`#DA584B` vs `#E82F39`) and the design uses the former for tags. Anything conveying
+ * an error state wants `StatusTone`, not this.
+ */
+export declare type AccentColor = 'neutral' | 'red' | 'green' | 'yellow' | 'blue';
 
 /**
  * AddTaskModal
@@ -264,10 +332,16 @@ export declare function Badge({ variant, children, className }: BadgeProps): JSX
 
 export declare interface BadgeProps {
     /**
-     * Visual style of the badge.
+     * What the badge's state *means*, on the design's status ramps.
+     *
+     * Deliberately a different vocabulary from `Tag`'s `AccentColor`: these resolve to the
+     * palette's `Success`/`Warning`/`Danger` ramps, which are separate from and not equal to
+     * `Secondary`/`Tertiary`/`Primary` (`success-4` `#80DA5B` is not `secondary-4` `#70B252`;
+     * `danger-5` `#E82F39` is not `primary-4` `#DA584B`). Reach for `Tag` when the colour is
+     * a category with no meaning attached, and `Badge` when it is a status.
      * @default 'neutral'
      */
-    variant?: 'neutral' | 'success' | 'warning' | 'danger';
+    variant?: StatusTone;
     /** Badge label / content. */
     children: React.ReactNode;
     /** Additional class names, merged last via `cn()` so they can override defaults. */
@@ -426,10 +500,19 @@ export declare function cn(...inputs: ClassValue[]): string;
  */
 export declare function CommentIcon(props: IconProps): JSX.Element;
 
-export declare function Datepicker({ label, error, className, ...props }: DatepickerProps): JSX.Element;
+export declare function Datepicker({ label, error, description, className, ...props }: DatepickerProps): JSX.Element;
 
 /**
  * DatePickerMenu
+ *
+ * Deliberately has **no `error`/`description`/`isRequired` surface**, unlike `Input`,
+ * `Datepicker`, `Select`, `MultiSelect` and `LabelCheckbox`. It is a floating calendar
+ * panel with no label and no trigger of its own — the consumer owns the trigger and
+ * passes a `triggerRef`. A validation message rendered inside this popover would sit in a
+ * surface that disappears the moment the user dismisses it, and would be announced from a
+ * `role="dialog"` rather than from the field it belongs to. The error belongs on whatever
+ * field owns the trigger; wrap that in `FormField` (or use `Datepicker`, which is the
+ * text-input variant and takes `error` directly).
  *
  * Figma: "DatePicker / Menu" component (Components/Datepicker.md), confirmed as the real desktop
  * component via 3 real in-context instances (Mockups/Task Add Task/Add Task Modal05.md,
@@ -505,9 +588,21 @@ export declare interface DatepickerProps extends AriaTextFieldProps {
      * input to its error visual state (danger border/outline).
      */
     error?: string;
+    /** Helper text rendered below the input. Hidden while `error` is set. */
+    description?: string;
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
+
+/**
+ * Shared mapping from due-date urgency onto the accent palette, so the card, the table
+ * cell and the table row cannot drift from each other on what "overdue" looks like.
+ *
+ * Not spec-verified: no warning/overdue instance of the due-date `Tag` appears anywhere
+ * in `Cards00.md`/`Cards01.md`, so this is spec-*consistent* (it reuses the real `Tag`
+ * palette rather than inventing one-off colours) rather than spec-confirmed.
+ */
+export declare const DUE_DATE_URGENCY_COLOR: Record<DueDateUrgency, AccentColor>;
 
 /** Renders a task's due date with color-coded urgency. Figma "Due Date Cell" (Task Column02.md). */
 export declare function DueDateCell({ date, urgency }: DueDateCellProps): JSX.Element;
@@ -519,7 +614,63 @@ export declare interface DueDateCellProps {
      * Color treatment conveying how urgent the due date is.
      * @default 'normal'
      */
-    urgency?: 'normal' | 'warning' | 'overdue';
+    urgency?: DueDateUrgency;
+}
+
+/**
+ * How close a task's due date is, as a domain concept the kit renders directly.
+ *
+ * `soon` was previously called `warning`, which collided with `StatusTone`'s `warning`
+ * while meaning something unrelated and resolving to a different ramp. `soon` also
+ * matches the consuming app's own `DueDateTone` (`'overdue' | 'soon' | 'normal'`),
+ * so the two sides no longer need a translation table for this concept.
+ *
+ * Renders through `AccentColor`: `normal` → `neutral`, `soon` → `yellow`,
+ * `overdue` → `red`.
+ */
+export declare type DueDateUrgency = 'normal' | 'soon' | 'overdue';
+
+/**
+ * What fills the space where content would be.
+ *
+ * **No Figma source.** The design file draws no empty state for any surface — every
+ * mockup shows populated boards, tables and lists. It exists anyway because the kit
+ * shipped two hardcoded English strings for exactly this ("No tasks in this view." in
+ * `TaskListView`, "No tasks yet." in `TaskTable`), which a consumer could neither
+ * translate, restyle, nor attach a "create the first task" action to. Ported from the
+ * consuming app's own `EmptyState`, which had already worked the semantics out.
+ *
+ * **Deliberately not a live region.** It used to carry `role="status"` in the app, on
+ * the reasoning that it appears in response to something the user just did — but a live
+ * region announces *changes* to its contents, and this mounts with its text already
+ * inside, so it announced nothing at all. The fix is a region that outlives the states
+ * and swaps its text (the consuming board has one that reports "no tasks to show"); do
+ * not re-add `role="status"` here expecting it to work. It stays a labelled `group` so
+ * it is still something a screen-reader user can find and step into.
+ */
+export declare function EmptyState({ title, description, icon, action, label, className, }: EmptyStateProps): JSX.Element;
+
+export declare interface EmptyStateProps {
+    /** The headline — what is missing, in the user's terms. Required: an empty state with no text is just a gap. */
+    title: string;
+    /** Optional second line explaining why it is empty or what would fill it. */
+    description?: string;
+    /**
+     * Optional glyph rendered above the title, at 48×48. Should use `currentColor` so it
+     * picks up the muted tint rather than fighting it.
+     */
+    icon?: React.ReactNode;
+    /** A way out of the empty state — clearing a filter, creating the first task. Rendered below the text. */
+    action?: React.ReactNode;
+    /**
+     * Names the region for assistive technology, so it is findable rather than three loose
+     * strings. Override it whenever more than one empty state can be on screen at once —
+     * two identically-named groups are two things a screen-reader user cannot tell apart.
+     * @default 'No results'
+     */
+    label?: string;
+    /** Additional class names, merged last via `cn()` so they can override defaults. */
+    className?: string;
 }
 
 /**
@@ -560,6 +711,65 @@ export declare function EstimationCell({ points }: EstimationCellProps): JSX.Ele
 export declare interface EstimationCellProps {
     /** Numeric estimation (story points) rendered as `"N Points"` / `"1 Point"`. */
     points: number;
+}
+
+/** Shared helper-text styling. */
+export declare const FIELD_DESCRIPTION_CLASS = "text-xs text-muted font-sans";
+
+/**
+ * Shared error-message styling.
+ *
+ * Same caveat as the label above, less severe: `text-danger` (`#E82F39`) on the dark
+ * shell measures **3.59:1**, under AA's 4.5:1 for text this size. `Input` already used
+ * exactly this pairing before the shared surface existed, so it is pre-existing rather
+ * than new — but it now applies to four more controls, which is worth saying out loud.
+ * Recorded alongside the label finding in `MIGRATION_GAPS.md`.
+ */
+export declare const FIELD_ERROR_CLASS = "text-xs text-danger font-sans";
+
+/**
+ * Shared label styling, so every field's label matches whatever renders it.
+ *
+ * **Known contrast defect, pre-existing and deliberately not repainted here.**
+ * `text-neutral-3` is `#393D41`, a dark grey. Against the dark app shell (`#222528`) that
+ * is a contrast ratio of **1.4:1** — effectively invisible, and far under WCAG AA's 4.5:1.
+ * It is legible only on a light surface.
+ *
+ * The kit has never actually decided which surface form fields live on, which is the root
+ * cause: `Input` and `Datepicker`'s stories render on Storybook's default light canvas
+ * (where this label is fine), while `Select`'s story uses the dark `neutral-5` decorator
+ * (where it is not) — and `Select` has carried this same class the whole time. So this is
+ * not a regression introduced by extracting the constant; extracting it is what made the
+ * inconsistency visible in one place.
+ *
+ * Not fixed in this pass on purpose. `#393D41` appears in the Figma exports only as a
+ * *background* colour, never as label text, so there is no ground-truth label-on-dark
+ * value to switch to, and picking one would be inventing a style — which
+ * `CONTRIBUTING.md` explicitly says to flag rather than guess. Recorded in
+ * `MIGRATION_GAPS.md` as a Section 2-shaped finding with the measured ratios.
+ */
+export declare const FIELD_LABEL_CLASS = "text-field-label font-semibold text-neutral-3 uppercase font-sans";
+
+/**
+ * Renders whichever of description/error applies, with the aria wiring a field hook
+ * produced. Shared so every control reports errors the same way rather than each
+ * inventing its own markup.
+ *
+ * Only one shows at a time, and the error wins. Stacking them pushes the layout around
+ * at the exact moment the user is trying to read what went wrong, and the helper text
+ * has usually just been superseded by the error anyway.
+ */
+export declare function FieldMessages({ description, error, descriptionProps, errorMessageProps, }: FieldMessagesProps): JSX.Element | null;
+
+export declare interface FieldMessagesProps {
+    /** Helper text. Hidden automatically while `error` is set, so the two never stack. */
+    description?: string;
+    /** Error message. Its presence is what puts the field in its invalid state. */
+    error?: string;
+    /** Props from a react-aria field hook's `descriptionProps`. */
+    descriptionProps?: React.HTMLAttributes<HTMLElement>;
+    /** Props from a react-aria field hook's `errorMessageProps`. */
+    errorMessageProps?: React.HTMLAttributes<HTMLElement>;
 }
 
 /**
@@ -620,6 +830,44 @@ export declare interface FloatingPopoverProps extends Omit<AriaPopoverProps, 'po
     /** Ref to the popover element. Provide only if a caller needs to measure/observe it directly. */
     popoverRef?: React.RefObject<HTMLDivElement | null>;
     /** Additional class names applied to the popover surface, merged last via `cn()`. */
+    className?: string;
+}
+
+/**
+ * Wraps an arbitrary control in the kit's label / required / description / error surface.
+ *
+ * For `Input`, `Select`, `MultiSelect`, `Datepicker` and `LabelCheckbox` you do not need
+ * this — each accepts `label`/`description`/`error`/`isRequired` directly and renders the
+ * same surface internally, which keeps the common case a flat prop list rather than a
+ * nested render prop. Reach for `FormField` when wrapping something the kit does not
+ * own: a third-party control, a composite of several inputs, or a custom widget that
+ * still owes the user a label and an error.
+ *
+ * Built on react-aria's `useField`, so the ids and `aria-describedby` wiring come from
+ * the same implementation the field hooks use rather than a parallel hand-rolled one.
+ */
+export declare function FormField({ label, description, error, isRequired, children, className, ...props }: FormFieldProps): JSX.Element;
+
+export declare interface FormFieldProps extends Omit<AriaFieldProps, 'errorMessage'> {
+    /** Label text rendered above the control. */
+    label?: string;
+    /** Helper text rendered below the control. Hidden while `error` is set. */
+    description?: string;
+    /** Error message rendered below the control, and what marks the field invalid. */
+    error?: string;
+    /**
+     * Marks the field required — renders the shared indicator next to the label and sets
+     * `aria-required` on the control via the props handed to `children`.
+     * @default false
+     */
+    isRequired?: boolean;
+    /**
+     * The control. Receives the aria props to spread onto it — at minimum `id` and
+     * `aria-describedby`, so the description and error are actually associated rather than
+     * merely adjacent.
+     */
+    children: (fieldProps: React.HTMLAttributes<HTMLElement>) => React.ReactNode;
+    /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
 
@@ -707,7 +955,7 @@ export declare function GridViewIcon(props: IconProps): JSX.Element;
  */
 export declare type IconProps = SVGProps<SVGSVGElement>;
 
-export declare function Input({ label, error, className, ...props }: InputProps): JSX.Element;
+export declare function Input({ label, error, description, className, ...props }: InputProps): JSX.Element;
 
 export declare interface InputProps extends AriaTextFieldProps {
     /** Label text rendered above the input. When omitted, no label is shown. */
@@ -717,6 +965,8 @@ export declare interface InputProps extends AriaTextFieldProps {
      * input to its error visual state (danger border/outline).
      */
     error?: string;
+    /** Helper text rendered below the input. Hidden while `error` is set. */
+    description?: string;
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
@@ -743,7 +993,7 @@ export declare interface Label {
  * like the two vector states a real checkbox input would render.
  * Uses react-aria useCheckbox for full accessibility.
  */
-export declare function LabelCheckbox({ children, isSelected, defaultSelected, onChange, isDisabled, isIndeterminate, className, }: LabelCheckboxProps): JSX.Element;
+export declare function LabelCheckbox({ children, isSelected, defaultSelected, onChange, isDisabled, isIndeterminate, error, description, isRequired, className, }: LabelCheckboxProps): JSX.Element;
 
 export declare interface LabelCheckboxProps {
     /** Label content rendered next to the checkbox. */
@@ -768,6 +1018,20 @@ export declare interface LabelCheckboxProps {
      * @default false
      */
     isIndeterminate?: boolean;
+    /**
+     * Error message rendered below the checkbox. When set, also marks the control invalid
+     * to assistive tech and tints the box — previously this control had no way to report a
+     * validation failure at all, so a form could reject it without being able to say so.
+     */
+    error?: string;
+    /** Helper text rendered below the checkbox. Hidden while `error` is set. */
+    description?: string;
+    /**
+     * Marks the checkbox required — renders the shared indicator after the label and sets
+     * `aria-required`.
+     * @default false
+     */
+    isRequired?: boolean;
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
@@ -983,7 +1247,7 @@ export declare interface ModalProps {
  * happens the same way selection does: reopen the list and toggle the item
  * off, where its checkmark already shows which items are selected.
  */
-export declare function MultiSelect<T extends object>({ label, placeholder, icon, isDisabled, className, ...props }: MultiSelectProps<T>): JSX.Element;
+export declare function MultiSelect<T extends object>({ label, placeholder, icon, isDisabled, error, description, className, ...props }: MultiSelectProps<T>): JSX.Element;
 
 export declare interface MultiSelectProps<T extends object> extends Omit<ListProps<T>, 'selectionMode' | 'selectionBehavior'> {
     /** Accessible name for the control, announced on the trigger and the option list. */
@@ -994,6 +1258,13 @@ export declare interface MultiSelectProps<T extends object> extends Omit<ListPro
     icon?: React.ReactNode;
     /** Disables the whole control, preventing the popover from opening. */
     isDisabled?: boolean;
+    /**
+     * Error message rendered below the trigger. When set, also switches the trigger to its
+     * error visual state and marks it invalid to assistive tech.
+     */
+    error?: string;
+    /** Helper text rendered below the trigger. Hidden while `error` is set. */
+    description?: string;
     /** Additional class names applied to the trigger's wrapping container, merged last via `cn()`. */
     className?: string;
 }
@@ -1095,6 +1366,25 @@ export declare interface ProjectInfoProps {
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
+
+/**
+ * The kit's shared form-field surface.
+ *
+ * **No Figma source for the error/description/required states.** The design file draws
+ * labelled fields but no invalid state, no helper text and no required marker anywhere.
+ * This exists because only `Input` and `Datepicker` accepted an `error` at all —
+ * `Select`, `MultiSelect` and `LabelCheckbox` had no way to report one, so a consuming
+ * form could validate a field it could not then mark. Everything below is an engineering
+ * addition built to WAI-ARIA's field pattern rather than to a mockup.
+ */
+/**
+ * The required marker.
+ *
+ * `aria-hidden` on purpose: react-aria already sets `aria-required` on the control
+ * itself, so announcing the asterisk too would say "required" twice. It is decoration
+ * over a fact the accessibility tree already carries.
+ */
+export declare function RequiredIndicator(): JSX.Element;
 
 /**
  * SearchBar
@@ -1211,15 +1501,37 @@ export declare interface SegmentedControlProps {
  * native picker UI, and lets autofill/password managers see a field they
  * recognize. The visible pill-shaped trigger below is purely presentational.
  */
-export declare function Select<T extends object>({ placeholder, icon, className, ...props }: SelectProps<T>): JSX.Element;
+export declare function Select<T extends object>({ placeholder, icon, error, description, className, ...props }: SelectProps<T>): JSX.Element;
 
 export declare interface SelectProps<T extends object> extends AriaSelectProps<T> {
     /** Shown inside the trigger when no item is selected yet. */
     placeholder?: string;
     /** Optional leading icon rendered in the trigger, ahead of the value. */
     icon?: React.ReactNode;
+    /**
+     * Error message rendered below the trigger. When set, also switches the trigger to its
+     * error visual state and associates the message with it via `aria-describedby`, so a
+     * screen-reader user reaching the trigger is told what is wrong.
+     *
+     * Note the trigger does *not* get `aria-invalid`: it is a `role="button"`, which does
+     * not support that state. `Input`, `Datepicker` and `LabelCheckbox` — all real form
+     * controls — do set it.
+     */
+    error?: string;
+    /** Helper text rendered below the trigger. Hidden while `error` is set. */
+    description?: string;
     /** Additional class names applied to the trigger's wrapping container, merged last via `cn()`. */
     className?: string;
+}
+
+/** Per-toast overrides accepted by `show`. */
+export declare interface ShowToastOptions {
+    /**
+     * How long this toast stays before dismissing itself, in milliseconds. Pass `null` to
+     * make it stay until dismissed — appropriate for an error the user must acknowledge,
+     * and inappropriate for anything else.
+     */
+    timeout?: number | null;
 }
 
 export declare function SidebarItem({ icon, label, isActive, badgeCount, onClick, className, }: SidebarItemProps): JSX.Element;
@@ -1301,6 +1613,18 @@ export declare interface SkeletonProps {
 }
 
 /**
+ * A semantic status: what a state *means*, rather than which colour it is.
+ *
+ * Deliberately kept separate from `AccentColor`, because it resolves to a different set
+ * of ramps entirely — the design's palette carries `Success`/`Warning`/`Danger` ramps
+ * alongside, and distinct from, `Primary`/`Secondary`/`Tertiary` (see
+ * `UI Guidelines/Design. Colors.md`). `success-4` (`#80DA5B`) is not `secondary-4`
+ * (`#70B252`), and `danger-5` (`#E82F39`) is not `primary-4` (`#DA584B`). Merging the
+ * two vocabularies would have quietly repainted every status surface with brand hues.
+ */
+export declare type StatusTone = 'neutral' | 'success' | 'warning' | 'danger';
+
+/**
  * Subtask count — second counter in a task card's footer.
  *
  * Figma: `remix-icons/line/editor/node-tree`, 12x13.3333 glyph in a 16x16 box.
@@ -1369,16 +1693,18 @@ export declare interface TagCellProps {
     /** Tags to render, each with its own label text and optional color variant (defaults to `'neutral'` per tag). */
     labels: {
         label: string;
-        variant?: 'primary' | 'secondary' | 'tertiary' | 'neutral' | 'blue';
+        variant?: AccentColor;
     }[];
 }
 
 export declare interface TagProps {
     /**
-     * Color type of the tag.
+     * Which accent colour the chip is painted in — Figma's `Type` property
+     * (General/Green/Blue/Yellow/Red) by its own names. Carries no meaning of its own;
+     * for a chip that says what a state *means*, use `Badge` and its `StatusTone`.
      * @default 'neutral'
      */
-    variant?: 'primary' | 'secondary' | 'tertiary' | 'neutral' | 'blue';
+    variant?: AccentColor;
     /**
      * Renders the "Style=Outline" variant (border, transparent fill) instead of
      * the default "Style=Solid" (10%-alpha fill, no border).
@@ -1420,20 +1746,19 @@ export declare interface TaskCardProps {
     /** Due date label rendered inside the due-date Tag (e.g. `'3 DAYS'`). The Tag is hidden when not provided. */
     dueDateText?: string;
     /**
-     * Color treatment applied to the due date Tag, reflecting how urgent the due date is.
-     * Maps onto the real `Tag` variant palette (Chunk 3) rather than one-off warning/danger
-     * classes — no warning/overdue instance of this due-date "Tag" appears anywhere in
-     * Cards00.md/Cards01.md, so this mapping isn't spec-verified, only spec-consistent.
+     * How urgent the due date is, driving the due-date Tag's colour via the shared
+     * `DUE_DATE_URGENCY_COLOR` map so the card, the table cell and the table row cannot
+     * disagree about what "overdue" looks like.
      * @default 'normal'
      */
-    dueDateUrgency?: 'normal' | 'warning' | 'overdue';
+    dueDateUrgency?: DueDateUrgency;
     /**
      * Labeled tags rendered below the title/due date row. Each tag's `variant` defaults to `'neutral'` when omitted.
      * @default []
      */
     tags?: {
         label: string;
-        variant?: 'primary' | 'secondary' | 'tertiary' | 'neutral';
+        variant?: AccentColor;
     }[];
     /** Name of the assignee, shown next to the avatar and used by `Avatar` as the initials fallback. */
     assigneeName?: string;
@@ -1465,15 +1790,25 @@ export declare interface TaskCardProps {
  * badge, or "add task" affordance on the frame itself in any real instance
  * across the isolated doc export or the in-context dashboard mockup.
  */
-export declare function TaskListView({ title, icon, tasks, isLoading, className, }: TaskListViewProps): JSX.Element;
+export declare function TaskListView({ title, icon, tasks, isLoading, emptyTitle, emptyDescription, emptyAction, className, }: TaskListViewProps): JSX.Element;
 
 export declare interface TaskListViewProps {
     /** Project/section title, rendered via `ProjectInfo` (e.g. `"Working (03)"`). */
     title: string;
     /** Optional trailing 24×24 icon forwarded to `ProjectInfo`. */
     icon?: React.ReactNode;
-    /** Tasks rendered as a vertical stack below the header, each spread onto a `TaskCard`. Renders an empty-state message when the array is empty. */
+    /** Tasks rendered as a vertical stack below the header, each spread onto a `TaskCard`. Renders an `EmptyState` when the array is empty. */
     tasks: TaskCardProps[];
+    /**
+     * Headline shown when `tasks` is empty. Overridable because the kit cannot know the
+     * consumer's language or domain — it previously hardcoded this English string.
+     * @default 'No tasks in this view'
+     */
+    emptyTitle?: string;
+    /** Optional second line on the empty state, explaining why the view is empty. */
+    emptyDescription?: string;
+    /** Optional way out of the empty state (e.g. a "Create task" button), rendered below the text. */
+    emptyAction?: React.ReactNode;
     /**
      * Renders 3 skeleton task-card placeholders instead of `tasks` while data is in flight.
      * No ground-truth basis (static exports have no loading state) — an engineering-only
@@ -1535,7 +1870,7 @@ export declare interface TaskMetaBadgesProps {
  * bordered cells in `TaskTableRow` merge into single hairlines instead of doubling, resolving
  * the boxed-grid-vs-flat-row mismatch this chunk was flagged to fix.
  */
-export declare function TaskTable({ groups, isLoading, className }: TaskTableProps): JSX.Element;
+export declare function TaskTable({ groups, isLoading, emptyTitle, emptyDescription, emptyAction, className, }: TaskTableProps): JSX.Element;
 
 export declare interface TaskTableGroup {
     /** Group/status title, e.g. `"To Do (05)"`. Figma "Task Cell" -- Desktop/Body/L/bold. */
@@ -1561,6 +1896,16 @@ export declare interface TaskTableProps {
      * @default false
      */
     isLoading?: boolean;
+    /**
+     * Headline shown when `groups` is empty. Overridable because the kit cannot know the
+     * consumer's language or domain — it previously hardcoded this English string.
+     * @default 'No tasks yet'
+     */
+    emptyTitle?: string;
+    /** Optional second line on the empty state, explaining why the table is empty. */
+    emptyDescription?: string;
+    /** Optional way out of the empty state (e.g. a "Create task" button), rendered below the text. */
+    emptyAction?: React.ReactNode;
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
@@ -1593,13 +1938,14 @@ export declare interface TaskTableRowProps {
     /** Task title shown in the Task Name column, truncated to a single line. */
     title: string;
     /**
-     * Color of the "Line 1" status/priority stripe flush against the row's left edge. Reuses the
-     * same 3 hues already verified for `Tag` (`primary`/`secondary`/`tertiary`) -- the only 3 that
-     * appear across the row samples in the real "Task Default View" mockup. No spec evidence ties
-     * this color to due-date urgency or any other field, so it's a plain, independent prop.
-     * @default 'secondary'
+     * Color of the "Line 1" status/priority stripe flush against the row's left edge. Takes the
+     * shared `AccentColor` vocabulary, though only `red`/`green`/`yellow` actually appear across
+     * the row samples in the real "Task Default View" mockup -- `neutral` and `blue` are
+     * available for consistency with `Tag`, not because the spec shows them. No spec evidence
+     * ties this color to due-date urgency or any other field, so it's a plain, independent prop.
+     * @default 'green'
      */
-    indicatorColor?: 'primary' | 'secondary' | 'tertiary';
+    indicatorColor?: AccentColor;
     /**
      * Reaction counters (e.g. comment count, subtask count) rendered after the title, via a plain
      * `count`+`emoji` pair -- read-only, not the clickable/toggleable footer reactions `Reactions`
@@ -1632,7 +1978,7 @@ export declare interface TaskTableRowProps {
      */
     tags?: {
         label: string;
-        variant?: 'primary' | 'secondary' | 'tertiary' | 'neutral' | 'blue';
+        variant?: AccentColor;
     }[];
     /** Estimation points. Column renders empty when omitted. */
     estimationPoints?: number;
@@ -1646,7 +1992,7 @@ export declare interface TaskTableRowProps {
      * Color treatment conveying how urgent `dueDate` is.
      * @default 'normal'
      */
-    dueDateUrgency?: 'normal' | 'warning' | 'overdue';
+    dueDateUrgency?: DueDateUrgency;
     /** Called when the row is clicked. */
     onClick?: () => void;
 }
@@ -1681,6 +2027,65 @@ export declare interface TextButtonProps extends AriaButtonProps {
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
+
+export declare interface ToastApi {
+    /** Queues a toast. Safe to call from an event handler; returns the queued toast's key. */
+    show: (tone: ToastTone, message: string, options?: ShowToastOptions) => string;
+}
+
+/** The payload the queue carries for each toast. */
+export declare interface ToastContent {
+    /** What the toast is reporting, driving its colour. */
+    tone: ToastTone;
+    /** The message text. Becomes the toast's accessible name. */
+    message: string;
+}
+
+/**
+ * Queues and renders toast notifications.
+ *
+ * **No Figma source.** The design file draws no notification surface anywhere. It exists
+ * because the kit had nothing here at all while the consuming app had already built one
+ * and paid for the accessibility lesson documented on `ToastRegion` above — that
+ * knowledge belongs in the design system rather than in one of its consumers.
+ *
+ * Wrap the app once, then call `useToast().show(...)` from anywhere beneath it.
+ */
+export declare function ToastProvider({ children, duration, maxVisibleToasts, label, closeLabel, }: ToastProviderProps): JSX.Element;
+
+export declare interface ToastProviderProps {
+    /** The app (or subtree) that can queue toasts. */
+    children: React.ReactNode;
+    /**
+     * How long a toast stays before dismissing itself, in milliseconds. Individual calls
+     * can override it via `show`'s options.
+     * @default 5000
+     */
+    duration?: number;
+    /**
+     * How many toasts are on screen at once; the rest queue behind them.
+     * @default 4
+     */
+    maxVisibleToasts?: number;
+    /**
+     * Accessible name for the notification landmark.
+     *
+     * Worth overriding when the surrounding app already has something called
+     * "Notifications" — the kit's own `TopNav` renders a notifications bell, and two
+     * landmarks sharing one name is a worse thing to hand a screen reader than a slightly
+     * duller label. The consuming app uses `"Alerts"` for exactly this reason.
+     * @default 'Notifications'
+     */
+    label?: string;
+    /**
+     * Accessible name for each toast's dismiss button.
+     * @default 'Dismiss'
+     */
+    closeLabel?: string;
+}
+
+/** What a toast is reporting. Uses the kit's shared `StatusTone` vocabulary. */
+export declare type ToastTone = StatusTone;
 
 /**
  * TopNav
@@ -1773,6 +2178,15 @@ export declare interface UserRowProps {
     /** Called when the row is clicked. When provided, the row renders as a `<button>` instead of a `<div>`. */
     onClick?: () => void;
 }
+
+/**
+ * Access the toast queue from anywhere inside a `ToastProvider`.
+ *
+ * Throws rather than returning `undefined` outside a provider. A silent no-op would mean
+ * a mutation reporting success into nothing, and the missing provider would only be
+ * noticed when someone eventually wondered why they never see confirmations.
+ */
+export declare function useToast(): ToastApi;
 
 /**
  * ViewSwitcher

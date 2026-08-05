@@ -96,6 +96,36 @@
     --color-neutral-5
   ); /* outermost app-shell / deepest dropdown backgrounds */
 
+  /* Z-index scale */
+  /* No Figma source — a design file has stacking order but no numbers, so these are an
+     engineering decision. What forced it: `Modal`'s backdrop and `FloatingPopover` both
+     hardcoded a bare `z-50` with no documented relationship, so a Select or Menu opened
+     from inside a Modal tied with the modal it belonged to and resolved on DOM order —
+     which is to say, on luck. `AddTaskModal` separately used four raw `z-10`s.
+
+     The gaps are deliberately wide (100 apart) so a consumer can slot something between
+     two kit layers without renumbering the scale, and the order encodes the one rule that
+     actually matters: a surface must outrank whatever opened it.
+
+     (Namespaced `--z-index-*`, not `--z-*`: Tailwind v4 derives `z-<name>` utilities
+     from the `--z-index-*` namespace specifically. A `--z-*` name compiles to nothing at
+     all — no class, no error — which was verified by grepping the built `ui-kit.css`
+     rather than assumed.)
+
+       nested   an anchored popover inside a modal's own content flow
+       overlay  modal backdrops and the modals themselves
+       popover  portalled floating surfaces (Select, Menu, DatePickerMenu)
+       toast    notifications, which must clear everything — they are frequently the
+                only report a user gets while a modal is open
+
+     `popover` deliberately outranks `overlay`: a Select opened *from* a modal has to
+     paint above it, and a portalled popover is a sibling of the modal in the DOM rather
+     than a descendant, so nothing else would put it on top. */
+  --z-index-nested: 10;
+  --z-index-overlay: 100;
+  --z-index-popover: 200;
+  --z-index-toast: 300;
+
   /* Typography Families */
   /* Re-verified directly against UI Guidelines/Branding. Desktop.md: every
      "Desktop/Display/*" and "Desktop/Body/*" layer (the real component type
