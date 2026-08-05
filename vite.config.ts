@@ -9,6 +9,18 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
+    // `@ravn/ui-kit` is a `file:` dependency pointing at a sibling checkout with its
+    // own `node_modules` — Node resolves `react`/`react-dom` from *that* copy before
+    // walking up to this project's, so any hook a kit component calls throws
+    // "Invalid hook call" (two React instances, two dispatchers). `dedupe` forces
+    // both import graphs onto this project's single copy of each. Not needed yet —
+    // nothing currently renders a kit component that calls a hook — but it will be
+    // the moment Phase 2+ does, so it's here ahead of that rather than after the
+    // first confusing crash. `react-aria`/`react-stately` do NOT need an entry here:
+    // the kit's build bundles their source directly into `dist/index.js` rather than
+    // importing them (see `UI_KIT_MIGRATION_PLAN.md`'s Phase 1 writeup) — there is no
+    // bare specifier for `dedupe` to redirect.
+    dedupe: ['react', 'react-dom'],
   },
   test: {
     globals: true,
