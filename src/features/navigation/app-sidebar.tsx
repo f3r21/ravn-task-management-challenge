@@ -65,8 +65,15 @@ export function AppSidebar() {
                   // middle of the top and bottom survives — on the first two tab
                   // stops in the app.
                   'focus-visible:-outline-offset-2',
+                  // `text-interactive-text`, not `text-interactive`. The kit
+                  // documents `--color-interactive` (primary-4) as a fill and border
+                  // colour, and it is one here too — the gradient and the active
+                  // marker both use it and both only owe 3:1. As *text* on the
+                  // sidebar's `surface-panel` it measures 3.51:1, and 3.17:1 at the
+                  // gradient's own right-hand edge where the tint is densest.
+                  // `interactive-text` (primary-2) is 6.67:1 and 6.02:1 there.
                   isActive
-                    ? 'text-interactive from-interactive/0 to-interactive/10 bg-gradient-to-r'
+                    ? 'text-interactive-text from-interactive/0 to-interactive/10 bg-gradient-to-r'
                     : 'text-muted hover:text-main',
                 )
               }

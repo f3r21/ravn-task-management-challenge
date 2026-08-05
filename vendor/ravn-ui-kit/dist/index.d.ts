@@ -366,7 +366,23 @@ export declare function BellIcon(props: IconProps): JSX.Element;
  * - Property 1=Secondary, State=Unselected: transparent bg, no border,
  *   white icon.
  *
- * The focus ring below is `focus-visible:outline-2 focus-visible:outline-primary-4
+ * **The ring's colour is `--color-interactive-text` (`primary-2`), not the brand
+ * `primary-4`, and this is the one place in the kit where that swap is not about text.**
+ * Every ring here is `outline-offset-2`, so it is drawn *clear of* the control, on the
+ * container — it has exactly one adjacent colour, and 1.4.11 wants 3:1 against it.
+ * `primary-4` manages 4.02:1 on the shell and 3.51:1 on a panel but only **2.86:1** on
+ * `surface-overlay`, which is a modal or a popover: precisely where a form is most likely
+ * to be, and where losing the focus indicator costs the most. `primary-2` clears all
+ * three at 5.43 / 6.67 / 7.63:1.
+ *
+ * Nothing was traded for it. The design file draws **no focus state anywhere** — the ring
+ * is an engineering addition to begin with, so unlike the primary fill below there was no
+ * Figma pairing to deviate from. The caveat worth knowing: `primary-2` measures 2.02:1 on
+ * white, so a consumer placing a kit control on a light container must override it. No
+ * kit surface is light — `Input` and `Datepicker`'s white interiors are *inside* the
+ * field, and `outline-offset-2` puts the ring on the dark container outside them.
+ *
+ * The focus ring below is `focus-visible:outline-2 focus-visible:outline-interactive-text
  * focus-visible:outline-offset-2` with **no `outline-none`** in front of it, and
  * that omission is deliberate — every focusable component in this kit follows the
  * same rule. In Tailwind v4 `outline-none` compiles to
@@ -500,7 +516,7 @@ export declare function cn(...inputs: ClassValue[]): string;
  */
 export declare function CommentIcon(props: IconProps): JSX.Element;
 
-export declare function Datepicker({ label, error, description, className, ...props }: DatepickerProps): JSX.Element;
+export declare function Datepicker({ label, isLabelVisible, error, description, className, ...props }: DatepickerProps): JSX.Element;
 
 /**
  * DatePickerMenu
@@ -581,8 +597,16 @@ export declare interface DatePickerMenuProps {
 }
 
 export declare interface DatepickerProps extends AriaTextFieldProps {
-    /** Label text rendered above the input. When omitted, no label is shown. */
+    /** Label text. Rendered `sr-only` unless `isLabelVisible`. When omitted, no label. */
     label?: string;
+    /**
+     * Renders the label visibly above the input instead of `sr-only`.
+     *
+     * Defaults to `false` — the design draws no field labels; see `FIELD_LABEL_CLASS`.
+     * The label still names the input for assistive tech either way.
+     * @default false
+     */
+    isLabelVisible?: boolean;
     /**
      * Error message rendered below the input. When set, also switches the
      * input to its error visual state (danger border/outline).
@@ -713,42 +737,82 @@ export declare interface EstimationCellProps {
     points: number;
 }
 
-/** Shared helper-text styling. */
-export declare const FIELD_DESCRIPTION_CLASS = "text-xs text-muted font-sans";
+/**
+ * Shared helper-text styling.
+ *
+ * `--color-muted-on-dark`, not the plain `--color-muted` this used to be. Description
+ * text renders *outside* the control, on whatever container the field sits in, and that
+ * container is not knowable from here — a form field is as likely to be inside a modal as
+ * on the shell. `neutral-2` clears AA on the shell (5.25:1) and on a panel (4.58:1) but
+ * only manages **3.73:1** on `surface-overlay`, which is precisely the modal card case.
+ *
+ * `transparent-light-65` composites against whatever is behind it, so it clears AA on all
+ * three (6.55 / 6.27 / 5.11:1) without the component having to know its own surface.
+ */
+export declare const FIELD_DESCRIPTION_CLASS = "text-xs text-muted-on-dark font-sans";
 
 /**
  * Shared error-message styling.
  *
- * Same caveat as the label above, less severe: `text-danger` (`#E82F39`) on the dark
- * shell measures **3.59:1**, under AA's 4.5:1 for text this size. `Input` already used
- * exactly this pairing before the shared surface existed, so it is pre-existing rather
- * than new — but it now applies to four more controls, which is worth saying out loud.
- * Recorded alongside the label finding in `MIGRATION_GAPS.md`.
+ * `--color-danger-text` (`danger-3`, `#FFA19E`), not the `--color-danger` alias
+ * (`danger-5`, `#E82F39`) which is now documented as a border colour. The
+ * design has no error state anywhere — no red text, no invalid border, nothing — so the
+ * ramp step is a free choice constrained only by contrast, and `danger-5` fails on every
+ * surface the kit uses: 3.59:1 on the shell, 3.14:1 on a panel, 2.55:1 on an overlay.
+ *
+ * `danger-3` is the only step clearing AA everywhere a form can sit: **5.65:1** on
+ * `#393D41`, **6.94:1** on `#2C2F33`, **7.95:1** on `#222528`. `danger-4` (`#FF7875`) is
+ * the more conventional-looking error red and was rejected for measuring 4.27:1 on the
+ * modal card — passing on two surfaces out of three is how the original defect happened.
+ *
+ * The invalid *border* on each control stays `danger-5`. A border is a non-text boundary
+ * needing 3:1 under 1.4.11, measured against the colours it is *adjacent to* — and it
+ * separates the field's white interior from the container, clearing 4.29:1 against that
+ * interior. It does **not** clear 3:1 against a `surface-overlay` container (2.55:1), so
+ * the argument rests on the interior side; `contrast.test.ts` asserts exactly that and
+ * nothing broader.
  */
-export declare const FIELD_ERROR_CLASS = "text-xs text-danger font-sans";
+export declare const FIELD_ERROR_CLASS = "text-xs text-danger-text font-sans";
 
 /**
- * Shared label styling, so every field's label matches whatever renders it.
+ * Styling for a *visible* field label.
  *
- * **Known contrast defect, pre-existing and deliberately not repainted here.**
- * `text-neutral-3` is `#393D41`, a dark grey. Against the dark app shell (`#222528`) that
- * is a contrast ratio of **1.4:1** — effectively invisible, and far under WCAG AA's 4.5:1.
- * It is legible only on a light surface.
+ * Most fields should not use it. The design draws **no field labels at all** — not in the
+ * Add/Edit Task modal, not on the search bar, nowhere across 100 export files. A field's
+ * own text carries its meaning: the placeholder in the empty state, the value in the
+ * filled one. So `isLabelVisible` defaults to `false` on every control and the label
+ * renders `sr-only`, which keeps the accessible name without inventing visual chrome.
  *
- * The kit has never actually decided which surface form fields live on, which is the root
- * cause: `Input` and `Datepicker`'s stories render on Storybook's default light canvas
- * (where this label is fine), while `Select`'s story uses the dark `neutral-5` decorator
- * (where it is not) — and `Select` has carried this same class the whole time. So this is
- * not a regression introduced by extracting the constant; extracting it is what made the
- * inconsistency visible in one place.
+ * When a consumer does opt in, this is the design's real spec for a small label on a dark
+ * surface — the sidebar's `PROJECTS` header (`Dashboard Mockup.md:237-254`): 15px / 600 /
+ * 0.75px tracking, which is exactly `--text-body-m`.
  *
- * Not fixed in this pass on purpose. `#393D41` appears in the Figma exports only as a
- * *background* colour, never as label text, so there is no ground-truth label-on-dark
- * value to switch to, and picking one would be inventing a style — which
- * `CONTRIBUTING.md` explicitly says to flag rather than guess. Recorded in
- * `MIGRATION_GAPS.md` as a Section 2-shaped finding with the measured ratios.
+ * **The colour is a deliberate deviation, and the ratio is why.** That header's own colour
+ * is `#94979A` (`neutral-2`), but it sits on `#2C2F33`, where it measures 4.58:1. On the
+ * `#393D41` modal card — where a task form actually lives — the same pairing is
+ * **3.73:1**, under AA. `#FFFFFF` is the only other colour the design ever puts on a dark
+ * surface, and it clears AA on all three: 10.95:1 on overlay, 13.45:1 on panel, 15.40:1
+ * on shell. (The overlay figure read 11.60:1 here until it was recomputed; the conclusion
+ * is unchanged, but a contrast comment carrying a wrong number is worth less than none.)
+ *
+ * This was `text-field-label font-semibold text-neutral-3 uppercase`, which was invented
+ * twice over: `#393D41` measured **1.41:1** on the shell — the design uses it as a
+ * background 55 times and as a border 283 times, and as text zero times — at 12px, a size
+ * that appears exactly once in the design system, on an iOS type specimen.
  */
-export declare const FIELD_LABEL_CLASS = "text-field-label font-semibold text-neutral-3 uppercase font-sans";
+export declare const FIELD_LABEL_CLASS = "text-body-m font-semibold text-main font-sans";
+
+/**
+ * What a hidden label renders as.
+ *
+ * `sr-only`, never `hidden`/`display:none`: those take the label out of the accessibility
+ * tree along with the pixels, which would strip the field's accessible name — the exact
+ * thing the label exists for.
+ */
+export declare const FIELD_LABEL_HIDDEN_CLASS = "sr-only";
+
+/** Picks the label class for a control's `isLabelVisible`. */
+export declare function fieldLabelClass(isLabelVisible: boolean | undefined): string;
 
 /**
  * Renders whichever of description/error applies, with the aria wiring a field hook
@@ -846,11 +910,20 @@ export declare interface FloatingPopoverProps extends Omit<AriaPopoverProps, 'po
  * Built on react-aria's `useField`, so the ids and `aria-describedby` wiring come from
  * the same implementation the field hooks use rather than a parallel hand-rolled one.
  */
-export declare function FormField({ label, description, error, isRequired, children, className, ...props }: FormFieldProps): JSX.Element;
+export declare function FormField({ label, isLabelVisible, description, error, isRequired, children, className, ...props }: FormFieldProps): JSX.Element;
 
 export declare interface FormFieldProps extends Omit<AriaFieldProps, 'errorMessage'> {
-    /** Label text rendered above the control. */
+    /** Label text. Rendered `sr-only` unless `isLabelVisible`. */
     label?: string;
+    /**
+     * Renders the label visibly above the control instead of `sr-only`.
+     *
+     * Defaults to `false` because the design draws no field labels — see
+     * `FIELD_LABEL_CLASS`. The label is always present for assistive tech either way; this
+     * only decides whether it is painted.
+     * @default false
+     */
+    isLabelVisible?: boolean;
     /** Helper text rendered below the control. Hidden while `error` is set. */
     description?: string;
     /** Error message rendered below the control, and what marks the field invalid. */
@@ -955,11 +1028,19 @@ export declare function GridViewIcon(props: IconProps): JSX.Element;
  */
 export declare type IconProps = SVGProps<SVGSVGElement>;
 
-export declare function Input({ label, error, description, className, ...props }: InputProps): JSX.Element;
+export declare function Input({ label, isLabelVisible, error, description, className, ...props }: InputProps): JSX.Element;
 
 export declare interface InputProps extends AriaTextFieldProps {
-    /** Label text rendered above the input. When omitted, no label is shown. */
+    /** Label text. Rendered `sr-only` unless `isLabelVisible`. When omitted, no label. */
     label?: string;
+    /**
+     * Renders the label visibly above the input instead of `sr-only`.
+     *
+     * Defaults to `false` — the design draws no field labels; see `FIELD_LABEL_CLASS`.
+     * The label still names the input for assistive tech either way.
+     * @default false
+     */
+    isLabelVisible?: boolean;
     /**
      * Error message rendered below the input. When set, also switches the
      * input to its error visual state (danger border/outline).
@@ -1241,11 +1322,20 @@ export declare interface ModalProps {
  * design, and the control is never submitted as a form field directly — a
  * consuming form reads the selection from `onSelectionChange`.
  *
- * Selected items render as `Tag` chips in the trigger — visual only, no
- * `onRemove`, so the trigger stays a single real `<button>` rather than a
- * button nesting more buttons (invalid and a screen-reader trap). Removal
- * happens the same way selection does: reopen the list and toggle the item
- * off, where its checkmark already shows which items are selected.
+ * The selection renders as the trigger's own comma-separated value, the same
+ * way `Select` renders its single one. It used to render as `Tag` chips
+ * instead, which stopped making sense the moment the trigger became the
+ * design's chip: a `Tag` is exactly 32px, so two of them filled a 32px
+ * trigger edge to edge and the control read as two loose tags with a stray
+ * chevron rather than as one field. The design agrees — every filled picker
+ * in the Edit Task modal (`Dashboard Edit Task/Add  Task Modal00.md:78-217`)
+ * is one chip with plain white value text, never a chip inside a chip.
+ *
+ * There is still no `onRemove` on anything here, so the trigger stays a
+ * single real `<button>` rather than a button nesting more buttons (invalid,
+ * and a screen-reader trap). Removal happens the way selection does: reopen
+ * the list and toggle the item off, where its checkmark already shows what is
+ * selected.
  */
 export declare function MultiSelect<T extends object>({ label, placeholder, icon, isDisabled, error, description, className, ...props }: MultiSelectProps<T>): JSX.Element;
 
@@ -1383,6 +1473,8 @@ export declare interface ProjectInfoProps {
  * `aria-hidden` on purpose: react-aria already sets `aria-required` on the control
  * itself, so announcing the asterisk too would say "required" twice. It is decoration
  * over a fact the accessibility tree already carries.
+ *
+ * `--color-danger-text` rather than the `--color-danger` alias — see `FIELD_ERROR_CLASS`.
  */
 export declare function RequiredIndicator(): JSX.Element;
 
@@ -1499,11 +1591,19 @@ export declare interface SegmentedControlProps {
  * same state. That isn't redundant with the visible trigger — it's what
  * makes the control work inside a `<form>`, gives mobile browsers their
  * native picker UI, and lets autofill/password managers see a field they
- * recognize. The visible pill-shaped trigger below is purely presentational.
+ * recognize. The visible chip-shaped trigger below is purely presentational.
  */
-export declare function Select<T extends object>({ placeholder, icon, error, description, className, ...props }: SelectProps<T>): JSX.Element;
+export declare function Select<T extends object>({ isLabelVisible, placeholder, icon, error, description, className, ...props }: SelectProps<T>): JSX.Element;
 
 export declare interface SelectProps<T extends object> extends AriaSelectProps<T> {
+    /**
+     * Renders `label` visibly above the trigger instead of `sr-only`.
+     *
+     * Defaults to `false` — the design draws no field labels; see `FIELD_LABEL_CLASS`.
+     * `label` still names the trigger for assistive tech either way.
+     * @default false
+     */
+    isLabelVisible?: boolean;
     /** Shown inside the trigger when no item is selected yet. */
     placeholder?: string;
     /** Optional leading icon rendered in the trigger, ahead of the value. */
@@ -2010,6 +2110,38 @@ export declare interface TaskTableRowProps {
  * Note: the spec's Type=Primary "Disable" state (bg primary-2) is literally
  * identical to its "Hover" state — not a transcription error, both frames
  * use the same #EBA59E swatch.
+ *
+ * ## The primary variant does not meet WCAG AA, deliberately
+ *
+ * `text-main` on `bg-primary-4` measures **3.83:1**, under 1.4.3's 4.5:1 for normal text.
+ * `isSelected`'s `bg-primary-3` is worse at **2.83:1**, and the disabled/hover
+ * `bg-primary-2` worse again at 2.02:1. Fourteen of the 131 contrast violations an axe
+ * pass over the built Storybook reports are this button.
+ *
+ * It is left as drawn, and that is a different call from the ones `Tag`, `Badge` and
+ * `Avatar` took in the same pass. Those all had somewhere to go. This does not:
+ *
+ * - **No label colour fixes it.** The best dark option in the whole palette is
+ *   `neutral-5` at 4.02:1, still short. Only near-black would clear it, and the palette
+ *   has no black — `neutral-5` (#222528) is the darkest thing in it.
+ * - **No fill in the ramp fixes it either.** `primary-4` is the ramp's darkest step;
+ *   1, 2 and 3 are all lighter and measure worse against white.
+ * - So the only fix is a **new, darker red that Figma does not contain**. Continuing the
+ *   ramp's own arithmetic (-9/-39/-42 per step) lands on `#D13323`, which would clear
+ *   4.99:1 — and CONTRIBUTING.md's first design value is that no value is invented or
+ *   approximated. Changing it would also either leave two different reds side by side
+ *   (this button next to an icon `Button`, a focus ring, `Tag`'s red) or repaint
+ *   `--color-primary-4` itself, which is every brand surface in both repos.
+ *
+ * This is the one case in this kit where the design has a definite opinion that fails AA,
+ * as opposed to being silent. The error-colour precedent does not transfer: the design
+ * draws no error state at all, so that ramp step was a free choice constrained only by
+ * contrast. Here it is the brand's own CTA.
+ *
+ * `contrast.test.ts` asserts the current state so it cannot be mistaken for passing, and
+ * `MIGRATION_GAPS.md` tracks it as the open item it is. The **icon** `Button`'s
+ * `variant="primary"` uses the same fill and is *not* affected: an icon is non-text, so
+ * 1.4.11's 3:1 applies to it and 3.83:1 clears that.
  */
 export declare function TextButton({ variant, isSelected, className, isDisabled, ...props }: TextButtonProps): JSX.Element;
 

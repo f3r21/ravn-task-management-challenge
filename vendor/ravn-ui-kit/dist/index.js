@@ -1,9 +1,9 @@
 import { jsx as t, jsxs as u, Fragment as et } from "react/jsx-runtime";
-import B, { useRef as M, useState as tt, useMemo as rt, useEffect as We, useContext as Ct, createContext as Nt } from "react";
-import { useButton as X, useField as Ie, useTextField as Te, useTabList as Mt, useTab as Pt, useTabPanel as Lt, useOverlay as St, FocusScope as ze, DismissButton as ge, usePopover as Vt, Overlay as It, useListBox as Tt, useOption as zt, useSelect as Ht, HiddenSelect as Rt, useMenuTrigger as At, useMenu as Dt, useMenuItem as jt, useModalOverlay as Ot, useDialog as Bt, useCalendar as Et, useCalendarGrid as Zt, useCalendarCell as Ft, useToastRegion as Gt, useToast as Wt, useCheckbox as _t } from "react-aria";
-import { useTabListState as Ut, Item as $t, useSelectState as Kt, useOverlayTriggerState as He, useListState as Yt, useMenuTriggerState as qt, useTreeState as Xt, useCalendarState as Jt, useToastState as Qt, useToggleState as er } from "react-stately";
-import { createCalendar as tr, getLocalTimeZone as Le, CalendarDate as rr, today as nr, isSameMonth as sr } from "@internationalized/date";
-import { createPortal as or } from "react-dom";
+import B, { useRef as M, useState as tt, useMemo as rt, Fragment as Ct, useEffect as _e, useContext as Nt, createContext as Mt } from "react";
+import { useButton as X, useField as Ie, useTextField as Te, useTabList as Pt, useTab as Lt, useTabPanel as St, useOverlay as Vt, FocusScope as ze, DismissButton as xe, usePopover as It, Overlay as Tt, useListBox as zt, useOption as Ht, useSelect as Rt, HiddenSelect as At, useMenuTrigger as Dt, useMenu as jt, useMenuItem as Ot, useModalOverlay as Bt, useDialog as Et, useCalendar as Zt, useCalendarGrid as Ft, useCalendarCell as Gt, useToastRegion as _t, useToast as Wt, useCheckbox as Ut } from "react-aria";
+import { useTabListState as $t, Item as Kt, useSelectState as Yt, useOverlayTriggerState as He, useListState as qt, useMenuTriggerState as Xt, useTreeState as Jt, useCalendarState as Qt, useToastState as er, useToggleState as tr } from "react-stately";
+import { createCalendar as rr, getLocalTimeZone as Le, CalendarDate as nr, today as sr, isSameMonth as or } from "@internationalized/date";
+import { createPortal as lr } from "react-dom";
 function nt(e) {
   var n, r, s = "";
   if (typeof e == "string" || typeof e == "number") s += e;
@@ -13,42 +13,42 @@ function nt(e) {
   } else for (r in e) e[r] && (s && (s += " "), s += r);
   return s;
 }
-function lr() {
+function ir() {
   for (var e, n, r = 0, s = "", l = arguments.length; r < l; r++) (e = arguments[r]) && (n = nt(e)) && (s && (s += " "), s += n);
   return s;
 }
-const ir = (e, n) => {
+const ar = (e, n) => {
   const r = new Array(e.length + n.length);
   for (let s = 0; s < e.length; s++)
     r[s] = e[s];
   for (let s = 0; s < n.length; s++)
     r[e.length + s] = n[s];
   return r;
-}, ar = (e, n) => ({
+}, cr = (e, n) => ({
   classGroupId: e,
   validator: n
 }), st = (e = /* @__PURE__ */ new Map(), n = null, r) => ({
   nextPart: e,
   validators: n,
   classGroupId: r
-}), xe = "-", _e = [], cr = "arbitrary..", dr = (e) => {
-  const n = mr(e), {
+}), ge = "-", We = [], dr = "arbitrary..", ur = (e) => {
+  const n = fr(e), {
     conflictingClassGroups: r,
     conflictingClassGroupModifiers: s
   } = e;
   return {
     getClassGroupId: (i) => {
       if (i.startsWith("[") && i.endsWith("]"))
-        return ur(i);
-      const a = i.split(xe), d = a[0] === "" && a.length > 1 ? 1 : 0;
-      return ot(a, d, n);
+        return mr(i);
+      const a = i.split(ge), c = a[0] === "" && a.length > 1 ? 1 : 0;
+      return ot(a, c, n);
     },
     getConflictingClassGroupIds: (i, a) => {
       if (a) {
-        const d = s[i], c = r[i];
-        return d ? c ? ir(c, d) : d : c || _e;
+        const c = s[i], d = r[i];
+        return c ? d ? ar(d, c) : c : d || We;
       }
-      return r[i] || _e;
+      return r[i] || We;
     }
   };
 }, ot = (e, n, r) => {
@@ -56,28 +56,28 @@ const ir = (e, n) => {
     return r.classGroupId;
   const l = e[n], o = r.nextPart.get(l);
   if (o) {
-    const c = ot(e, n + 1, o);
-    if (c) return c;
+    const d = ot(e, n + 1, o);
+    if (d) return d;
   }
   const i = r.validators;
   if (i === null)
     return;
-  const a = n === 0 ? e.join(xe) : e.slice(n).join(xe), d = i.length;
-  for (let c = 0; c < d; c++) {
-    const g = i[c];
-    if (g.validator(a))
-      return g.classGroupId;
+  const a = n === 0 ? e.join(ge) : e.slice(n).join(ge), c = i.length;
+  for (let d = 0; d < c; d++) {
+    const h = i[d];
+    if (h.validator(a))
+      return h.classGroupId;
   }
-}, ur = (e) => e.slice(1, -1).indexOf(":") === -1 ? void 0 : (() => {
+}, mr = (e) => e.slice(1, -1).indexOf(":") === -1 ? void 0 : (() => {
   const n = e.slice(1, -1), r = n.indexOf(":"), s = n.slice(0, r);
-  return s ? cr + s : void 0;
-})(), mr = (e) => {
+  return s ? dr + s : void 0;
+})(), fr = (e) => {
   const {
     theme: n,
     classGroups: r
   } = e;
-  return fr(r, n);
-}, fr = (e, n) => {
+  return pr(r, n);
+}, pr = (e, n) => {
   const r = st();
   for (const s in e) {
     const l = e[s];
@@ -88,43 +88,43 @@ const ir = (e, n) => {
   const l = e.length;
   for (let o = 0; o < l; o++) {
     const i = e[o];
-    pr(i, n, r, s);
+    br(i, n, r, s);
   }
-}, pr = (e, n, r, s) => {
+}, br = (e, n, r, s) => {
   if (typeof e == "string") {
-    br(e, n, r);
+    hr(e, n, r);
     return;
   }
   if (typeof e == "function") {
-    hr(e, n, r, s);
+    xr(e, n, r, s);
     return;
   }
   gr(e, n, r, s);
-}, br = (e, n, r) => {
+}, hr = (e, n, r) => {
   const s = e === "" ? n : lt(n, e);
   s.classGroupId = r;
-}, hr = (e, n, r, s) => {
-  if (xr(e)) {
+}, xr = (e, n, r, s) => {
+  if (vr(e)) {
     Re(e(s), n, r, s);
     return;
   }
-  n.validators === null && (n.validators = []), n.validators.push(ar(r, e));
+  n.validators === null && (n.validators = []), n.validators.push(cr(r, e));
 }, gr = (e, n, r, s) => {
   const l = Object.entries(e), o = l.length;
   for (let i = 0; i < o; i++) {
-    const [a, d] = l[i];
-    Re(d, lt(n, a), r, s);
+    const [a, c] = l[i];
+    Re(c, lt(n, a), r, s);
   }
 }, lt = (e, n) => {
   let r = e;
-  const s = n.split(xe), l = s.length;
+  const s = n.split(ge), l = s.length;
   for (let o = 0; o < l; o++) {
     const i = s[o];
     let a = r.nextPart.get(i);
     a || (a = st(), r.nextPart.set(i, a)), r = a;
   }
   return r;
-}, xr = (e) => "isThemeGetter" in e && e.isThemeGetter === !0, vr = (e) => {
+}, vr = (e) => "isThemeGetter" in e && e.isThemeGetter === !0, yr = (e) => {
   if (e < 1)
     return {
       get: () => {
@@ -148,50 +148,50 @@ const ir = (e, n) => {
       o in r ? r[o] = i : l(o, i);
     }
   };
-}, Se = "!", Ue = ":", yr = [], $e = (e, n, r, s, l) => ({
+}, Se = "!", Ue = ":", wr = [], $e = (e, n, r, s, l) => ({
   modifiers: e,
   hasImportantModifier: n,
   baseClassName: r,
   maybePostfixModifierPosition: s,
   isExternal: l
-}), wr = (e) => {
+}), kr = (e) => {
   const {
     prefix: n,
     experimentalParseClassName: r
   } = e;
   let s = (l) => {
     const o = [];
-    let i = 0, a = 0, d = 0, c;
-    const g = l.length;
-    for (let w = 0; w < g; w++) {
-      const N = l[w];
+    let i = 0, a = 0, c = 0, d;
+    const h = l.length;
+    for (let y = 0; y < h; y++) {
+      const N = l[y];
       if (i === 0 && a === 0) {
         if (N === Ue) {
-          o.push(l.slice(d, w)), d = w + 1;
+          o.push(l.slice(c, y)), c = y + 1;
           continue;
         }
         if (N === "/") {
-          c = w;
+          d = y;
           continue;
         }
       }
       N === "[" ? i++ : N === "]" ? i-- : N === "(" ? a++ : N === ")" && a--;
     }
-    const p = o.length === 0 ? l : l.slice(d);
-    let k = p, v = !1;
-    p.endsWith(Se) ? (k = p.slice(0, -1), v = !0) : (
+    const f = o.length === 0 ? l : l.slice(c);
+    let k = f, v = !1;
+    f.endsWith(Se) ? (k = f.slice(0, -1), v = !0) : (
       /**
        * In Tailwind CSS v3 the important modifier was at the start of the base class name. This is still supported for legacy reasons.
        * @see https://github.com/dcastil/tailwind-merge/issues/513#issuecomment-2614029864
        */
-      p.startsWith(Se) && (k = p.slice(1), v = !0)
+      f.startsWith(Se) && (k = f.slice(1), v = !0)
     );
-    const C = c && c > d ? c - d : void 0;
+    const C = d && d > c ? d - c : void 0;
     return $e(o, v, k, C);
   };
   if (n) {
     const l = n + Ue, o = s;
-    s = (i) => i.startsWith(l) ? o(i.slice(l.length)) : $e(yr, !1, i, void 0, !0);
+    s = (i) => i.startsWith(l) ? o(i.slice(l.length)) : $e(wr, !1, i, void 0, !0);
   }
   if (r) {
     const l = s;
@@ -201,7 +201,7 @@ const ir = (e, n) => {
     });
   }
   return s;
-}, kr = (e) => {
+}, Cr = (e) => {
   const n = /* @__PURE__ */ new Map();
   return e.orderSensitiveModifiers.forEach((r, s) => {
     n.set(r, 1e6 + s);
@@ -209,76 +209,76 @@ const ir = (e, n) => {
     const s = [];
     let l = [];
     for (let o = 0; o < r.length; o++) {
-      const i = r[o], a = i[0] === "[", d = n.has(i);
-      a || d ? (l.length > 0 && (l.sort(), s.push(...l), l = []), s.push(i)) : l.push(i);
+      const i = r[o], a = i[0] === "[", c = n.has(i);
+      a || c ? (l.length > 0 && (l.sort(), s.push(...l), l = []), s.push(i)) : l.push(i);
     }
     return l.length > 0 && (l.sort(), s.push(...l)), s;
   };
-}, Cr = (e) => ({
-  cache: vr(e.cacheSize),
-  parseClassName: wr(e),
-  sortModifiers: kr(e),
-  postfixLookupClassGroupIds: Nr(e),
-  ...dr(e)
-}), Nr = (e) => {
+}, Nr = (e) => ({
+  cache: yr(e.cacheSize),
+  parseClassName: kr(e),
+  sortModifiers: Cr(e),
+  postfixLookupClassGroupIds: Mr(e),
+  ...ur(e)
+}), Mr = (e) => {
   const n = /* @__PURE__ */ Object.create(null), r = e.postfixLookupClassGroups;
   if (r)
     for (let s = 0; s < r.length; s++)
       n[r[s]] = !0;
   return n;
-}, Mr = /\s+/, Pr = (e, n) => {
+}, Pr = /\s+/, Lr = (e, n) => {
   const {
     parseClassName: r,
     getClassGroupId: s,
     getConflictingClassGroupIds: l,
     sortModifiers: o,
     postfixLookupClassGroupIds: i
-  } = n, a = [], d = e.trim().split(Mr);
-  let c = "";
-  for (let g = d.length - 1; g >= 0; g -= 1) {
-    const p = d[g], {
+  } = n, a = [], c = e.trim().split(Pr);
+  let d = "";
+  for (let h = c.length - 1; h >= 0; h -= 1) {
+    const f = c[h], {
       isExternal: k,
       modifiers: v,
       hasImportantModifier: C,
-      baseClassName: w,
+      baseClassName: y,
       maybePostfixModifierPosition: N
-    } = r(p);
+    } = r(f);
     if (k) {
-      c = p + (c.length > 0 ? " " + c : c);
+      d = f + (d.length > 0 ? " " + d : d);
       continue;
     }
-    let S = !!N, I;
-    if (S) {
-      const H = w.substring(0, N);
+    let L = !!N, I;
+    if (L) {
+      const H = y.substring(0, N);
       I = s(H);
-      const h = I && i[I] ? s(w) : void 0;
-      h && h !== I && (I = h, S = !1);
+      const x = I && i[I] ? s(y) : void 0;
+      x && x !== I && (I = x, L = !1);
     } else
-      I = s(w);
+      I = s(y);
     if (!I) {
-      if (!S) {
-        c = p + (c.length > 0 ? " " + c : c);
+      if (!L) {
+        d = f + (d.length > 0 ? " " + d : d);
         continue;
       }
-      if (I = s(w), !I) {
-        c = p + (c.length > 0 ? " " + c : c);
+      if (I = s(y), !I) {
+        d = f + (d.length > 0 ? " " + d : d);
         continue;
       }
-      S = !1;
+      L = !1;
     }
     const F = v.length === 0 ? "" : v.length === 1 ? v[0] : o(v).join(":"), _ = C ? F + Se : F, T = _ + I;
     if (a.indexOf(T) > -1)
       continue;
     a.push(T);
-    const j = l(I, S);
+    const j = l(I, L);
     for (let H = 0; H < j.length; ++H) {
-      const h = j[H];
-      a.push(_ + h);
+      const x = j[H];
+      a.push(_ + x);
     }
-    c = p + (c.length > 0 ? " " + c : c);
+    d = f + (d.length > 0 ? " " + d : d);
   }
-  return c;
-}, Lr = (...e) => {
+  return d;
+}, Sr = (...e) => {
   let n = 0, r, s, l = "";
   for (; n < e.length; )
     (r = e[n++]) && (s = it(r)) && (l && (l += " "), l += s);
@@ -290,35 +290,35 @@ const ir = (e, n) => {
   for (let s = 0; s < e.length; s++)
     e[s] && (n = it(e[s])) && (r && (r += " "), r += n);
   return r;
-}, Sr = (e, ...n) => {
+}, Vr = (e, ...n) => {
   let r, s, l, o;
-  const i = (d) => {
-    const c = n.reduce((g, p) => p(g), e());
-    return r = Cr(c), s = r.cache.get, l = r.cache.set, o = a, a(d);
-  }, a = (d) => {
-    const c = s(d);
-    if (c)
-      return c;
-    const g = Pr(d, r);
-    return l(d, g), g;
+  const i = (c) => {
+    const d = n.reduce((h, f) => f(h), e());
+    return r = Nr(d), s = r.cache.get, l = r.cache.set, o = a, a(c);
+  }, a = (c) => {
+    const d = s(c);
+    if (d)
+      return d;
+    const h = Lr(c, r);
+    return l(c, h), h;
   };
-  return o = i, (...d) => o(Lr(...d));
-}, Vr = [], V = (e) => {
-  const n = (r) => r[e] || Vr;
+  return o = i, (...c) => o(Sr(...c));
+}, Ir = [], V = (e) => {
+  const n = (r) => r[e] || Ir;
   return n.isThemeGetter = !0, n;
-}, at = /^\[(?:(\w[\w-]*):)?(.+)\]$/i, ct = /^\((?:(\w[\w-]*):)?(.+)\)$/i, Ir = /^\d+(?:\.\d+)?\/\d+(?:\.\d+)?$/, Tr = /^(\d+(\.\d+)?)?(xs|sm|md|lg|xl)$/, zr = /\d+(%|px|r?em|[sdl]?v([hwib]|min|max)|pt|pc|in|cm|mm|cap|ch|ex|r?lh|cq(w|h|i|b|min|max))|\b(calc|min|max|clamp)\(.+\)|^0$/, Hr = /^(rgba?|hsla?|hwb|(ok)?(lab|lch)|color-mix)\(.+\)$/, Rr = /^(inset_)?-?((\d+)?\.?(\d+)[a-z]+|0)_-?((\d+)?\.?(\d+)[a-z]+|0)/, Ar = /^(url|image|image-set|cross-fade|element|(repeating-)?(linear|radial|conic)-gradient)\(.+\)$/, Y = (e) => Ir.test(e), y = (e) => !!e && !Number.isNaN(Number(e)), G = (e) => !!e && Number.isInteger(Number(e)), Me = (e) => e.endsWith("%") && y(e.slice(0, -1)), $ = (e) => Tr.test(e), dt = () => !0, Dr = (e) => (
+}, at = /^\[(?:(\w[\w-]*):)?(.+)\]$/i, ct = /^\((?:(\w[\w-]*):)?(.+)\)$/i, Tr = /^\d+(?:\.\d+)?\/\d+(?:\.\d+)?$/, zr = /^(\d+(\.\d+)?)?(xs|sm|md|lg|xl)$/, Hr = /\d+(%|px|r?em|[sdl]?v([hwib]|min|max)|pt|pc|in|cm|mm|cap|ch|ex|r?lh|cq(w|h|i|b|min|max))|\b(calc|min|max|clamp)\(.+\)|^0$/, Rr = /^(rgba?|hsla?|hwb|(ok)?(lab|lch)|color-mix)\(.+\)$/, Ar = /^(inset_)?-?((\d+)?\.?(\d+)[a-z]+|0)_-?((\d+)?\.?(\d+)[a-z]+|0)/, Dr = /^(url|image|image-set|cross-fade|element|(repeating-)?(linear|radial|conic)-gradient)\(.+\)$/, Y = (e) => Tr.test(e), w = (e) => !!e && !Number.isNaN(Number(e)), G = (e) => !!e && Number.isInteger(Number(e)), Me = (e) => e.endsWith("%") && w(e.slice(0, -1)), U = (e) => zr.test(e), dt = () => !0, jr = (e) => (
   // `colorFunctionRegex` check is necessary because color functions can have percentages in them which which would be incorrectly classified as lengths.
   // For example, `hsl(0 0% 0%)` would be classified as a length without this check.
   // I could also use lookbehind assertion in `lengthUnitRegex` but that isn't supported widely enough.
-  zr.test(e) && !Hr.test(e)
-), Ae = () => !1, jr = (e) => Rr.test(e), Or = (e) => Ar.test(e), Br = (e) => !f(e) && !b(e), Er = (e) => e.startsWith("@container") && (e[10] === "/" && e[11] !== void 0 || e[11] === "s" && e[16] !== void 0 && e.startsWith("-size/", 10) || e[11] === "n" && e[18] !== void 0 && e.startsWith("-normal/", 10)), Zr = (e) => J(e, ft, Ae), f = (e) => at.test(e), ee = (e) => J(e, pt, Dr), Ke = (e) => J(e, Yr, y), Fr = (e) => J(e, ht, dt), Gr = (e) => J(e, bt, Ae), Ye = (e) => J(e, ut, Ae), Wr = (e) => J(e, mt, Or), be = (e) => J(e, gt, jr), b = (e) => ct.test(e), ie = (e) => te(e, pt), _r = (e) => te(e, bt), qe = (e) => te(e, ut), Ur = (e) => te(e, ft), $r = (e) => te(e, mt), he = (e) => te(e, gt, !0), Kr = (e) => te(e, ht, !0), J = (e, n, r) => {
+  Hr.test(e) && !Rr.test(e)
+), Ae = () => !1, Or = (e) => Ar.test(e), Br = (e) => Dr.test(e), Er = (e) => !p(e) && !b(e), Zr = (e) => e.startsWith("@container") && (e[10] === "/" && e[11] !== void 0 || e[11] === "s" && e[16] !== void 0 && e.startsWith("-size/", 10) || e[11] === "n" && e[18] !== void 0 && e.startsWith("-normal/", 10)), Fr = (e) => J(e, ft, Ae), p = (e) => at.test(e), ee = (e) => J(e, pt, jr), Ke = (e) => J(e, qr, w), Gr = (e) => J(e, ht, dt), _r = (e) => J(e, bt, Ae), Ye = (e) => J(e, ut, Ae), Wr = (e) => J(e, mt, Br), be = (e) => J(e, xt, Or), b = (e) => ct.test(e), ie = (e) => te(e, pt), Ur = (e) => te(e, bt), qe = (e) => te(e, ut), $r = (e) => te(e, ft), Kr = (e) => te(e, mt), he = (e) => te(e, xt, !0), Yr = (e) => te(e, ht, !0), J = (e, n, r) => {
   const s = at.exec(e);
   return s ? s[1] ? n(s[1]) : r(s[2]) : !1;
 }, te = (e, n, r = !1) => {
   const s = ct.exec(e);
   return s ? s[1] ? n(s[1]) : r : !1;
-}, ut = (e) => e === "position" || e === "percentage", mt = (e) => e === "image" || e === "url", ft = (e) => e === "length" || e === "size" || e === "bg-size", pt = (e) => e === "length", Yr = (e) => e === "number", bt = (e) => e === "family-name", ht = (e) => e === "number" || e === "weight", gt = (e) => e === "shadow", qr = () => {
-  const e = V("color"), n = V("font"), r = V("text"), s = V("font-weight"), l = V("tracking"), o = V("leading"), i = V("breakpoint"), a = V("container"), d = V("spacing"), c = V("radius"), g = V("shadow"), p = V("inset-shadow"), k = V("text-shadow"), v = V("drop-shadow"), C = V("blur"), w = V("perspective"), N = V("aspect"), S = V("ease"), I = V("animate"), F = () => ["auto", "avoid", "all", "avoid-page", "page", "left", "right", "column"], _ = () => [
+}, ut = (e) => e === "position" || e === "percentage", mt = (e) => e === "image" || e === "url", ft = (e) => e === "length" || e === "size" || e === "bg-size", pt = (e) => e === "length", qr = (e) => e === "number", bt = (e) => e === "family-name", ht = (e) => e === "number" || e === "weight", xt = (e) => e === "shadow", Xr = () => {
+  const e = V("color"), n = V("font"), r = V("text"), s = V("font-weight"), l = V("tracking"), o = V("leading"), i = V("breakpoint"), a = V("container"), c = V("spacing"), d = V("radius"), h = V("shadow"), f = V("inset-shadow"), k = V("text-shadow"), v = V("drop-shadow"), C = V("blur"), y = V("perspective"), N = V("aspect"), L = V("ease"), I = V("animate"), F = () => ["auto", "avoid", "all", "avoid-page", "page", "left", "right", "column"], _ = () => [
     "center",
     "top",
     "bottom",
@@ -336,51 +336,51 @@ const ir = (e, n) => {
     "bottom-left",
     // Deprecated since Tailwind CSS v4.1.0, see https://github.com/tailwindlabs/tailwindcss/pull/17378
     "left-bottom"
-  ], T = () => [..._(), b, f], j = () => ["auto", "hidden", "clip", "visible", "scroll"], H = () => ["auto", "contain", "none"], h = () => [b, f, d], R = () => [Y, "full", "auto", ...h()], re = () => [G, "none", "subgrid", b, f], ne = () => ["auto", {
-    span: ["full", G, b, f]
-  }, G, b, f], Q = () => [G, "auto", b, f], oe = () => ["auto", "min", "max", "fr", b, f], le = () => ["start", "end", "center", "between", "around", "evenly", "stretch", "baseline", "center-safe", "end-safe"], K = () => ["start", "end", "center", "stretch", "center-safe", "end-safe"], P = () => ["auto", ...h()], U = () => [Y, "auto", "full", "dvw", "dvh", "lvw", "lvh", "svw", "svh", "min", "max", "fit", ...h()], we = () => [Y, "screen", "full", "dvw", "lvw", "svw", "min", "max", "fit", ...h()], ke = () => [Y, "screen", "full", "lh", "dvh", "lvh", "svh", "min", "max", "fit", ...h()], x = () => [e, b, f], Be = () => [..._(), qe, Ye, {
-    position: [b, f]
+  ], T = () => [..._(), b, p], j = () => ["auto", "hidden", "clip", "visible", "scroll"], H = () => ["auto", "contain", "none"], x = () => [b, p, c], R = () => [Y, "full", "auto", ...x()], re = () => [G, "none", "subgrid", b, p], ne = () => ["auto", {
+    span: ["full", G, b, p]
+  }, G, b, p], Q = () => [G, "auto", b, p], oe = () => ["auto", "min", "max", "fr", b, p], le = () => ["start", "end", "center", "between", "around", "evenly", "stretch", "baseline", "center-safe", "end-safe"], K = () => ["start", "end", "center", "stretch", "center-safe", "end-safe"], P = () => ["auto", ...x()], W = () => [Y, "auto", "full", "dvw", "dvh", "lvw", "lvh", "svw", "svh", "min", "max", "fit", ...x()], we = () => [Y, "screen", "full", "dvw", "lvw", "svw", "min", "max", "fit", ...x()], ke = () => [Y, "screen", "full", "lh", "dvh", "lvh", "svh", "min", "max", "fit", ...x()], g = () => [e, b, p], Be = () => [..._(), qe, Ye, {
+    position: [b, p]
   }], Ee = () => ["no-repeat", {
     repeat: ["", "x", "y", "space", "round"]
-  }], Ze = () => ["auto", "cover", "contain", Ur, Zr, {
-    size: [b, f]
+  }], Ze = () => ["auto", "cover", "contain", $r, Fr, {
+    size: [b, p]
   }], Ce = () => [Me, ie, ee], A = () => [
     // Deprecated since Tailwind CSS v4.0.0
     "",
     "none",
     "full",
-    c,
+    d,
     b,
-    f
-  ], D = () => ["", y, ie, ee], ue = () => ["solid", "dashed", "dotted", "double"], Fe = () => ["normal", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"], z = () => [y, Me, qe, Ye], Ge = () => [
+    p
+  ], D = () => ["", w, ie, ee], ue = () => ["solid", "dashed", "dotted", "double"], Fe = () => ["normal", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"], z = () => [w, Me, qe, Ye], Ge = () => [
     // Deprecated since Tailwind CSS v4.0.0
     "",
     "none",
     C,
     b,
-    f
-  ], me = () => ["none", y, b, f], fe = () => ["none", y, b, f], Ne = () => [y, b, f], pe = () => [Y, "full", ...h()];
+    p
+  ], me = () => ["none", w, b, p], fe = () => ["none", w, b, p], Ne = () => [w, b, p], pe = () => [Y, "full", ...x()];
   return {
     cacheSize: 500,
     theme: {
       animate: ["spin", "ping", "pulse", "bounce"],
       aspect: ["video"],
-      blur: [$],
-      breakpoint: [$],
+      blur: [U],
+      breakpoint: [U],
       color: [dt],
-      container: [$],
-      "drop-shadow": [$],
+      container: [U],
+      "drop-shadow": [U],
       ease: ["in", "out", "in-out"],
-      font: [Br],
+      font: [Er],
       "font-weight": ["thin", "extralight", "light", "normal", "medium", "semibold", "bold", "extrabold", "black"],
-      "inset-shadow": [$],
+      "inset-shadow": [U],
       leading: ["none", "tight", "snug", "normal", "relaxed", "loose"],
       perspective: ["dramatic", "near", "normal", "midrange", "distant", "none"],
-      radius: [$],
-      shadow: [$],
-      spacing: ["px", y],
-      text: [$],
-      "text-shadow": [$],
+      radius: [U],
+      shadow: [U],
+      spacing: ["px", w],
+      text: [U],
+      "text-shadow": [U],
       tracking: ["tighter", "tight", "normal", "wide", "wider", "widest"]
     },
     classGroups: {
@@ -392,7 +392,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/aspect-ratio
        */
       aspect: [{
-        aspect: ["auto", "square", Y, f, b, N]
+        aspect: ["auto", "square", Y, p, b, N]
       }],
       /**
        * Container
@@ -405,19 +405,19 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/responsive-design#container-queries
        */
       "container-type": [{
-        "@container": ["", "normal", "size", b, f]
+        "@container": ["", "normal", "size", b, p]
       }],
       /**
        * Container Name
        * @see https://tailwindcss.com/docs/responsive-design#named-containers
        */
-      "container-named": [Er],
+      "container-named": [Zr],
       /**
        * Columns
        * @see https://tailwindcss.com/docs/columns
        */
       columns: [{
-        columns: [y, f, b, a]
+        columns: [w, p, b, a]
       }],
       /**
        * Break After
@@ -643,7 +643,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/z-index
        */
       z: [{
-        z: [G, "auto", b, f]
+        z: [G, "auto", b, p]
       }],
       // ------------------------
       // --- Flexbox and Grid ---
@@ -653,7 +653,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/flex-basis
        */
       basis: [{
-        basis: [Y, "full", "auto", a, ...h()]
+        basis: [Y, "full", "auto", a, ...x()]
       }],
       /**
        * Flex Direction
@@ -674,28 +674,28 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/flex
        */
       flex: [{
-        flex: [y, Y, "auto", "initial", "none", f]
+        flex: [w, Y, "auto", "initial", "none", p]
       }],
       /**
        * Flex Grow
        * @see https://tailwindcss.com/docs/flex-grow
        */
       grow: [{
-        grow: ["", y, b, f]
+        grow: ["", w, b, p]
       }],
       /**
        * Flex Shrink
        * @see https://tailwindcss.com/docs/flex-shrink
        */
       shrink: [{
-        shrink: ["", y, b, f]
+        shrink: ["", w, b, p]
       }],
       /**
        * Order
        * @see https://tailwindcss.com/docs/order
        */
       order: [{
-        order: [G, "first", "last", "none", b, f]
+        order: [G, "first", "last", "none", b, p]
       }],
       /**
        * Grid Template Columns
@@ -779,21 +779,21 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/gap
        */
       gap: [{
-        gap: h()
+        gap: x()
       }],
       /**
        * Gap X
        * @see https://tailwindcss.com/docs/gap
        */
       "gap-x": [{
-        "gap-x": h()
+        "gap-x": x()
       }],
       /**
        * Gap Y
        * @see https://tailwindcss.com/docs/gap
        */
       "gap-y": [{
-        "gap-y": h()
+        "gap-y": x()
       }],
       /**
        * Justify Content
@@ -868,77 +868,77 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/padding
        */
       p: [{
-        p: h()
+        p: x()
       }],
       /**
        * Padding Inline
        * @see https://tailwindcss.com/docs/padding
        */
       px: [{
-        px: h()
+        px: x()
       }],
       /**
        * Padding Block
        * @see https://tailwindcss.com/docs/padding
        */
       py: [{
-        py: h()
+        py: x()
       }],
       /**
        * Padding Inline Start
        * @see https://tailwindcss.com/docs/padding
        */
       ps: [{
-        ps: h()
+        ps: x()
       }],
       /**
        * Padding Inline End
        * @see https://tailwindcss.com/docs/padding
        */
       pe: [{
-        pe: h()
+        pe: x()
       }],
       /**
        * Padding Block Start
        * @see https://tailwindcss.com/docs/padding
        */
       pbs: [{
-        pbs: h()
+        pbs: x()
       }],
       /**
        * Padding Block End
        * @see https://tailwindcss.com/docs/padding
        */
       pbe: [{
-        pbe: h()
+        pbe: x()
       }],
       /**
        * Padding Top
        * @see https://tailwindcss.com/docs/padding
        */
       pt: [{
-        pt: h()
+        pt: x()
       }],
       /**
        * Padding Right
        * @see https://tailwindcss.com/docs/padding
        */
       pr: [{
-        pr: h()
+        pr: x()
       }],
       /**
        * Padding Bottom
        * @see https://tailwindcss.com/docs/padding
        */
       pb: [{
-        pb: h()
+        pb: x()
       }],
       /**
        * Padding Left
        * @see https://tailwindcss.com/docs/padding
        */
       pl: [{
-        pl: h()
+        pl: x()
       }],
       /**
        * Margin
@@ -1022,7 +1022,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/margin#adding-space-between-children
        */
       "space-x": [{
-        "space-x": h()
+        "space-x": x()
       }],
       /**
        * Space Between X Reverse
@@ -1034,7 +1034,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/margin#adding-space-between-children
        */
       "space-y": [{
-        "space-y": h()
+        "space-y": x()
       }],
       /**
        * Space Between Y Reverse
@@ -1049,7 +1049,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/width#setting-both-width-and-height
        */
       size: [{
-        size: U()
+        size: W()
       }],
       /**
        * Inline Size
@@ -1098,7 +1098,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/width
        */
       w: [{
-        w: [a, "screen", ...U()]
+        w: [a, "screen", ...W()]
       }],
       /**
        * Min-Width
@@ -1110,7 +1110,7 @@ const ir = (e, n) => {
           "screen",
           /** Deprecated. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
           "none",
-          ...U()
+          ...W()
         ]
       }],
       /**
@@ -1128,7 +1128,7 @@ const ir = (e, n) => {
           {
             screen: [i]
           },
-          ...U()
+          ...W()
         ]
       }],
       /**
@@ -1136,21 +1136,21 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/height
        */
       h: [{
-        h: ["screen", "lh", ...U()]
+        h: ["screen", "lh", ...W()]
       }],
       /**
        * Min-Height
        * @see https://tailwindcss.com/docs/min-height
        */
       "min-h": [{
-        "min-h": ["screen", "lh", "none", ...U()]
+        "min-h": ["screen", "lh", "none", ...W()]
       }],
       /**
        * Max-Height
        * @see https://tailwindcss.com/docs/max-height
        */
       "max-h": [{
-        "max-h": ["screen", "lh", ...U()]
+        "max-h": ["screen", "lh", ...W()]
       }],
       // ------------------
       // --- Typography ---
@@ -1177,28 +1177,28 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/font-weight
        */
       "font-weight": [{
-        font: [s, Kr, Fr]
+        font: [s, Yr, Gr]
       }],
       /**
        * Font Stretch
        * @see https://tailwindcss.com/docs/font-stretch
        */
       "font-stretch": [{
-        "font-stretch": ["ultra-condensed", "extra-condensed", "condensed", "semi-condensed", "normal", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded", Me, f]
+        "font-stretch": ["ultra-condensed", "extra-condensed", "condensed", "semi-condensed", "normal", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded", Me, p]
       }],
       /**
        * Font Family
        * @see https://tailwindcss.com/docs/font-family
        */
       "font-family": [{
-        font: [_r, Gr, n]
+        font: [Ur, _r, n]
       }],
       /**
        * Font Feature Settings
        * @see https://tailwindcss.com/docs/font-feature-settings
        */
       "font-features": [{
-        "font-features": [f]
+        "font-features": [p]
       }],
       /**
        * Font Variant Numeric
@@ -1235,14 +1235,14 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/letter-spacing
        */
       tracking: [{
-        tracking: [l, b, f]
+        tracking: [l, b, p]
       }],
       /**
        * Line Clamp
        * @see https://tailwindcss.com/docs/line-clamp
        */
       "line-clamp": [{
-        "line-clamp": [y, "none", b, Ke]
+        "line-clamp": [w, "none", b, Ke]
       }],
       /**
        * Line Height
@@ -1252,7 +1252,7 @@ const ir = (e, n) => {
         leading: [
           /** Deprecated since Tailwind CSS v4.0.0. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
           o,
-          ...h()
+          ...x()
         ]
       }],
       /**
@@ -1260,7 +1260,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/list-style-image
        */
       "list-image": [{
-        "list-image": ["none", b, f]
+        "list-image": ["none", b, p]
       }],
       /**
        * List Style Position
@@ -1274,7 +1274,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/list-style-type
        */
       "list-style-type": [{
-        list: ["disc", "decimal", "none", b, f]
+        list: ["disc", "decimal", "none", b, p]
       }],
       /**
        * Text Alignment
@@ -1289,14 +1289,14 @@ const ir = (e, n) => {
        * @see https://v3.tailwindcss.com/docs/placeholder-color
        */
       "placeholder-color": [{
-        placeholder: x()
+        placeholder: g()
       }],
       /**
        * Text Color
        * @see https://tailwindcss.com/docs/text-color
        */
       "text-color": [{
-        text: x()
+        text: g()
       }],
       /**
        * Text Decoration
@@ -1315,21 +1315,21 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/text-decoration-thickness
        */
       "text-decoration-thickness": [{
-        decoration: [y, "from-font", "auto", b, ee]
+        decoration: [w, "from-font", "auto", b, ee]
       }],
       /**
        * Text Decoration Color
        * @see https://tailwindcss.com/docs/text-decoration-color
        */
       "text-decoration-color": [{
-        decoration: x()
+        decoration: g()
       }],
       /**
        * Text Underline Offset
        * @see https://tailwindcss.com/docs/text-underline-offset
        */
       "underline-offset": [{
-        "underline-offset": [y, "auto", b, f]
+        "underline-offset": [w, "auto", b, p]
       }],
       /**
        * Text Transform
@@ -1353,21 +1353,21 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/text-indent
        */
       indent: [{
-        indent: h()
+        indent: x()
       }],
       /**
        * Tab Size
        * @see https://tailwindcss.com/docs/tab-size
        */
       "tab-size": [{
-        tab: [G, b, f]
+        tab: [G, b, p]
       }],
       /**
        * Vertical Alignment
        * @see https://tailwindcss.com/docs/vertical-align
        */
       "vertical-align": [{
-        align: ["baseline", "top", "middle", "bottom", "text-top", "text-bottom", "sub", "super", b, f]
+        align: ["baseline", "top", "middle", "bottom", "text-top", "text-bottom", "sub", "super", b, p]
       }],
       /**
        * Whitespace
@@ -1402,7 +1402,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/content
        */
       content: [{
-        content: ["none", b, f]
+        content: ["none", b, p]
       }],
       // -------------------
       // --- Backgrounds ---
@@ -1457,17 +1457,17 @@ const ir = (e, n) => {
         bg: ["none", {
           linear: [{
             to: ["t", "tr", "r", "br", "b", "bl", "l", "tl"]
-          }, G, b, f],
-          radial: ["", b, f],
-          conic: [G, b, f]
-        }, $r, Wr]
+          }, G, b, p],
+          radial: ["", b, p],
+          conic: [G, b, p]
+        }, Kr, Wr]
       }],
       /**
        * Background Color
        * @see https://tailwindcss.com/docs/background-color
        */
       "bg-color": [{
-        bg: x()
+        bg: g()
       }],
       /**
        * Gradient Color Stops From Position
@@ -1495,21 +1495,21 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/gradient-color-stops
        */
       "gradient-from": [{
-        from: x()
+        from: g()
       }],
       /**
        * Gradient Color Stops Via
        * @see https://tailwindcss.com/docs/gradient-color-stops
        */
       "gradient-via": [{
-        via: x()
+        via: g()
       }],
       /**
        * Gradient Color Stops To
        * @see https://tailwindcss.com/docs/gradient-color-stops
        */
       "gradient-to": [{
-        to: x()
+        to: g()
       }],
       // ---------------
       // --- Borders ---
@@ -1739,84 +1739,84 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color": [{
-        border: x()
+        border: g()
       }],
       /**
        * Border Color Inline
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-x": [{
-        "border-x": x()
+        "border-x": g()
       }],
       /**
        * Border Color Block
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-y": [{
-        "border-y": x()
+        "border-y": g()
       }],
       /**
        * Border Color Inline Start
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-s": [{
-        "border-s": x()
+        "border-s": g()
       }],
       /**
        * Border Color Inline End
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-e": [{
-        "border-e": x()
+        "border-e": g()
       }],
       /**
        * Border Color Block Start
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-bs": [{
-        "border-bs": x()
+        "border-bs": g()
       }],
       /**
        * Border Color Block End
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-be": [{
-        "border-be": x()
+        "border-be": g()
       }],
       /**
        * Border Color Top
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-t": [{
-        "border-t": x()
+        "border-t": g()
       }],
       /**
        * Border Color Right
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-r": [{
-        "border-r": x()
+        "border-r": g()
       }],
       /**
        * Border Color Bottom
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-b": [{
-        "border-b": x()
+        "border-b": g()
       }],
       /**
        * Border Color Left
        * @see https://tailwindcss.com/docs/border-color
        */
       "border-color-l": [{
-        "border-l": x()
+        "border-l": g()
       }],
       /**
        * Divide Color
        * @see https://tailwindcss.com/docs/divide-color
        */
       "divide-color": [{
-        divide: x()
+        divide: g()
       }],
       /**
        * Outline Style
@@ -1830,21 +1830,21 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/outline-offset
        */
       "outline-offset": [{
-        "outline-offset": [y, b, f]
+        "outline-offset": [w, b, p]
       }],
       /**
        * Outline Width
        * @see https://tailwindcss.com/docs/outline-width
        */
       "outline-w": [{
-        outline: ["", y, ie, ee]
+        outline: ["", w, ie, ee]
       }],
       /**
        * Outline Color
        * @see https://tailwindcss.com/docs/outline-color
        */
       "outline-color": [{
-        outline: x()
+        outline: g()
       }],
       // ---------------
       // --- Effects ---
@@ -1858,7 +1858,7 @@ const ir = (e, n) => {
           // Deprecated since Tailwind CSS v4.0.0
           "",
           "none",
-          g,
+          h,
           he,
           be
         ]
@@ -1868,21 +1868,21 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/box-shadow#setting-the-shadow-color
        */
       "shadow-color": [{
-        shadow: x()
+        shadow: g()
       }],
       /**
        * Inset Box Shadow
        * @see https://tailwindcss.com/docs/box-shadow#adding-an-inset-shadow
        */
       "inset-shadow": [{
-        "inset-shadow": ["none", p, he, be]
+        "inset-shadow": ["none", f, he, be]
       }],
       /**
        * Inset Box Shadow Color
        * @see https://tailwindcss.com/docs/box-shadow#setting-the-inset-shadow-color
        */
       "inset-shadow-color": [{
-        "inset-shadow": x()
+        "inset-shadow": g()
       }],
       /**
        * Ring Width
@@ -1903,7 +1903,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/box-shadow#setting-the-ring-color
        */
       "ring-color": [{
-        ring: x()
+        ring: g()
       }],
       /**
        * Ring Offset Width
@@ -1912,7 +1912,7 @@ const ir = (e, n) => {
        * @see https://github.com/tailwindlabs/tailwindcss/blob/v4.0.0/packages/tailwindcss/src/utilities.ts#L4158
        */
       "ring-offset-w": [{
-        "ring-offset": [y, ee]
+        "ring-offset": [w, ee]
       }],
       /**
        * Ring Offset Color
@@ -1921,7 +1921,7 @@ const ir = (e, n) => {
        * @see https://github.com/tailwindlabs/tailwindcss/blob/v4.0.0/packages/tailwindcss/src/utilities.ts#L4158
        */
       "ring-offset-color": [{
-        "ring-offset": x()
+        "ring-offset": g()
       }],
       /**
        * Inset Ring Width
@@ -1935,7 +1935,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/box-shadow#setting-the-inset-ring-color
        */
       "inset-ring-color": [{
-        "inset-ring": x()
+        "inset-ring": g()
       }],
       /**
        * Text Shadow
@@ -1949,14 +1949,14 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/text-shadow#setting-the-shadow-color
        */
       "text-shadow-color": [{
-        "text-shadow": x()
+        "text-shadow": g()
       }],
       /**
        * Opacity
        * @see https://tailwindcss.com/docs/opacity
        */
       opacity: [{
-        opacity: [y, b, f]
+        opacity: [w, b, p]
       }],
       /**
        * Mix Blend Mode
@@ -1991,7 +1991,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/mask-image
        */
       "mask-image-linear-pos": [{
-        "mask-linear": [y]
+        "mask-linear": [w]
       }],
       "mask-image-linear-from-pos": [{
         "mask-linear-from": z()
@@ -2000,10 +2000,10 @@ const ir = (e, n) => {
         "mask-linear-to": z()
       }],
       "mask-image-linear-from-color": [{
-        "mask-linear-from": x()
+        "mask-linear-from": g()
       }],
       "mask-image-linear-to-color": [{
-        "mask-linear-to": x()
+        "mask-linear-to": g()
       }],
       "mask-image-t-from-pos": [{
         "mask-t-from": z()
@@ -2012,10 +2012,10 @@ const ir = (e, n) => {
         "mask-t-to": z()
       }],
       "mask-image-t-from-color": [{
-        "mask-t-from": x()
+        "mask-t-from": g()
       }],
       "mask-image-t-to-color": [{
-        "mask-t-to": x()
+        "mask-t-to": g()
       }],
       "mask-image-r-from-pos": [{
         "mask-r-from": z()
@@ -2024,10 +2024,10 @@ const ir = (e, n) => {
         "mask-r-to": z()
       }],
       "mask-image-r-from-color": [{
-        "mask-r-from": x()
+        "mask-r-from": g()
       }],
       "mask-image-r-to-color": [{
-        "mask-r-to": x()
+        "mask-r-to": g()
       }],
       "mask-image-b-from-pos": [{
         "mask-b-from": z()
@@ -2036,10 +2036,10 @@ const ir = (e, n) => {
         "mask-b-to": z()
       }],
       "mask-image-b-from-color": [{
-        "mask-b-from": x()
+        "mask-b-from": g()
       }],
       "mask-image-b-to-color": [{
-        "mask-b-to": x()
+        "mask-b-to": g()
       }],
       "mask-image-l-from-pos": [{
         "mask-l-from": z()
@@ -2048,10 +2048,10 @@ const ir = (e, n) => {
         "mask-l-to": z()
       }],
       "mask-image-l-from-color": [{
-        "mask-l-from": x()
+        "mask-l-from": g()
       }],
       "mask-image-l-to-color": [{
-        "mask-l-to": x()
+        "mask-l-to": g()
       }],
       "mask-image-x-from-pos": [{
         "mask-x-from": z()
@@ -2060,10 +2060,10 @@ const ir = (e, n) => {
         "mask-x-to": z()
       }],
       "mask-image-x-from-color": [{
-        "mask-x-from": x()
+        "mask-x-from": g()
       }],
       "mask-image-x-to-color": [{
-        "mask-x-to": x()
+        "mask-x-to": g()
       }],
       "mask-image-y-from-pos": [{
         "mask-y-from": z()
@@ -2072,13 +2072,13 @@ const ir = (e, n) => {
         "mask-y-to": z()
       }],
       "mask-image-y-from-color": [{
-        "mask-y-from": x()
+        "mask-y-from": g()
       }],
       "mask-image-y-to-color": [{
-        "mask-y-to": x()
+        "mask-y-to": g()
       }],
       "mask-image-radial": [{
-        "mask-radial": [b, f]
+        "mask-radial": [b, p]
       }],
       "mask-image-radial-from-pos": [{
         "mask-radial-from": z()
@@ -2087,10 +2087,10 @@ const ir = (e, n) => {
         "mask-radial-to": z()
       }],
       "mask-image-radial-from-color": [{
-        "mask-radial-from": x()
+        "mask-radial-from": g()
       }],
       "mask-image-radial-to-color": [{
-        "mask-radial-to": x()
+        "mask-radial-to": g()
       }],
       "mask-image-radial-shape": [{
         "mask-radial": ["circle", "ellipse"]
@@ -2105,7 +2105,7 @@ const ir = (e, n) => {
         "mask-radial-at": _()
       }],
       "mask-image-conic-pos": [{
-        "mask-conic": [y]
+        "mask-conic": [w]
       }],
       "mask-image-conic-from-pos": [{
         "mask-conic-from": z()
@@ -2114,10 +2114,10 @@ const ir = (e, n) => {
         "mask-conic-to": z()
       }],
       "mask-image-conic-from-color": [{
-        "mask-conic-from": x()
+        "mask-conic-from": g()
       }],
       "mask-image-conic-to-color": [{
-        "mask-conic-to": x()
+        "mask-conic-to": g()
       }],
       /**
        * Mask Mode
@@ -2166,7 +2166,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/mask-image
        */
       "mask-image": [{
-        mask: ["none", b, f]
+        mask: ["none", b, p]
       }],
       // ---------------
       // --- Filters ---
@@ -2181,7 +2181,7 @@ const ir = (e, n) => {
           "",
           "none",
           b,
-          f
+          p
         ]
       }],
       /**
@@ -2196,14 +2196,14 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/brightness
        */
       brightness: [{
-        brightness: [y, b, f]
+        brightness: [w, b, p]
       }],
       /**
        * Contrast
        * @see https://tailwindcss.com/docs/contrast
        */
       contrast: [{
-        contrast: [y, b, f]
+        contrast: [w, b, p]
       }],
       /**
        * Drop Shadow
@@ -2224,42 +2224,42 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/filter-drop-shadow#setting-the-shadow-color
        */
       "drop-shadow-color": [{
-        "drop-shadow": x()
+        "drop-shadow": g()
       }],
       /**
        * Grayscale
        * @see https://tailwindcss.com/docs/grayscale
        */
       grayscale: [{
-        grayscale: ["", y, b, f]
+        grayscale: ["", w, b, p]
       }],
       /**
        * Hue Rotate
        * @see https://tailwindcss.com/docs/hue-rotate
        */
       "hue-rotate": [{
-        "hue-rotate": [y, b, f]
+        "hue-rotate": [w, b, p]
       }],
       /**
        * Invert
        * @see https://tailwindcss.com/docs/invert
        */
       invert: [{
-        invert: ["", y, b, f]
+        invert: ["", w, b, p]
       }],
       /**
        * Saturate
        * @see https://tailwindcss.com/docs/saturate
        */
       saturate: [{
-        saturate: [y, b, f]
+        saturate: [w, b, p]
       }],
       /**
        * Sepia
        * @see https://tailwindcss.com/docs/sepia
        */
       sepia: [{
-        sepia: ["", y, b, f]
+        sepia: ["", w, b, p]
       }],
       /**
        * Backdrop Filter
@@ -2271,7 +2271,7 @@ const ir = (e, n) => {
           "",
           "none",
           b,
-          f
+          p
         ]
       }],
       /**
@@ -2286,56 +2286,56 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/backdrop-brightness
        */
       "backdrop-brightness": [{
-        "backdrop-brightness": [y, b, f]
+        "backdrop-brightness": [w, b, p]
       }],
       /**
        * Backdrop Contrast
        * @see https://tailwindcss.com/docs/backdrop-contrast
        */
       "backdrop-contrast": [{
-        "backdrop-contrast": [y, b, f]
+        "backdrop-contrast": [w, b, p]
       }],
       /**
        * Backdrop Grayscale
        * @see https://tailwindcss.com/docs/backdrop-grayscale
        */
       "backdrop-grayscale": [{
-        "backdrop-grayscale": ["", y, b, f]
+        "backdrop-grayscale": ["", w, b, p]
       }],
       /**
        * Backdrop Hue Rotate
        * @see https://tailwindcss.com/docs/backdrop-hue-rotate
        */
       "backdrop-hue-rotate": [{
-        "backdrop-hue-rotate": [y, b, f]
+        "backdrop-hue-rotate": [w, b, p]
       }],
       /**
        * Backdrop Invert
        * @see https://tailwindcss.com/docs/backdrop-invert
        */
       "backdrop-invert": [{
-        "backdrop-invert": ["", y, b, f]
+        "backdrop-invert": ["", w, b, p]
       }],
       /**
        * Backdrop Opacity
        * @see https://tailwindcss.com/docs/backdrop-opacity
        */
       "backdrop-opacity": [{
-        "backdrop-opacity": [y, b, f]
+        "backdrop-opacity": [w, b, p]
       }],
       /**
        * Backdrop Saturate
        * @see https://tailwindcss.com/docs/backdrop-saturate
        */
       "backdrop-saturate": [{
-        "backdrop-saturate": [y, b, f]
+        "backdrop-saturate": [w, b, p]
       }],
       /**
        * Backdrop Sepia
        * @see https://tailwindcss.com/docs/backdrop-sepia
        */
       "backdrop-sepia": [{
-        "backdrop-sepia": ["", y, b, f]
+        "backdrop-sepia": ["", w, b, p]
       }],
       // --------------
       // --- Tables ---
@@ -2352,21 +2352,21 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/border-spacing
        */
       "border-spacing": [{
-        "border-spacing": h()
+        "border-spacing": x()
       }],
       /**
        * Border Spacing X
        * @see https://tailwindcss.com/docs/border-spacing
        */
       "border-spacing-x": [{
-        "border-spacing-x": h()
+        "border-spacing-x": x()
       }],
       /**
        * Border Spacing Y
        * @see https://tailwindcss.com/docs/border-spacing
        */
       "border-spacing-y": [{
-        "border-spacing-y": h()
+        "border-spacing-y": x()
       }],
       /**
        * Table Layout
@@ -2390,7 +2390,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/transition-property
        */
       transition: [{
-        transition: ["", "all", "colors", "opacity", "shadow", "transform", "none", b, f]
+        transition: ["", "all", "colors", "opacity", "shadow", "transform", "none", b, p]
       }],
       /**
        * Transition Behavior
@@ -2404,28 +2404,28 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/transition-duration
        */
       duration: [{
-        duration: [y, "initial", b, f]
+        duration: [w, "initial", b, p]
       }],
       /**
        * Transition Timing Function
        * @see https://tailwindcss.com/docs/transition-timing-function
        */
       ease: [{
-        ease: ["linear", "initial", S, b, f]
+        ease: ["linear", "initial", L, b, p]
       }],
       /**
        * Transition Delay
        * @see https://tailwindcss.com/docs/transition-delay
        */
       delay: [{
-        delay: [y, b, f]
+        delay: [w, b, p]
       }],
       /**
        * Animation
        * @see https://tailwindcss.com/docs/animation
        */
       animate: [{
-        animate: ["none", I, b, f]
+        animate: ["none", I, b, p]
       }],
       // ------------------
       // --- Transforms ---
@@ -2442,7 +2442,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/perspective
        */
       perspective: [{
-        perspective: [w, b, f]
+        perspective: [y, b, p]
       }],
       /**
        * Perspective Origin
@@ -2538,7 +2538,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/transform
        */
       transform: [{
-        transform: [b, f, "", "none", "gpu", "cpu"]
+        transform: [b, p, "", "none", "gpu", "cpu"]
       }],
       /**
        * Transform Origin
@@ -2592,7 +2592,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/zoom
        */
       zoom: [{
-        zoom: [G, b, f]
+        zoom: [G, b, p]
       }],
       // ---------------------
       // --- Interactivity ---
@@ -2602,7 +2602,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/accent-color
        */
       accent: [{
-        accent: x()
+        accent: g()
       }],
       /**
        * Appearance
@@ -2616,7 +2616,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/just-in-time-mode#caret-color-utilities
        */
       "caret-color": [{
-        caret: x()
+        caret: g()
       }],
       /**
        * Color Scheme
@@ -2630,7 +2630,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/cursor
        */
       cursor: [{
-        cursor: ["auto", "default", "pointer", "wait", "text", "move", "help", "not-allowed", "none", "context-menu", "progress", "cell", "crosshair", "vertical-text", "alias", "copy", "no-drop", "grab", "grabbing", "all-scroll", "col-resize", "row-resize", "n-resize", "e-resize", "s-resize", "w-resize", "ne-resize", "nw-resize", "se-resize", "sw-resize", "ew-resize", "ns-resize", "nesw-resize", "nwse-resize", "zoom-in", "zoom-out", b, f]
+        cursor: ["auto", "default", "pointer", "wait", "text", "move", "help", "not-allowed", "none", "context-menu", "progress", "cell", "crosshair", "vertical-text", "alias", "copy", "no-drop", "grab", "grabbing", "all-scroll", "col-resize", "row-resize", "n-resize", "e-resize", "s-resize", "w-resize", "ne-resize", "nw-resize", "se-resize", "sw-resize", "ew-resize", "ns-resize", "nesw-resize", "nwse-resize", "zoom-in", "zoom-out", b, p]
       }],
       /**
        * Field Sizing
@@ -2665,14 +2665,14 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/scrollbar-color
        */
       "scrollbar-thumb-color": [{
-        "scrollbar-thumb": x()
+        "scrollbar-thumb": g()
       }],
       /**
        * Scrollbar Track Color
        * @see https://tailwindcss.com/docs/scrollbar-color
        */
       "scrollbar-track-color": [{
-        "scrollbar-track": x()
+        "scrollbar-track": g()
       }],
       /**
        * Scrollbar Gutter
@@ -2693,154 +2693,154 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-m": [{
-        "scroll-m": h()
+        "scroll-m": x()
       }],
       /**
        * Scroll Margin Inline
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-mx": [{
-        "scroll-mx": h()
+        "scroll-mx": x()
       }],
       /**
        * Scroll Margin Block
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-my": [{
-        "scroll-my": h()
+        "scroll-my": x()
       }],
       /**
        * Scroll Margin Inline Start
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-ms": [{
-        "scroll-ms": h()
+        "scroll-ms": x()
       }],
       /**
        * Scroll Margin Inline End
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-me": [{
-        "scroll-me": h()
+        "scroll-me": x()
       }],
       /**
        * Scroll Margin Block Start
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-mbs": [{
-        "scroll-mbs": h()
+        "scroll-mbs": x()
       }],
       /**
        * Scroll Margin Block End
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-mbe": [{
-        "scroll-mbe": h()
+        "scroll-mbe": x()
       }],
       /**
        * Scroll Margin Top
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-mt": [{
-        "scroll-mt": h()
+        "scroll-mt": x()
       }],
       /**
        * Scroll Margin Right
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-mr": [{
-        "scroll-mr": h()
+        "scroll-mr": x()
       }],
       /**
        * Scroll Margin Bottom
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-mb": [{
-        "scroll-mb": h()
+        "scroll-mb": x()
       }],
       /**
        * Scroll Margin Left
        * @see https://tailwindcss.com/docs/scroll-margin
        */
       "scroll-ml": [{
-        "scroll-ml": h()
+        "scroll-ml": x()
       }],
       /**
        * Scroll Padding
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-p": [{
-        "scroll-p": h()
+        "scroll-p": x()
       }],
       /**
        * Scroll Padding Inline
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-px": [{
-        "scroll-px": h()
+        "scroll-px": x()
       }],
       /**
        * Scroll Padding Block
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-py": [{
-        "scroll-py": h()
+        "scroll-py": x()
       }],
       /**
        * Scroll Padding Inline Start
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-ps": [{
-        "scroll-ps": h()
+        "scroll-ps": x()
       }],
       /**
        * Scroll Padding Inline End
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-pe": [{
-        "scroll-pe": h()
+        "scroll-pe": x()
       }],
       /**
        * Scroll Padding Block Start
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-pbs": [{
-        "scroll-pbs": h()
+        "scroll-pbs": x()
       }],
       /**
        * Scroll Padding Block End
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-pbe": [{
-        "scroll-pbe": h()
+        "scroll-pbe": x()
       }],
       /**
        * Scroll Padding Top
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-pt": [{
-        "scroll-pt": h()
+        "scroll-pt": x()
       }],
       /**
        * Scroll Padding Right
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-pr": [{
-        "scroll-pr": h()
+        "scroll-pr": x()
       }],
       /**
        * Scroll Padding Bottom
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-pb": [{
-        "scroll-pb": h()
+        "scroll-pb": x()
       }],
       /**
        * Scroll Padding Left
        * @see https://tailwindcss.com/docs/scroll-padding
        */
       "scroll-pl": [{
-        "scroll-pl": h()
+        "scroll-pl": x()
       }],
       /**
        * Scroll Snap Align
@@ -2908,7 +2908,7 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/will-change
        */
       "will-change": [{
-        "will-change": ["auto", "scroll", "contents", "transform", b, f]
+        "will-change": ["auto", "scroll", "contents", "transform", b, p]
       }],
       // -----------
       // --- SVG ---
@@ -2918,21 +2918,21 @@ const ir = (e, n) => {
        * @see https://tailwindcss.com/docs/fill
        */
       fill: [{
-        fill: ["none", ...x()]
+        fill: ["none", ...g()]
       }],
       /**
        * Stroke Width
        * @see https://tailwindcss.com/docs/stroke-width
        */
       "stroke-w": [{
-        stroke: [y, ie, ee, Ke]
+        stroke: [w, ie, ee, Ke]
       }],
       /**
        * Stroke
        * @see https://tailwindcss.com/docs/stroke
        */
       stroke: [{
-        stroke: ["none", ...x()]
+        stroke: ["none", ...g()]
       }],
       // ---------------------
       // --- Accessibility ---
@@ -3002,16 +3002,16 @@ const ir = (e, n) => {
     postfixLookupClassGroups: ["container-type"],
     orderSensitiveModifiers: ["*", "**", "after", "backdrop", "before", "details-content", "file", "first-letter", "first-line", "marker", "placeholder", "selection"]
   };
-}, Xr = /* @__PURE__ */ Sr(qr);
+}, Jr = /* @__PURE__ */ Vr(Xr);
 function m(...e) {
-  return Xr(lr(e));
+  return Jr(ir(e));
 }
-const Jr = {
+const Qr = {
   normal: "neutral",
   soon: "yellow",
   overdue: "red"
 };
-function L({ children: e, ...n }) {
+function S({ children: e, ...n }) {
   const r = n["aria-label"] != null || n["aria-labelledby"] != null;
   return /* @__PURE__ */ t(
     "svg",
@@ -3024,8 +3024,8 @@ function L({ children: e, ...n }) {
     }
   );
 }
-function Yn(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 18 4", ...e, children: /* @__PURE__ */ t(
+function Jn(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 18 4", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M2 0C0.9 0 0 0.9 0 2C0 3.1 0.9 4 2 4C3.1 4 4 3.1 4 2C4 0.9 3.1 0 2 0ZM16 0C14.9 0 14 0.9 14 2C14 3.1 14.9 4 16 4C17.1 4 18 3.1 18 2C18 0.9 17.1 0 16 0ZM9 0C7.9 0 7 0.9 7 2C7 3.1 7.9 4 9 4C10.1 4 11 3.1 11 2C11 0.9 10.1 0 9 0Z",
@@ -3033,8 +3033,8 @@ function Yn(e) {
     }
   ) });
 }
-function Qr(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 20.506 19.253", ...e, children: /* @__PURE__ */ t(
+function en(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 20.506 19.253", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M10.253 19.253C9.0711 19.253 7.90078 19.0202 6.80885 18.5679C5.71692 18.1156 4.72477 17.4527 3.88904 16.617C3.05331 15.7812 2.39038 14.7891 1.93808 13.6972C1.48579 12.6052 1.253 11.4349 1.253 10.253C1.253 9.0711 1.48579 7.90078 1.93808 6.80885C2.39038 5.71692 3.05331 4.72477 3.88904 3.88904C4.72477 3.05331 5.71692 2.39038 6.80885 1.93808C7.90078 1.48579 9.0711 1.253 10.253 1.253C12.6399 1.253 14.9291 2.20121 16.617 3.88904C18.3048 5.57687 19.253 7.86605 19.253 10.253C19.253 12.6399 18.3048 14.9291 16.617 16.617C14.9291 18.3048 12.6399 19.253 10.253 19.253V19.253ZM10.253 17.253C11.1723 17.253 12.0825 17.0719 12.9318 16.7202C13.7811 16.3684 14.5527 15.8528 15.2027 15.2027C15.8528 14.5527 16.3684 13.7811 16.7202 12.9318C17.0719 12.0825 17.253 11.1723 17.253 10.253C17.253 9.33375 17.0719 8.42349 16.7202 7.57422C16.3684 6.72494 15.8528 5.95326 15.2027 5.30325C14.5527 4.65324 13.7811 4.13763 12.9318 3.78584C12.0825 3.43406 11.1723 3.253 10.253 3.253C8.39648 3.253 6.61601 3.9905 5.30325 5.30325C3.9905 6.61601 3.253 8.39648 3.253 10.253C3.253 12.1095 3.9905 13.89 5.30325 15.2027C6.61601 16.5155 8.39648 17.253 10.253 17.253V17.253ZM11.253 10.253H14.253V12.253H9.253V5.253H11.253V10.253ZM0 3.535L3.535 0L4.95 1.414L1.413 4.95L0 3.535ZM16.97 0L20.506 3.535L19.092 4.95L15.556 1.414L16.971 0H16.97Z",
@@ -3042,8 +3042,8 @@ function Qr(e) {
     }
   ) });
 }
-function qn(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 11.7382 12.6733", ...e, children: /* @__PURE__ */ t(
+function Qn(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 11.7382 12.6733", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M7.96691 3.76371L4.19624 7.53504C4.13256 7.59654 4.08178 7.6701 4.04684 7.75144C4.0119 7.83277 3.99351 7.92025 3.99274 8.00877C3.99197 8.09729 4.00884 8.18508 4.04236 8.26701C4.07588 8.34894 4.12538 8.42337 4.18798 8.48597C4.25057 8.54856 4.325 8.59807 4.40694 8.63159C4.48887 8.66511 4.57665 8.68198 4.66517 8.68121C4.75369 8.68044 4.84117 8.66205 4.92251 8.62711C5.00384 8.59217 5.07741 8.54138 5.13891 8.47771L8.91024 4.70704C9.28534 4.33194 9.49607 3.82318 9.49607 3.29271C9.49607 2.76223 9.28534 2.25348 8.91024 1.87837C8.53513 1.50327 8.02638 1.29254 7.49591 1.29254C6.96543 1.29254 6.45668 1.50327 6.08157 1.87837L2.31024 5.64971C1.99429 5.95779 1.74266 6.32555 1.56994 6.73164C1.39723 7.13773 1.30687 7.57407 1.3041 8.01536C1.30134 8.45664 1.38622 8.89409 1.55384 9.30231C1.72145 9.71054 1.96845 10.0814 2.28052 10.3934C2.59258 10.7055 2.96349 10.9524 3.37174 11.12C3.77999 11.2875 4.21744 11.3723 4.65873 11.3695C5.10001 11.3667 5.53634 11.2763 5.94241 11.1035C6.34848 10.9307 6.7162 10.679 7.02424 10.363L10.7956 6.59237L11.7382 7.53504L7.96691 11.3064C7.53354 11.7397 7.01907 12.0835 6.45285 12.318C5.88664 12.5526 5.27977 12.6733 4.66691 12.6733C4.05404 12.6733 3.44717 12.5526 2.88096 12.318C2.31474 12.0835 1.80027 11.7397 1.3669 11.3064C0.933543 10.873 0.589781 10.3585 0.355247 9.79232C0.120713 9.22611 -4.56621e-09 8.61924 0 8.00637C4.56621e-09 7.39351 0.120713 6.78664 0.355247 6.22043C0.589781 5.65421 0.933543 5.13973 1.3669 4.70637L5.13891 0.935706C5.76758 0.328513 6.60959 -0.00746872 7.48358 0.000126009C8.35757 0.00772074 9.19361 0.358284 9.81163 0.976311C10.4297 1.59434 10.7802 2.43038 10.7878 3.30437C10.7954 4.17836 10.4594 5.02037 9.85224 5.64904L6.08157 9.42171C5.8958 9.60744 5.67525 9.75476 5.43254 9.85526C5.18983 9.95576 4.9297 10.0075 4.667 10.0074C4.40431 10.0074 4.14419 9.95564 3.9015 9.85508C3.65881 9.75452 3.4383 9.60715 3.25257 9.42137C3.06684 9.2356 2.91952 9.01506 2.81901 8.77234C2.71851 8.52963 2.6668 8.2695 2.66683 8.0068C2.66686 7.74411 2.71864 7.48399 2.81919 7.2413C2.91975 6.99861 3.06713 6.77811 3.2529 6.59237L7.02424 2.82104L7.96691 3.76371Z",
@@ -3051,8 +3051,8 @@ function qn(e) {
     }
   ) });
 }
-function Xn(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 12 13.3333", ...e, children: /* @__PURE__ */ t(
+function es(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 12 13.3333", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M4.66667 0C5.03467 0 5.33333 0.298667 5.33333 0.666667V3.33333C5.33333 3.70133 5.03467 4 4.66667 4H3.33333V5.33333H6.66667V4.66667C6.66667 4.29867 6.96533 4 7.33333 4H11.3333C11.7013 4 12 4.29867 12 4.66667V7.33333C12 7.70133 11.7013 8 11.3333 8H7.33333C6.96533 8 6.66667 7.70133 6.66667 7.33333V6.66667H3.33333V10.6667H6.66667V10C6.66667 9.632 6.96533 9.33333 7.33333 9.33333H11.3333C11.7013 9.33333 12 9.632 12 10V12.6667C12 13.0347 11.7013 13.3333 11.3333 13.3333H7.33333C6.96533 13.3333 6.66667 13.0347 6.66667 12.6667V12H2.66667C2.29867 12 2 11.7013 2 11.3333V4H0.666667C0.298667 4 0 3.70133 0 3.33333V0.666667C0 0.298667 0.298667 0 0.666667 0H4.66667ZM10.6667 10.6667H8V12H10.6667V10.6667ZM10.6667 5.33333H8V6.66667H10.6667V5.33333ZM4 1.33333H1.33333V2.66667H4V1.33333Z",
@@ -3060,8 +3060,8 @@ function Xn(e) {
     }
   ) });
 }
-function Jn(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 13.3333 13.3333", ...e, children: /* @__PURE__ */ t(
+function ts(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 13.3333 13.3333", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M3.52734 12.5493L7.52433e-06 13.3333L0.784008 9.806C0.267695 8.84025 -0.00164123 7.76176 7.52433e-06 6.66667C7.52433e-06 2.98467 2.98467 0 6.66667 0C10.3487 0 13.3333 2.98467 13.3333 6.66667C13.3333 10.3487 10.3487 13.3333 6.66667 13.3333C5.57158 13.335 4.49309 13.0656 3.52734 12.5493V12.5493ZM3.72067 11.1407L4.15601 11.374C4.92837 11.7868 5.79094 12.0018 6.66667 12C7.72151 12 8.75265 11.6872 9.62971 11.1012C10.5068 10.5151 11.1904 9.68218 11.594 8.70764C11.9977 7.73311 12.1033 6.66075 11.8975 5.62618C11.6917 4.59162 11.1838 3.64131 10.4379 2.89543C9.69203 2.14955 8.74172 1.6416 7.70716 1.43581C6.67259 1.23002 5.60024 1.33564 4.6257 1.73931C3.65116 2.14298 2.8182 2.82656 2.23217 3.70363C1.64614 4.58069 1.33334 5.61183 1.33334 6.66667C1.33334 7.556 1.55001 8.412 1.96001 9.17733L2.19267 9.61267L1.75601 11.5773L3.72067 11.1407V11.1407Z",
@@ -3069,8 +3069,8 @@ function Jn(e) {
     }
   ) });
 }
-function Qn(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 18 18", ...e, children: /* @__PURE__ */ t(
+function rs(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 18 18", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M0 0H8V8H0V0ZM0 10H8V18H0V10ZM10 0H18V8H10V0ZM10 10H18V18H10V10ZM12 2V6H16V2H12ZM12 12V16H16V12H12ZM2 2V6H6V2H2ZM2 12V16H6V12H2Z",
@@ -3078,14 +3078,14 @@ function Qn(e) {
     }
   ) });
 }
-function es(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 18 16", ...e, children: /* @__PURE__ */ t("path", { d: "M0 0H18V2H0V0ZM0 7H18V9H0V7ZM0 14H18V16H0V14Z", fill: "currentColor" }) });
+function ns(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 18 16", ...e, children: /* @__PURE__ */ t("path", { d: "M0 0H18V2H0V0ZM0 7H18V9H0V7ZM0 14H18V16H0V14Z", fill: "currentColor" }) });
 }
-function ts(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 14 14", ...e, children: /* @__PURE__ */ t("path", { d: "M6 6V0H8V6H14V8H8V14H6V8H0V6H6Z", fill: "currentColor" }) });
+function ss(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 14 14", ...e, children: /* @__PURE__ */ t("path", { d: "M6 6V0H8V6H14V8H8V14H6V8H0V6H6Z", fill: "currentColor" }) });
 }
-function en(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 20.314 20.314", ...e, children: /* @__PURE__ */ t(
+function tn(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 20.314 20.314", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M16.031 14.617L20.314 18.899L18.899 20.314L14.617 16.031C13.0237 17.3082 11.042 18.0029 9 18C4.032 18 0 13.968 0 9C0 4.032 4.032 0 9 0C13.968 0 18 4.032 18 9C18.0029 11.042 17.3082 13.0237 16.031 14.617ZM14.025 13.875C15.2941 12.5699 16.0029 10.8204 16 9C16 5.132 12.867 2 9 2C5.132 2 2 5.132 2 9C2 12.867 5.132 16 9 16C10.8204 16.0029 12.5699 15.2941 13.875 14.025L14.025 13.875V13.875Z",
@@ -3093,8 +3093,8 @@ function en(e) {
     }
   ) });
 }
-function tn(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 20 21", ...e, children: /* @__PURE__ */ t(
+function rn(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 20 21", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M18 15H20V17H0V15H2V8C2 5.87827 2.84285 3.84344 4.34315 2.34315C5.84344 0.842855 7.87827 0 10 0C12.1217 0 14.1566 0.842855 15.6569 2.34315C17.1571 3.84344 18 5.87827 18 8V15ZM16 15V8C16 6.4087 15.3679 4.88258 14.2426 3.75736C13.1174 2.63214 11.5913 2 10 2C8.4087 2 6.88258 2.63214 5.75736 3.75736C4.63214 4.88258 4 6.4087 4 8V15H16ZM7 19H13V21H7V19Z",
@@ -3103,7 +3103,7 @@ function tn(e) {
   ) });
 }
 function Ve(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 20 18", ...e, children: /* @__PURE__ */ t(
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 20 18", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M1 0H19C19.2652 0 19.5196 0.105357 19.7071 0.292893C19.8946 0.48043 20 0.734784 20 1V17C20 17.2652 19.8946 17.5196 19.7071 17.7071C19.5196 17.8946 19.2652 18 19 18H1C0.734784 18 0.48043 17.8946 0.292893 17.7071C0.105357 17.5196 0 17.2652 0 17V1C0 0.734784 0.105357 0.48043 0.292893 0.292893C0.48043 0.105357 0.734784 0 1 0V0ZM7 8V6H5V8H3V10H5V12H7V10H9V8H7ZM11 8V10H17V8H11Z",
@@ -3111,8 +3111,8 @@ function Ve(e) {
     }
   ) });
 }
-function rn(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 16 21", ...e, children: /* @__PURE__ */ t(
+function nn(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 16 21", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M16 21H0V19C0 17.6739 0.526784 16.4021 1.46447 15.4645C2.40215 14.5268 3.67392 14 5 14H11C12.3261 14 13.5979 14.5268 14.5355 15.4645C15.4732 16.4021 16 17.6739 16 19V21ZM8 12C7.21207 12 6.43185 11.8448 5.7039 11.5433C4.97595 11.2417 4.31451 10.7998 3.75736 10.2426C3.20021 9.68549 2.75825 9.02405 2.45672 8.2961C2.15519 7.56815 2 6.78793 2 6C2 5.21207 2.15519 4.43185 2.45672 3.7039C2.75825 2.97595 3.20021 2.31451 3.75736 1.75736C4.31451 1.20021 4.97595 0.758251 5.7039 0.456723C6.43185 0.155195 7.21207 -1.17411e-08 8 0C9.5913 2.37122e-08 11.1174 0.632141 12.2426 1.75736C13.3679 2.88258 14 4.4087 14 6C14 7.5913 13.3679 9.11742 12.2426 10.2426C11.1174 11.3679 9.5913 12 8 12V12Z",
@@ -3120,8 +3120,8 @@ function rn(e) {
     }
   ) });
 }
-function nn(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 20.7988 20.7998", ...e, children: /* @__PURE__ */ t(
+function sn(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 20.7988 20.7998", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M9.48579 0L19.3848 1.415L20.7988 11.315L11.6068 20.507C11.4193 20.6945 11.165 20.7998 10.8998 20.7998C10.6346 20.7998 10.3803 20.6945 10.1928 20.507L0.292786 10.607C0.105315 10.4195 0 10.1652 0 9.9C0 9.63484 0.105315 9.38053 0.292786 9.193L9.48579 0ZM12.3138 8.486C12.4995 8.67169 12.7201 8.81897 12.9627 8.91944C13.2054 9.01991 13.4655 9.0716 13.7281 9.07155C13.9908 9.07151 14.2509 9.01973 14.4935 8.91917C14.7361 8.81862 14.9566 8.67126 15.1423 8.4855C15.328 8.29975 15.4753 8.07923 15.5757 7.83656C15.6762 7.59388 15.7279 7.3338 15.7278 7.07115C15.7278 6.8085 15.676 6.54843 15.5755 6.30579C15.4749 6.06315 15.3275 5.84269 15.1418 5.657C14.956 5.47131 14.7355 5.32403 14.4928 5.22356C14.2502 5.12309 13.9901 5.0714 13.7274 5.07145C13.197 5.07154 12.6883 5.28235 12.3133 5.6575C11.9383 6.03265 11.7276 6.54141 11.7277 7.07185C11.7278 7.6023 11.9386 8.11098 12.3138 8.486Z",
@@ -3129,8 +3129,8 @@ function nn(e) {
     }
   ) });
 }
-function sn(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 20 20", ...e, children: /* @__PURE__ */ t(
+function on(e) {
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 20 20", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M7 0V2H13V0H15V2H19C19.2652 2 19.5196 2.10536 19.7071 2.29289C19.8946 2.48043 20 2.73478 20 3V19C20 19.2652 19.8946 19.5196 19.7071 19.7071C19.5196 19.8946 19.2652 20 19 20H1C0.734784 20 0.48043 19.8946 0.292893 19.7071C0.105357 19.5196 0 19.2652 0 19V3C0 2.73478 0.105357 2.48043 0.292893 2.29289C0.48043 2.10536 0.734784 2 1 2H5V0H7ZM18 9H2V18H18V9ZM13.036 10.136L14.45 11.55L9.5 16.5L5.964 12.964L7.38 11.55L9.501 13.672L13.037 10.136H13.036ZM5 4H2V7H18V4H15V5H13V4H7V5H5V4Z",
@@ -3138,8 +3138,8 @@ function sn(e) {
     }
   ) });
 }
-function rs(e) {
-  return /* @__PURE__ */ u(L, { viewBox: "0 0 40 40", ...e, children: [
+function os(e) {
+  return /* @__PURE__ */ u(S, { viewBox: "0 0 40 40", ...e, children: [
     /* @__PURE__ */ t("g", { transform: "translate(0 2)", children: /* @__PURE__ */ t(
       "path",
       {
@@ -3156,9 +3156,9 @@ function rs(e) {
     ) })
   ] });
 }
-function on(e) {
+function ln(e) {
   return /* @__PURE__ */ t(
-    L,
+    S,
     {
       viewBox: "0 0 24 24",
       stroke: "currentColor",
@@ -3170,9 +3170,9 @@ function on(e) {
     }
   );
 }
-function xt(e) {
+function gt(e) {
   return /* @__PURE__ */ t(
-    L,
+    S,
     {
       viewBox: "0 0 24 24",
       stroke: "currentColor",
@@ -3186,7 +3186,7 @@ function xt(e) {
 }
 function De(e) {
   return /* @__PURE__ */ t(
-    L,
+    S,
     {
       viewBox: "0 0 24 24",
       stroke: "currentColor",
@@ -3198,9 +3198,9 @@ function De(e) {
     }
   );
 }
-function ln(e) {
+function an(e) {
   return /* @__PURE__ */ t(
-    L,
+    S,
     {
       viewBox: "0 0 24 24",
       stroke: "currentColor",
@@ -3212,9 +3212,9 @@ function ln(e) {
     }
   );
 }
-function an(e) {
+function cn(e) {
   return /* @__PURE__ */ t(
-    L,
+    S,
     {
       viewBox: "0 0 24 24",
       stroke: "currentColor",
@@ -3227,7 +3227,7 @@ function an(e) {
   );
 }
 function je(e) {
-  return /* @__PURE__ */ t(L, { viewBox: "0 0 14 14", ...e, children: /* @__PURE__ */ t(
+  return /* @__PURE__ */ t(S, { viewBox: "0 0 14 14", ...e, children: /* @__PURE__ */ t(
     "path",
     {
       d: "M7 5.586 12.293.293l1.414 1.414L8.414 7l5.293 5.293-1.414 1.414L7 8.414l-5.293 5.293-1.414-1.414L5.586 7 .293 1.707 1.707.293 7 5.586Z",
@@ -3250,7 +3250,7 @@ function Xe({
       ...a,
       ref: i,
       className: m(
-        "inline-flex items-center justify-center w-10 h-10 rounded-sm transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none",
+        "inline-flex items-center justify-center w-10 h-10 rounded-sm transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none",
         {
           primary: "bg-primary-4 text-main border border-transparent",
           secondary: n ? "bg-transparent text-interactive border border-primary-4" : "bg-transparent text-main border border-transparent"
@@ -3273,7 +3273,12 @@ function Je({
       "text-main",
       s ? "bg-primary-2" : n ? "bg-primary-3" : "bg-primary-4 hover:bg-primary-2"
     ),
-    secondary: s ? "bg-transparent text-muted" : n ? "bg-neutral-3 text-main" : "bg-transparent text-main hover:bg-neutral-2"
+    secondary: s ? "bg-transparent text-muted" : n ? "bg-neutral-3 text-main" : (
+      // `hover:text-neutral-5` alongside the hover fill: white on a solid `neutral-2`
+      // is 2.94:1, so the label has to move with the background. Invisible to a
+      // static-story axe pass, which is why it went unrecorded.
+      "bg-transparent text-main hover:bg-neutral-2 hover:text-neutral-5"
+    )
   };
   return /* @__PURE__ */ t(
     "button",
@@ -3281,7 +3286,7 @@ function Je({
       ...i,
       ref: o,
       className: m(
-        "inline-flex items-center justify-center p-2 text-body-m font-normal rounded-sm transition-colors cursor-pointer font-sans select-none focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 disabled:pointer-events-none",
+        "inline-flex items-center justify-center p-2 text-body-m font-normal rounded-sm transition-colors cursor-pointer font-sans select-none focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 disabled:pointer-events-none",
         a[e],
         r
       ),
@@ -3290,116 +3295,128 @@ function Je({
   );
 }
 function ce() {
-  return /* @__PURE__ */ t("span", { "aria-hidden": "true", className: "text-danger ml-0.5", children: "*" });
+  return /* @__PURE__ */ t("span", { "aria-hidden": "true", className: "text-danger-text ml-0.5", children: "*" });
 }
-const ve = "text-field-label font-semibold text-neutral-3 uppercase font-sans", cn = "text-xs text-muted font-sans", dn = "text-xs text-danger font-sans";
+const dn = "text-body-m font-semibold text-main font-sans", un = "sr-only";
+function ve(e) {
+  return e ? dn : un;
+}
+const mn = "text-xs text-muted-on-dark font-sans", fn = "text-xs text-danger-text font-sans";
 function se({
   description: e,
   error: n,
   descriptionProps: r,
   errorMessageProps: s
 }) {
-  return n ? /* @__PURE__ */ t("span", { ...s, className: dn, children: n }) : e ? /* @__PURE__ */ t("span", { ...r, className: cn, children: e }) : null;
+  return n ? /* @__PURE__ */ t("span", { ...s, className: fn, children: n }) : e ? /* @__PURE__ */ t("span", { ...r, className: mn, children: e }) : null;
 }
-function ns({
+function ls({
   label: e,
-  description: n,
-  error: r,
-  isRequired: s = !1,
-  children: l,
-  className: o,
-  ...i
+  isLabelVisible: n = !1,
+  description: r,
+  error: s,
+  isRequired: l = !1,
+  children: o,
+  className: i,
+  ...a
 }) {
-  const { labelProps: a, fieldProps: d, descriptionProps: c, errorMessageProps: g } = Ie({
-    ...i,
+  const { labelProps: c, fieldProps: d, descriptionProps: h, errorMessageProps: f } = Ie({
+    ...a,
     label: e,
-    description: n,
-    errorMessage: r,
-    isInvalid: !!r
+    description: r,
+    errorMessage: s,
+    isInvalid: !!s
   });
-  return /* @__PURE__ */ u("div", { className: m("flex flex-col gap-1.5", o), children: [
-    e ? /* @__PURE__ */ u("label", { ...a, className: ve, children: [
+  return /* @__PURE__ */ u("div", { className: m("flex flex-col gap-1.5", i), children: [
+    e ? /* @__PURE__ */ u("label", { ...c, className: ve(n), children: [
       e,
-      s ? /* @__PURE__ */ t(ce, {}) : null
+      l ? /* @__PURE__ */ t(ce, {}) : null
     ] }) : null,
-    l({
+    o({
       ...d,
-      ...s ? { "aria-required": !0 } : {},
-      ...r ? { "aria-invalid": !0 } : {}
+      ...l ? { "aria-required": !0 } : {},
+      ...s ? { "aria-invalid": !0 } : {}
     }),
     /* @__PURE__ */ t(
       se,
       {
-        description: n,
-        error: r,
-        descriptionProps: c,
-        errorMessageProps: g
+        description: r,
+        error: s,
+        descriptionProps: h,
+        errorMessageProps: f
       }
     )
   ] });
 }
-function ss({ label: e, error: n, description: r, className: s, ...l }) {
-  const o = M(null), { labelProps: i, inputProps: a, descriptionProps: d, errorMessageProps: c } = Te(
-    { ...l, label: e, description: r, isInvalid: !!n, errorMessage: n },
-    o
+function is({
+  label: e,
+  isLabelVisible: n = !1,
+  error: r,
+  description: s,
+  className: l,
+  ...o
+}) {
+  const i = M(null), { labelProps: a, inputProps: c, descriptionProps: d, errorMessageProps: h } = Te(
+    { ...o, label: e, description: s, isInvalid: !!r, errorMessage: r },
+    i
   );
   return /* @__PURE__ */ u("div", { className: "flex flex-col gap-1.5 w-full", children: [
-    e ? /* @__PURE__ */ u("label", { ...i, className: ve, children: [
+    e ? /* @__PURE__ */ u("label", { ...a, className: ve(n), children: [
       e,
-      l.isRequired ? /* @__PURE__ */ t(ce, {}) : null
+      o.isRequired ? /* @__PURE__ */ t(ce, {}) : null
     ] }) : null,
     /* @__PURE__ */ t(
       "input",
       {
-        ...a,
-        ref: o,
+        ...c,
+        ref: i,
         className: m(
-          "h-10 px-3 py-2 text-sm bg-surface-neutral text-neutral-5 border border-subtle rounded-md placeholder:text-muted transition-colors focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 focus-visible:border-transparent disabled:opacity-50 disabled:bg-surface-neutral",
-          n && "border-danger-5 focus-visible:outline-danger-5",
-          s
+          "h-10 px-3 py-2 text-sm bg-surface-neutral text-neutral-5 border border-subtle rounded-md placeholder:text-muted-on-light transition-colors focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 focus-visible:border-transparent disabled:opacity-50 disabled:bg-surface-neutral",
+          r && "border-danger-5 focus-visible:outline-danger-text",
+          l
         )
       }
     ),
     /* @__PURE__ */ t(
       se,
       {
-        description: r,
-        error: n,
+        description: s,
+        error: r,
         descriptionProps: d,
-        errorMessageProps: c
+        errorMessageProps: h
       }
     )
   ] });
 }
-function un({
+function pn({
   placeholder: e = "Search...",
   value: n,
   onChange: r,
   onSubmit: s,
   className: l
 }) {
-  const [o, i] = tt(""), a = n !== void 0, d = a ? n : o, c = M(null), { inputProps: g } = Te(
+  const [o, i] = tt(""), a = n !== void 0, c = a ? n : o, d = M(null), { inputProps: h } = Te(
     {
-      value: d,
-      onChange: (p) => {
-        a || i(p), r == null || r(p);
+      value: c,
+      onChange: (f) => {
+        a || i(f), r == null || r(f);
       },
-      onKeyDown: (p) => {
-        p.key === "Enter" && (s == null || s(d));
+      onKeyDown: (f) => {
+        f.key === "Enter" && (s == null || s(c));
       },
       "aria-label": "Search",
       placeholder: e
     },
-    c
+    d
   );
   return /* @__PURE__ */ u("div", { className: m("inline-flex items-center gap-6 min-w-0", l), children: [
-    /* @__PURE__ */ t(en, { className: "w-6 h-6 text-muted shrink-0" }),
+    /* @__PURE__ */ t(tn, { className: "w-6 h-6 text-muted shrink-0" }),
     /* @__PURE__ */ t(
       "input",
       {
-        ...g,
-        ref: c,
-        className: "flex-1 bg-transparent text-body-m text-main placeholder:text-muted font-sans min-w-0 rounded-xs focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2"
+        ...h,
+        ref: d,
+        className: "flex-1 bg-transparent text-body-m text-main placeholder:text-muted-on-dark font-sans min-w-0 rounded-xs focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2"
       }
     )
   ] });
@@ -3418,10 +3435,23 @@ function de({ src: e, name: n, size: r = "md", className: s }) {
     "div",
     {
       className: m(
-        // text-primary-4 kept raw, not aliased to `text-interactive` — this is a decorative
-        // accent-tint/accent-text color pairing (bg-primary-1 + text-primary-4), not an
-        // interactive affordance; avatars aren't inherently clickable.
-        "relative inline-flex items-center justify-center rounded-full overflow-hidden bg-primary-1 text-primary-4 select-none shrink-0",
+        // The initials are `neutral-5` on the `primary-1` tint, **not** the `primary-4`
+        // they used to be. That pairing measured 2.61:1 and was the single largest
+        // accessibility defect in the kit: 46 of the 131 colour-contrast violations an
+        // axe pass over the built Storybook reported came from this one class, because
+        // an avatar renders in almost every composed story.
+        //
+        // Unlike the kit's other AA deviations there is nothing to trade away here. The
+        // design has **no** initials treatment at all — every exported Avatar frame is
+        // image-filled (see the size note below), so `bg-primary-1 text-primary-4` was an
+        // engineering invention rather than something Figma draws. `neutral-5` is the
+        // colour this kit already uses for text on a light surface (`Input`'s value,
+        // `--color-surface-neutral` at 15.40:1), and it clears **10.50:1** on the tint.
+        //
+        // The tint itself is unchanged, so an avatar still reads as the same pink circle.
+        // `text-neutral-5` stays a raw ramp class rather than `text-surface-shell`: that
+        // alias names a *background* role, and this is a foreground.
+        "relative inline-flex items-center justify-center rounded-full overflow-hidden bg-primary-1 text-neutral-5 select-none shrink-0",
         l[r],
         s
       ),
@@ -3429,7 +3459,7 @@ function de({ src: e, name: n, size: r = "md", className: s }) {
     }
   );
 }
-function mn({
+function bn({
   searchValue: e,
   searchPlaceholder: n,
   onSearchChange: r,
@@ -3439,10 +3469,10 @@ function mn({
   userAvatar: i,
   className: a
 }) {
-  const [d, c] = tt(""), g = e !== void 0, p = g ? e : d, k = (C) => {
-    g || c(C), r == null || r(C);
+  const [c, d] = tt(""), h = e !== void 0, f = h ? e : c, k = (C) => {
+    h || d(C), r == null || r(C);
   }, v = () => {
-    g || c(""), r == null || r("");
+    h || d(""), r == null || r("");
   };
   return /* @__PURE__ */ u(
     "header",
@@ -3453,34 +3483,34 @@ function mn({
       ),
       children: [
         /* @__PURE__ */ t(
-          un,
+          pn,
           {
             placeholder: n,
-            value: p,
+            value: f,
             onChange: k,
             onSubmit: s,
             className: "flex-1"
           }
         ),
         /* @__PURE__ */ u("div", { className: "flex items-center gap-6 shrink-0", children: [
-          p ? /* @__PURE__ */ t(
+          f ? /* @__PURE__ */ t(
             "button",
             {
               type: "button",
               onClick: v,
               "aria-label": "Clear search",
-              className: "w-6 h-6 shrink-0 text-muted hover:text-main transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 rounded-xs [&>svg]:w-full [&>svg]:h-full",
+              className: "w-6 h-6 shrink-0 text-muted hover:text-main transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 rounded-xs [&>svg]:w-full [&>svg]:h-full",
               children: /* @__PURE__ */ t(je, {})
             }
           ) : null,
-          /* @__PURE__ */ t("span", { className: "w-6 h-6 text-muted shrink-0 [&>svg]:w-full [&>svg]:h-full", children: l ?? /* @__PURE__ */ t(tn, {}) }),
+          /* @__PURE__ */ t("span", { className: "w-6 h-6 text-muted shrink-0 [&>svg]:w-full [&>svg]:h-full", children: l ?? /* @__PURE__ */ t(rn, {}) }),
           o || i ? /* @__PURE__ */ t(de, { src: i, name: o, size: "md" }) : null
         ] })
       ]
     }
   );
 }
-function os({
+function as({
   items: e,
   panels: n,
   defaultSelectedKey: r,
@@ -3488,36 +3518,36 @@ function os({
   onSelectionChange: l,
   className: o
 }) {
-  var g;
-  const i = rt(() => new Map(e.map((p) => [p.id, p])), [e]), a = Ut({
+  var h;
+  const i = rt(() => new Map(e.map((f) => [f.id, f])), [e]), a = $t({
     items: e,
     selectedKey: s,
-    defaultSelectedKey: r ?? ((g = e[0]) == null ? void 0 : g.id),
-    onSelectionChange: (p) => l == null ? void 0 : l(String(p)),
-    children: (p) => /* @__PURE__ */ t($t, { textValue: p.label, children: p.label }, p.id)
-  }), d = M(null), { tabListProps: c } = Mt(
+    defaultSelectedKey: r ?? ((h = e[0]) == null ? void 0 : h.id),
+    onSelectionChange: (f) => l == null ? void 0 : l(String(f)),
+    children: (f) => /* @__PURE__ */ t(Kt, { textValue: f.label, children: f.label }, f.id)
+  }), c = M(null), { tabListProps: d } = Pt(
     { "aria-label": "Tab navigation" },
     a,
-    d
+    c
   );
   return /* @__PURE__ */ u("div", { className: m("flex flex-col", o), children: [
-    /* @__PURE__ */ t("div", { ...c, ref: d, className: "flex items-end", children: [...a.collection].map((p) => {
+    /* @__PURE__ */ t("div", { ...d, ref: c, className: "flex items-end", children: [...a.collection].map((f) => {
       var k;
       return /* @__PURE__ */ t(
-        fn,
+        hn,
         {
-          item: p,
+          item: f,
           state: a,
-          icon: (k = i.get(String(p.key))) == null ? void 0 : k.icon
+          icon: (k = i.get(String(f.key))) == null ? void 0 : k.icon
         },
-        p.key
+        f.key
       );
     }) }),
-    n ? /* @__PURE__ */ t(pn, { state: a, panels: n }) : null
+    n ? /* @__PURE__ */ t(xn, { state: a, panels: n }) : null
   ] });
 }
-function fn({ item: e, state: n, icon: r }) {
-  const s = M(null), { tabProps: l, isSelected: o } = Pt({ key: e.key }, n, s);
+function hn({ item: e, state: n, icon: r }) {
+  const s = M(null), { tabProps: l, isSelected: o } = Lt({ key: e.key }, n, s);
   return /* @__PURE__ */ u(
     "button",
     {
@@ -3531,8 +3561,19 @@ function fn({ item: e, state: n, icon: r }) {
         // is 0px, but that's an artifact of a fixed-width (120px)
         // demo box, not a real horizontal-padding spec for
         // arbitrary-length labels.
-        "relative flex items-center justify-center gap-2 px-5 pt-3 pb-2 text-tab-label font-normal text-center font-sans transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:-outline-offset-2",
-        o ? "text-interactive" : "text-muted hover:text-main"
+        "relative flex items-center justify-center gap-2 px-5 pt-3 pb-2 text-tab-label font-normal text-center font-sans transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:-outline-offset-2",
+        // `-text`, not the bare `text-interactive`: a tab label is text, and primary-4 as
+        // text clears 4.5:1 on no surface in this palette (2.86 / 3.51 / 4.02 over
+        // overlay / panel / shell). `primary-2` clears all three at 5.43 / 6.67 / 7.63.
+        // The 2px indicator below stays primary-4 — that is a non-text boundary at 3:1,
+        // and it is no longer the only selection signal anyway.
+        // The unselected label is `muted-on-dark`, not `muted`. `Tabs` paints no
+        // background of its own, so it has no way to know what it sits on — and
+        // `neutral-2` clears AA on a panel (4.58:1) and the shell (5.25:1) but manages
+        // only 3.73:1 on `surface-overlay`. A tab strip inside a modal is an ordinary
+        // thing for a consumer to build. Same rule as FIELD_DESCRIPTION_CLASS and
+        // `UserRow`: `--color-muted` only where the surface is known.
+        o ? "text-interactive-text" : "text-muted-on-dark hover:text-main"
       ),
       children: [
         r ? /* @__PURE__ */ t("span", { className: "text-base leading-none", children: r }) : null,
@@ -3542,11 +3583,11 @@ function fn({ item: e, state: n, icon: r }) {
     }
   );
 }
-function pn({ state: e, panels: n }) {
-  const r = M(null), { tabPanelProps: s } = Lt({}, e, r), l = e.selectedKey != null ? String(e.selectedKey) : "";
+function xn({ state: e, panels: n }) {
+  const r = M(null), { tabPanelProps: s } = St({}, e, r), l = e.selectedKey != null ? String(e.selectedKey) : "";
   return /* @__PURE__ */ t("div", { ...s, ref: r, className: "flex-1", children: n[l] ?? null });
 }
-function ls({
+function cs({
   options: e,
   value: n,
   defaultValue: r,
@@ -3554,34 +3595,34 @@ function ls({
   className: l
 }) {
   var k;
-  const [o, i] = B.useState(r ?? ((k = e[0]) == null ? void 0 : k.id) ?? ""), a = n !== void 0, d = a ? n : o, c = M([]), g = (v) => {
+  const [o, i] = B.useState(r ?? ((k = e[0]) == null ? void 0 : k.id) ?? ""), a = n !== void 0, c = a ? n : o, d = M([]), h = (v) => {
     a || i(v), s == null || s(v);
-  }, p = (v) => {
-    var S;
-    const C = e.findIndex((I) => I.id === d);
+  }, f = (v) => {
+    var L;
+    const C = e.findIndex((I) => I.id === c);
     if (C === -1) return;
-    let w = null;
+    let y = null;
     switch (v.key) {
       case "ArrowRight":
       case "ArrowDown":
-        w = (C + 1) % e.length;
+        y = (C + 1) % e.length;
         break;
       case "ArrowLeft":
       case "ArrowUp":
-        w = (C - 1 + e.length) % e.length;
+        y = (C - 1 + e.length) % e.length;
         break;
       case "Home":
-        w = 0;
+        y = 0;
         break;
       case "End":
-        w = e.length - 1;
+        y = e.length - 1;
         break;
       default:
         return;
     }
     v.preventDefault();
-    const N = e[w];
-    g(N.id), (S = c.current[w]) == null || S.focus();
+    const N = e[y];
+    h(N.id), (L = d.current[y]) == null || L.focus();
   };
   return /* @__PURE__ */ t(
     "div",
@@ -3590,22 +3631,32 @@ function ls({
       "aria-label": "View",
       className: m("inline-flex items-center gap-0 p-1 bg-surface-panel rounded-10", l),
       children: e.map((v, C) => {
-        const w = d === v.id;
+        const y = c === v.id;
         return /* @__PURE__ */ u(
           "button",
           {
             ref: (N) => {
-              c.current[C] = N;
+              d.current[C] = N;
             },
             type: "button",
             role: "radio",
-            "aria-checked": w,
-            tabIndex: w ? 0 : -1,
-            onClick: () => g(v.id),
-            onKeyDown: p,
+            "aria-checked": y,
+            tabIndex: y ? 0 : -1,
+            onClick: () => h(v.id),
+            onKeyDown: f,
             className: m(
-              "inline-flex items-center justify-center gap-2 h-8 px-6 py-1 text-control-label font-normal rounded-sm transition-all cursor-pointer font-sans select-none text-main focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
-              w ? "bg-neutral-2 shadow-small" : ""
+              "inline-flex items-center justify-center gap-2 h-8 px-6 py-1 text-control-label font-normal rounded-sm transition-all cursor-pointer font-sans select-none text-main focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
+              // The active label is `neutral-5`, not the white Figma draws. That is the
+              // one deviation in this component and the ratio is why: white on the
+              // `neutral-2` pill measures 2.94:1. The pill's fill is untouched — this is
+              // the same trade `Tag` and `Badge` take, keeping the design's fill and
+              // moving the label, and `neutral-5` on `neutral-2` clears 5.25:1.
+              //
+              // It does cost the spec's "identical label colour in both states,
+              // selection carried by the fill alone" (see the doc comment above). The
+              // fill still carries it; the label now agrees with it rather than being
+              // the only thing at 2.94:1.
+              y ? "bg-neutral-2 text-neutral-5 shadow-small" : ""
             ),
             children: [
               v.icon ? /* @__PURE__ */ t("span", { className: "text-base leading-none", children: v.icon }) : null,
@@ -3618,7 +3669,7 @@ function ls({
     }
   );
 }
-function is({ children: e, className: n, ...r }) {
+function ds({ children: e, className: n, ...r }) {
   return /* @__PURE__ */ t(
     "div",
     {
@@ -3631,7 +3682,7 @@ function is({ children: e, className: n, ...r }) {
     }
   );
 }
-function W({
+function $({
   variant: e = "neutral",
   outline: n = !1,
   icon: r,
@@ -3644,24 +3695,24 @@ function W({
       solid: "bg-neutral-2/10 text-main",
       outline: "border border-neutral-1 text-main"
     },
-    // text-primary-4 kept raw here, not aliased to `text-interactive` — this is Tag's own
-    // categorical red, not an interactive affordance; aliasing it would wrongly imply
+    // text-primary-2 kept raw here, not aliased to `text-interactive-text` — this is Tag's
+    // own categorical red, not an interactive affordance; aliasing it would wrongly imply
     // every red tag is interactive.
     red: {
-      solid: "bg-primary-4/10 text-primary-4",
-      outline: "border border-primary-4 text-primary-4"
+      solid: "bg-primary-4/10 text-primary-2",
+      outline: "border border-primary-2 text-primary-2"
     },
     green: {
-      solid: "bg-secondary-4/10 text-secondary-4",
-      outline: "border border-secondary-4 text-secondary-4"
+      solid: "bg-secondary-4/10 text-secondary-2",
+      outline: "border border-secondary-2 text-secondary-2"
     },
     yellow: {
       solid: "bg-tertiary-4/10 text-tertiary-4",
       outline: "border border-tertiary-4 text-tertiary-4"
     },
     blue: {
-      solid: "bg-blue/10 text-blue",
-      outline: "border border-blue text-blue"
+      solid: "bg-blue/10 text-main",
+      outline: "border border-blue text-main"
     }
   };
   return /* @__PURE__ */ u(
@@ -3685,7 +3736,7 @@ function W({
             type: "button",
             onClick: l,
             "aria-label": "Remove tag",
-            className: "hover:opacity-75 cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-1 rounded-xs",
+            className: "hover:bg-neutral-5/40 cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-1 rounded-xs",
             children: "×"
           }
         ) : null
@@ -3699,7 +3750,7 @@ function vt({ title: e, icon: n, className: r }) {
     n ? /* @__PURE__ */ t("span", { className: "flex items-center justify-center w-6 h-6 shrink-0 text-muted", children: n }) : null
   ] });
 }
-function bn({ badges: e, className: n }) {
+function gn({ badges: e, className: n }) {
   return (
     // gap-4 matches Figma's "Frame 653" gap (16px, Cards01.md L614 / Cards00.md L657).
     /* @__PURE__ */ t("div", { className: m("flex flex-wrap items-center gap-4", n), children: e.map((r) => /* @__PURE__ */ u(
@@ -3716,7 +3767,7 @@ function bn({ badges: e, className: n }) {
     )) })
   );
 }
-function hn({
+function vn({
   title: e,
   points: n,
   dueDateText: r,
@@ -3725,25 +3776,25 @@ function hn({
   assigneeName: o,
   assigneeAvatar: i,
   metaBadges: a = [],
-  className: d,
-  onClick: c
+  className: c,
+  onClick: d
 }) {
   return /* @__PURE__ */ u(
     "div",
     {
-      onClick: c,
-      role: c ? "button" : void 0,
-      tabIndex: c ? 0 : void 0,
-      onKeyDown: c ? (g) => {
-        (g.key === "Enter" || g.key === " ") && (g.preventDefault(), c());
+      onClick: d,
+      role: d ? "button" : void 0,
+      tabIndex: d ? 0 : void 0,
+      onKeyDown: d ? (h) => {
+        (h.key === "Enter" || h.key === " ") && (h.preventDefault(), d());
       } : void 0,
       className: m(
         // radius-sm (8px) matches Figma's "Task Card" border-radius exactly (Cards01.md L246);
         // rounded-lg here previously resolved to this project's --radius-lg (24px), far too round.
         // No border is ever rendered on the card in the export, so the resting border is transparent
         // (kept as a real border utility, not removed, so the hover reveal below still works).
-        "flex flex-col gap-4 p-4 bg-surface-panel text-main rounded-sm border border-transparent shadow-xs hover:border-subtle transition-all cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
-        d
+        "flex flex-col gap-4 p-4 bg-surface-panel text-main rounded-sm border border-transparent shadow-xs hover:border-subtle transition-all cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
+        c
       ),
       children: [
         /* @__PURE__ */ t(vt, { title: e }),
@@ -3761,22 +3812,22 @@ function hn({
             // radius 4px, alarm-line icon, Desktop/Body/M/bold) — reusing `Tag` directly instead
             // of a bespoke span gets typography/spacing/color right for free.
             /* @__PURE__ */ t(
-              W,
+              $,
               {
-                variant: Jr[s],
-                icon: /* @__PURE__ */ t(Qr, { className: "size-6" }),
+                variant: Qr[s],
+                icon: /* @__PURE__ */ t(en, { className: "size-6" }),
                 children: r
               }
             )
           ) : null
         ] }) : null,
-        l.length > 0 ? /* @__PURE__ */ t("div", { className: "flex flex-wrap items-center gap-2", children: l.map((g, p) => /* @__PURE__ */ t(W, { variant: g.variant || "neutral", children: g.label }, p)) }) : null,
+        l.length > 0 ? /* @__PURE__ */ t("div", { className: "flex flex-wrap items-center gap-2", children: l.map((h, f) => /* @__PURE__ */ t($, { variant: h.variant || "neutral", children: h.label }, f)) }) : null,
         /* @__PURE__ */ u("div", { className: "flex items-center justify-between", children: [
           /* @__PURE__ */ u("div", { className: "flex items-center gap-2", children: [
             /* @__PURE__ */ t(de, { src: i, name: o, size: "sm" }),
             o ? /* @__PURE__ */ t("span", { className: "font-sans text-xs font-medium text-muted truncate max-w-[120px]", children: o }) : null
           ] }),
-          a.length > 0 ? /* @__PURE__ */ t(bn, { badges: a }) : null
+          a.length > 0 ? /* @__PURE__ */ t(gn, { badges: a }) : null
         ] })
       ]
     }
@@ -3806,7 +3857,7 @@ function yt({
       children: [
         r ? /* @__PURE__ */ t("span", { className: "flex items-center justify-center w-12 h-12 shrink-0 text-muted [&>svg]:w-full [&>svg]:h-full", children: r }) : null,
         /* @__PURE__ */ t("p", { className: "text-body-m font-semibold text-main", children: e }),
-        n ? /* @__PURE__ */ t("p", { className: "text-body-m text-muted", children: n }) : null,
+        n ? /* @__PURE__ */ t("p", { className: "text-body-m text-muted-on-dark", children: n }) : null,
         s
       ]
     }
@@ -3825,7 +3876,7 @@ function Pe() {
     ] }) })
   ] });
 }
-function as({
+function us({
   title: e,
   icon: n,
   tasks: r,
@@ -3841,7 +3892,7 @@ function as({
       /* @__PURE__ */ t(Pe, {}),
       /* @__PURE__ */ t(Pe, {}),
       /* @__PURE__ */ t(Pe, {})
-    ] }) : r.length === 0 ? /* @__PURE__ */ t(yt, { title: l, description: o, action: i }) : r.map((d, c) => /* @__PURE__ */ t(hn, { ...d, className: "w-full" }, c))
+    ] }) : r.length === 0 ? /* @__PURE__ */ t(yt, { title: l, description: o, action: i }) : r.map((c, d) => /* @__PURE__ */ t(vn, { ...c, className: "w-full" }, d))
   ] });
 }
 const O = {
@@ -3850,7 +3901,7 @@ const O = {
   estimation: 140,
   assignee: 168,
   dueDate: 132
-}, gn = ({ className: e }) => /* @__PURE__ */ t(
+}, yn = ({ className: e }) => /* @__PURE__ */ t(
   "svg",
   {
     className: e,
@@ -3862,40 +3913,48 @@ const O = {
     children: /* @__PURE__ */ t("rect", { x: "4", y: "4", width: "16", height: "16", rx: "3" })
   }
 ), q = "text-body-m font-normal text-main font-sans", Z = "h-14 shrink-0 bg-surface-panel border-y border-r border-neutral-3";
-function xn({ date: e, urgency: n = "normal" }) {
+function wn({ date: e, urgency: n = "normal" }) {
   return /* @__PURE__ */ t("span", { className: m(q, {
     normal: "text-main",
     soon: "text-tertiary-4",
-    // text-primary-4 kept as a raw ramp class, not aliased to `text-interactive` — this is a
-    // status/urgency signal, not an interactive affordance, so the "interactive" alias would
-    // misrepresent its role even though it happens to share the same color value.
-    overdue: "text-primary-4"
+    // `primary-2`, not the `primary-4` this was. A cell renders on `surface-panel`, where
+    // primary-4 as text measures 3.51:1 — under AA, and five of the kit's 131 contrast
+    // violations. primary-4 clears 4.5:1 on nothing in this palette, so there was no
+    // surface-side fix; primary-2 is 6.67:1 here.
+    //
+    // Still a raw ramp class rather than the `text-interactive-text` alias: this is a
+    // status/urgency signal, not an interactive affordance, and the alias would
+    // misrepresent its role even though it resolves to the same value. It stays in step
+    // with the `Tag` version of the same signal, whose red label is now primary-2 too —
+    // `DUE_DATE_URGENCY_COLOR` keeps the mapping shared, but the colours are applied to
+    // different properties so there is no class to share.
+    overdue: "text-primary-2"
   }[n]), children: e });
 }
-function vn({ name: e, avatarSrc: n }) {
+function kn({ name: e, avatarSrc: n }) {
   return /* @__PURE__ */ u("div", { className: "flex items-center gap-2 min-w-0", children: [
     /* @__PURE__ */ t(de, { src: n, name: e, size: "sm" }),
     /* @__PURE__ */ t("span", { className: m(q, "truncate"), children: e })
   ] });
 }
-function yn({ points: e }) {
+function Cn({ points: e }) {
   return /* @__PURE__ */ u("span", { className: m(q, "tabular-nums"), children: [
     e,
     " ",
     e === 1 ? "Point" : "Points"
   ] });
 }
-function wn({ labels: e }) {
-  return /* @__PURE__ */ t("div", { className: "flex flex-wrap items-center gap-2", children: e.map((n, r) => /* @__PURE__ */ t(W, { variant: n.variant ?? "neutral", children: n.label }, r)) });
+function Nn({ labels: e }) {
+  return /* @__PURE__ */ t("div", { className: "flex flex-wrap items-center gap-2", children: e.map((n, r) => /* @__PURE__ */ t($, { variant: n.variant ?? "neutral", children: n.label }, r)) });
 }
-const kn = {
+const Mn = {
   neutral: "bg-neutral-2",
   red: "bg-primary-4",
   green: "bg-secondary-4",
   yellow: "bg-tertiary-4",
   blue: "bg-blue"
 };
-function Cn({
+function Pn({
   index: e,
   title: n,
   indicatorColor: r = "green",
@@ -3904,17 +3963,17 @@ function Cn({
   onSelectedChange: o,
   tags: i = [],
   estimationPoints: a,
-  assigneeName: d,
-  assigneeAvatar: c,
-  dueDate: g,
-  dueDateUrgency: p = "normal",
+  assigneeName: c,
+  assigneeAvatar: d,
+  dueDate: h,
+  dueDateUrgency: f = "normal",
   onClick: k,
   onViewDetails: v
 }) {
   return /* @__PURE__ */ u("tr", { onClick: k, className: m("group", k && "cursor-pointer"), children: [
     /* @__PURE__ */ t("td", { className: m(Z, "pl-0 pr-4 border-l"), style: { width: O.name }, children: /* @__PURE__ */ u("div", { className: "flex items-center gap-2 h-full", children: [
-      /* @__PURE__ */ t("span", { className: m("w-1 h-full shrink-0", kn[r]) }),
-      /* @__PURE__ */ u("label", { className: "w-6 h-6 shrink-0 flex items-center justify-center cursor-pointer rounded-xs has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-primary-4 has-[:focus-visible]:outline-offset-1", children: [
+      /* @__PURE__ */ t("span", { className: m("w-1 h-full shrink-0", Mn[r]) }),
+      /* @__PURE__ */ u("label", { className: "w-6 h-6 shrink-0 flex items-center justify-center cursor-pointer rounded-xs has-[:focus-visible]:outline-solid has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-interactive-text has-[:focus-visible]:outline-offset-1", children: [
         /* @__PURE__ */ t(
           "input",
           {
@@ -3926,7 +3985,7 @@ function Cn({
           }
         ),
         /* @__PURE__ */ t(
-          gn,
+          yn,
           {
             className: m(
               "w-6 h-6 text-main transition-opacity",
@@ -3955,22 +4014,26 @@ function Cn({
           onClick: v,
           className: m(
             q,
-            "inline-flex items-center gap-1 shrink-0 hover:text-interactive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-1 rounded-xs"
+            // `hover:text-interactive-text`, not `hover:text-interactive`: this is a
+            // text label, and hovering it used to drop it to 3.51:1 on the panel it
+            // sits on. A hover state is invisible to a static-story axe pass, so this
+            // one was found by reading rather than by measuring.
+            "inline-flex items-center gap-1 shrink-0 hover:text-interactive-text transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-1 rounded-xs"
           ),
           children: [
             /* @__PURE__ */ t("span", { children: "Details" }),
-            /* @__PURE__ */ t(xt, { className: "w-4 h-4" })
+            /* @__PURE__ */ t(gt, { className: "w-4 h-4" })
           ]
         }
       ) : null
     ] }) }),
-    /* @__PURE__ */ t("td", { className: m(Z, "pl-2 pr-4"), style: { width: O.tags }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: i.length > 0 ? /* @__PURE__ */ t(wn, { labels: i }) : null }) }),
-    /* @__PURE__ */ t("td", { className: m(Z, "pl-2 pr-4"), style: { width: O.estimation }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: a !== void 0 ? /* @__PURE__ */ t(yn, { points: a }) : null }) }),
-    /* @__PURE__ */ t("td", { className: m(Z, "pl-2 pr-4"), style: { width: O.assignee }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: d ? /* @__PURE__ */ t(vn, { name: d, avatarSrc: c }) : null }) }),
-    /* @__PURE__ */ t("td", { className: m(Z, "pl-2 pr-4"), style: { width: O.dueDate }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: g ? /* @__PURE__ */ t(xn, { date: g, urgency: p }) : null }) })
+    /* @__PURE__ */ t("td", { className: m(Z, "pl-2 pr-4"), style: { width: O.tags }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: i.length > 0 ? /* @__PURE__ */ t(Nn, { labels: i }) : null }) }),
+    /* @__PURE__ */ t("td", { className: m(Z, "pl-2 pr-4"), style: { width: O.estimation }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: a !== void 0 ? /* @__PURE__ */ t(Cn, { points: a }) : null }) }),
+    /* @__PURE__ */ t("td", { className: m(Z, "pl-2 pr-4"), style: { width: O.assignee }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: c ? /* @__PURE__ */ t(kn, { name: c, avatarSrc: d }) : null }) }),
+    /* @__PURE__ */ t("td", { className: m(Z, "pl-2 pr-4"), style: { width: O.dueDate }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: h ? /* @__PURE__ */ t(wn, { date: h, urgency: f }) : null }) })
   ] });
 }
-function Nn() {
+function Ln() {
   return /* @__PURE__ */ u("tr", { children: [
     /* @__PURE__ */ t("td", { className: m(Z, "pl-4 pr-4 border-l"), style: { width: O.name }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: /* @__PURE__ */ t(E, { className: "h-4 w-full" }) }) }),
     /* @__PURE__ */ t("td", { className: m(Z, "pl-4 pr-4"), style: { width: O.tags }, children: /* @__PURE__ */ t("div", { className: "flex items-center gap-2 h-full", children: /* @__PURE__ */ t(E, { className: "h-6 w-16 rounded" }) }) }),
@@ -3989,7 +4052,7 @@ const ae = [
   { key: "assignee", label: "Task Assign Name" },
   { key: "dueDate", label: "Due Date" }
 ];
-function cs({
+function ms({
   groups: e,
   isLoading: n = !1,
   emptyTitle: r = "No tasks yet",
@@ -4006,14 +4069,14 @@ function cs({
         o
       ),
       children: /* @__PURE__ */ u("div", { className: "flex flex-col gap-4 min-w-[1108px]", children: [
-        /* @__PURE__ */ t("div", { className: "flex", children: ae.map(({ key: i, label: a }, d) => /* @__PURE__ */ t(
+        /* @__PURE__ */ t("div", { className: "flex", children: ae.map(({ key: i, label: a }, c) => /* @__PURE__ */ t(
           "div",
           {
             className: m(
               Z,
               "px-4",
-              d === 0 && "border-l rounded-l-4",
-              d === ae.length - 1 && "rounded-r-4"
+              c === 0 && "border-l rounded-l-4",
+              c === ae.length - 1 && "rounded-r-4"
             ),
             style: { width: O[i] },
             children: /* @__PURE__ */ t("span", { className: q, children: a })
@@ -4022,16 +4085,16 @@ function cs({
         )) }),
         n ? /* @__PURE__ */ u("table", { className: "border-collapse table-fixed", children: [
           /* @__PURE__ */ t("colgroup", { children: ae.map(({ key: i }) => /* @__PURE__ */ t("col", { style: { width: O[i] } }, i)) }),
-          /* @__PURE__ */ t("tbody", { children: Array.from({ length: 5 }).map((i, a) => /* @__PURE__ */ t(Nn, {}, a)) })
+          /* @__PURE__ */ t("tbody", { children: Array.from({ length: 5 }).map((i, a) => /* @__PURE__ */ t(Ln, {}, a)) })
         ] }) : e.length === 0 ? /* @__PURE__ */ t(yt, { title: r, description: s, action: l }) : e.map((i, a) => /* @__PURE__ */ u("table", { className: "border-collapse table-fixed", children: [
-          /* @__PURE__ */ t("colgroup", { children: ae.map(({ key: d }) => /* @__PURE__ */ t("col", { style: { width: O[d] } }, d)) }),
+          /* @__PURE__ */ t("colgroup", { children: ae.map(({ key: c }) => /* @__PURE__ */ t("col", { style: { width: O[c] } }, c)) }),
           /* @__PURE__ */ u("tbody", { children: [
             /* @__PURE__ */ t("tr", { children: /* @__PURE__ */ t("td", { colSpan: ae.length, className: "p-0 border border-neutral-3", children: /* @__PURE__ */ u("div", { className: "flex items-center gap-2 h-14 px-4 bg-surface-panel rounded-t-4", children: [
               /* @__PURE__ */ t(De, { className: "w-6 h-6 shrink-0 text-muted" }),
               /* @__PURE__ */ t("h3", { className: "flex-1 min-w-0 truncate text-body-l font-semibold text-main font-sans", children: i.title }),
               i.actions
             ] }) }) }),
-            i.rows.map((d, c) => /* @__PURE__ */ t(Cn, { ...d }, c))
+            i.rows.map((c, d) => /* @__PURE__ */ t(Pn, { ...c }, d))
           ] })
         ] }, a))
       ] })
@@ -4047,24 +4110,24 @@ function ye({
   className: o,
   ...i
 }) {
-  const a = M(null), { overlayProps: d } = St(
+  const a = M(null), { overlayProps: c } = Vt(
     {
       isOpen: e,
       onClose: n,
       isDismissable: !0,
-      shouldCloseOnInteractOutside: (c) => {
-        var g;
-        return !((g = r == null ? void 0 : r.current) != null && g.contains(c));
+      shouldCloseOnInteractOutside: (d) => {
+        var h;
+        return !((h = r == null ? void 0 : r.current) != null && h.contains(d));
       }
     },
     a
   );
   return e ? (
     // eslint-disable-next-line jsx-a11y/no-autofocus
-    /* @__PURE__ */ t(ze, { restoreFocus: !0, autoFocus: !0, children: /* @__PURE__ */ u("div", { ...d, ...i, ref: a, role: s, className: o, children: [
-      /* @__PURE__ */ t(ge, { onDismiss: n }),
+    /* @__PURE__ */ t(ze, { restoreFocus: !0, autoFocus: !0, children: /* @__PURE__ */ u("div", { ...c, ...i, ref: a, role: s, className: o, children: [
+      /* @__PURE__ */ t(xe, { onDismiss: n }),
       l,
-      /* @__PURE__ */ t(ge, { onDismiss: n })
+      /* @__PURE__ */ t(xe, { onDismiss: n })
     ] }) })
   ) : null;
 }
@@ -4075,25 +4138,25 @@ function Oe({
   className: s,
   ...l
 }) {
-  const o = M(null), i = r ?? o, { popoverProps: a, underlayProps: d } = Vt({ ...l, popoverRef: i }, e);
-  return /* @__PURE__ */ u(It, { children: [
-    /* @__PURE__ */ t("div", { ...d, className: "fixed inset-0" }),
+  const o = M(null), i = r ?? o, { popoverProps: a, underlayProps: c } = It({ ...l, popoverRef: i }, e);
+  return /* @__PURE__ */ u(Tt, { children: [
+    /* @__PURE__ */ t("div", { ...c, className: "fixed inset-0" }),
     /* @__PURE__ */ t(ze, { restoreFocus: !0, children: /* @__PURE__ */ u(
       "div",
       {
         ...a,
         ref: i,
-        onKeyDownCapture: (c) => {
-          c.key === "Escape" && (c.stopPropagation(), e.close());
+        onKeyDownCapture: (d) => {
+          d.key === "Escape" && (d.stopPropagation(), e.close());
         },
         className: m(
           "z-popover bg-surface-overlay rounded-sm border border-subtle shadow-xl",
           s
         ),
         children: [
-          /* @__PURE__ */ t(ge, { onDismiss: () => e.close() }),
+          /* @__PURE__ */ t(xe, { onDismiss: () => e.close() }),
           n,
-          /* @__PURE__ */ t(ge, { onDismiss: () => e.close() })
+          /* @__PURE__ */ t(xe, { onDismiss: () => e.close() })
         ]
       }
     ) })
@@ -4105,19 +4168,19 @@ function wt({
   className: r,
   ...s
 }) {
-  const l = M(null), o = n ?? l, { listBoxProps: i } = Tt(s, e, o);
+  const l = M(null), o = n ?? l, { listBoxProps: i } = zt(s, e, o);
   return /* @__PURE__ */ t(
     "ul",
     {
       ...i,
       ref: o,
       className: m("max-h-64 min-w-40 overflow-auto py-2 outline-none", r),
-      children: [...e.collection].map((a) => /* @__PURE__ */ t(Mn, { item: a, state: e }, a.key))
+      children: [...e.collection].map((a) => /* @__PURE__ */ t(Sn, { item: a, state: e }, a.key))
     }
   );
 }
-function Mn({ item: e, state: n }) {
-  const r = M(null), { optionProps: s, isSelected: l, isFocused: o, isDisabled: i } = zt(
+function Sn({ item: e, state: n }) {
+  const r = M(null), { optionProps: s, isSelected: l, isFocused: o, isDisabled: i } = Ht(
     { key: e.key },
     n,
     r
@@ -4128,12 +4191,27 @@ function Mn({ item: e, state: n }) {
       ...s,
       ref: r,
       className: m(
-        "flex items-center justify-between gap-4 px-4 py-1.5 text-body-m font-sans cursor-pointer outline-none",
+        "flex items-center justify-between gap-4 px-4 py-1.5 text-body-m font-sans cursor-pointer",
         // Focus and selection are independent states with independent
         // styling — merging them would leave a keyboard user with no way
         // to tell which option their arrow keys are actually on.
-        o && "bg-neutral-4",
-        l ? "text-interactive font-semibold" : "text-main",
+        //
+        // The fill alone was not enough to tell them, though. `bg-neutral-4` on the
+        // popover's `surface-overlay` measures **1.23:1**, and 1.00:1 if a consumer puts
+        // a bare ListBox on a panel — an invisible keyboard focus indicator, and the `<li>`
+        // carried `outline-none` so there was no other affordance either. That is 2.4.7,
+        // and it survived a pass whose whole subject was focus rings, because arrow-key
+        // focus inside a popover is not something a static story shows.
+        //
+        // The fill stays as the quiet selection-independent cue and an inset ring carries
+        // the visibility (5.43:1 on an overlay). `outline-solid` is explicit for the same
+        // reason it is on `LabelCheckbox`; `outline-none` is gone rather than overridden,
+        // because it sets `--tw-outline-style: none` and would suppress the ring outright.
+        o && "bg-neutral-4 outline-solid outline-2 -outline-offset-2 outline-interactive-text",
+        // `-text`, not the bare `text-interactive`: this is the one place the accent is
+        // used as *text* on a dark surface, and primary-4 measures 2.86:1 on the
+        // popover's `surface-overlay`. See `tokens.css`'s contrast-safe roles.
+        l ? "text-interactive-text font-semibold" : "text-main",
         i && "cursor-not-allowed opacity-50"
       ),
       children: [
@@ -4143,44 +4221,85 @@ function Mn({ item: e, state: n }) {
     }
   );
 }
-function ds({
-  placeholder: e,
-  icon: n,
-  error: r,
-  description: s,
-  className: l,
-  ...o
+function fs({
+  isLabelVisible: e = !1,
+  placeholder: n,
+  icon: r,
+  error: s,
+  description: l,
+  className: o,
+  ...i
 }) {
-  const i = Kt(o), a = M(null), { labelProps: d, triggerProps: c, valueProps: g, menuProps: p, descriptionProps: k, errorMessageProps: v } = Ht(
-    { ...o, description: s, errorMessage: r, isInvalid: !!r },
-    i,
-    a
-  ), { buttonProps: C } = X(c, a);
-  return /* @__PURE__ */ u("div", { className: m("inline-flex flex-col gap-1.5", l), children: [
-    o.label ? /* @__PURE__ */ u("span", { ...d, className: ve, children: [
-      o.label,
-      o.isRequired ? /* @__PURE__ */ t(ce, {}) : null
+  const a = Yt(i), c = M(null), { labelProps: d, triggerProps: h, valueProps: f, menuProps: k, descriptionProps: v, errorMessageProps: C } = Rt(
+    { ...i, description: l, errorMessage: s, isInvalid: !!s },
+    a,
+    c
+  ), { buttonProps: y } = X(h, c);
+  return /* @__PURE__ */ u("div", { className: m("inline-flex flex-col gap-1.5", o), children: [
+    i.label ? /* @__PURE__ */ u("span", { ...d, className: ve(e), children: [
+      i.label,
+      i.isRequired ? /* @__PURE__ */ t(ce, {}) : null
     ] }) : null,
-    /* @__PURE__ */ t(Rt, { state: i, triggerRef: a, label: o.label, name: o.name }),
+    /* @__PURE__ */ t(At, { state: a, triggerRef: c, label: i.label, name: i.name }),
     /* @__PURE__ */ u(
       "button",
       {
-        ...C,
-        ref: a,
+        ...y,
+        ref: c,
         type: "button",
         className: m(
-          // `bg-surface-neutral` is a light (near-white) surface, matching
-          // `Input`'s value/placeholder colors (`text-neutral-5`/`text-muted`)
-          // rather than `text-main`/`text-muted`, which assume a dark shell
-          // background and would render invisible white-on-white here once
-          // something is selected.
-          "inline-flex items-center gap-2 h-10 px-3 py-2 rounded-md bg-surface-neutral border border-subtle text-body-m font-sans whitespace-nowrap transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none",
-          i.selectedItem ? "text-neutral-5" : "text-muted",
-          r && "border-danger-5 focus-visible:outline-danger-5"
+          // The design's chip, not a light field. Figma draws every dropdown trigger in
+          // this system as the same "Tag" atom — `rgba(148,151,154,0.1)` (neutral-2 at
+          // 10%), 4px radius, 32px tall, 4px/16px padding, white 15px/600 label — over a
+          // dark surface (`Dashboard Add Task/Add Task Modal00.md:78-140`: the four
+          // pickers on the `#393D41` card, and the same chip again in the Edit Task
+          // modal). These are `Tag`'s own `variant="neutral"` values, so a trigger and
+          // the chips beside it line up at exactly 32px.
+          //
+          // This was `bg-surface-neutral` — white — which put five near-white pills on
+          // the consuming app's dark board. It came from `1afb406`, which correctly
+          // fixed invisible white-on-white *value* text by moving the trigger's interior
+          // to `Input`'s light-surface colours; the surface underneath that fix was
+          // borrowed from `Input` rather than checked against the design. `Input` is
+          // genuinely a light field. A dropdown trigger is not.
+          //
+          // Contrast recomputed for this surface — the 10% fill composites, so every
+          // ratio is against the composited chip, not the bare token, on
+          // overlay/panel/shell. `styles/contrast.test.ts` pins all of it:
+          //   value       `text-main`           9.52 / 11.54 / 13.20:1
+          //   placeholder `text-muted-on-dark`  4.61 /  5.33 /  5.88:1
+          // `text-muted` is the obvious choice for a dimmed placeholder and is what the
+          // consuming app used pre-migration; it measures 3.24 / 3.93 / 4.49:1 here and
+          // fails AA on all three. `muted-on-dark` composites against whatever it lands
+          // on, so it carries the empty state instead.
+          "inline-flex items-center gap-2 h-8 px-4 rounded-4 bg-neutral-2/10 text-body-m font-semibold font-sans whitespace-nowrap transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none",
+          a.selectedItem ? "text-main" : "text-muted-on-dark",
+          // A `ring`, not a `border`: the design gives this chip no boundary at all, so
+          // an invalid one has to appear out of nothing. A border would add 2px to a
+          // control whose height the design fixes at 32px, nudging the whole filter row
+          // at the moment a form is reporting an error. `ring-1` is a box-shadow and
+          // costs no layout.
+          //
+          // `danger-text` (danger-3), not the `danger-5` `Input` and `Datepicker` use.
+          // Their invalid border survives 1.4.11 on the strength of the white field
+          // interior it separates from the container (4.29:1) — see `FIELD_ERROR_CLASS`,
+          // which says so explicitly. This trigger has no white interior any more, and
+          // danger-5 measures 2.55:1 on `surface-overlay`, the modal card a task form
+          // actually sits on. danger-3 clears 3:1 on both adjacent colours everywhere:
+          // 4.91:1 against the chip and 5.65:1 against the surface, at the tightest.
+          //
+          // The invalid *focus ring* is `danger-text` too, and used to be `danger-5` on
+          // this very line — the same 2.55:1 the paragraph above rejects, one line later.
+          // It hid because `cn()` is tailwind-merge: `focus-visible:outline-danger-5` here
+          // silently drops the `focus-visible:outline-interactive-text` set in the base
+          // string, so the error state quietly *downgraded* the ring from 5.43:1 to
+          // 2.55:1. Four controls had it — this one, `MultiSelect`, `Input`, `Datepicker`
+          // — and all four are `danger-text` now, 5.65 / 6.94 / 7.95:1.
+          s && "ring-1 ring-danger-text focus-visible:outline-danger-text"
         ),
         children: [
-          n,
-          /* @__PURE__ */ t("span", { ...g, className: "flex-1 text-left truncate", children: i.selectedItem ? i.selectedItem.rendered : e }),
+          r,
+          /* @__PURE__ */ t("span", { ...f, className: "flex-1 text-left truncate", children: a.selectedItem ? a.selectedItem.rendered : n }),
           /* @__PURE__ */ t(De, { className: "w-3 h-3 shrink-0" })
         ]
       }
@@ -4188,16 +4307,16 @@ function ds({
     /* @__PURE__ */ t(
       se,
       {
-        description: s,
-        error: r,
-        descriptionProps: k,
-        errorMessageProps: v
+        description: l,
+        error: s,
+        descriptionProps: v,
+        errorMessageProps: C
       }
     ),
-    i.isOpen ? /* @__PURE__ */ t(Oe, { state: i, triggerRef: a, placement: "bottom start", children: /* @__PURE__ */ t(wt, { ...p, state: i }) }) : null
+    a.isOpen ? /* @__PURE__ */ t(Oe, { state: a, triggerRef: c, placement: "bottom start", children: /* @__PURE__ */ t(wt, { ...k, state: a }) }) : null
   ] });
 }
-function us({
+function ps({
   label: e,
   placeholder: n,
   icon: r,
@@ -4207,46 +4326,50 @@ function us({
   className: i,
   ...a
 }) {
-  const d = He({}), c = M(null), g = Yt({
+  const c = He({}), d = M(null), h = qt({
     ...a,
     selectionMode: "multiple",
     // Explicit, not the default: a plain click on an item should add it to
     // the selection, not replace it — the behavior a set of checkable tags
     // needs, unlike a file browser's click-to-replace/Ctrl-click-to-add.
     selectionBehavior: "toggle"
-  }), { fieldProps: p, descriptionProps: k, errorMessageProps: v } = Ie({
+  }), { fieldProps: f, descriptionProps: k, errorMessageProps: v } = Ie({
     label: e,
     description: o,
     errorMessage: l,
     isInvalid: !!l
   }), { buttonProps: C } = X(
-    { onPress: () => d.toggle(), isDisabled: s, "aria-label": e },
-    c
-  ), w = [...g.collection].filter(
-    (N) => g.selectionManager.isSelected(N.key)
+    { onPress: () => c.toggle(), isDisabled: s, "aria-label": e },
+    d
+  ), y = [...h.collection].filter(
+    (N) => h.selectionManager.isSelected(N.key)
   );
   return /* @__PURE__ */ u("div", { className: m("inline-flex flex-col gap-1.5", i), children: [
     /* @__PURE__ */ u(
       "button",
       {
         ...C,
-        ref: c,
+        ref: d,
         type: "button",
         "aria-haspopup": "listbox",
-        "aria-expanded": d.isOpen,
-        "aria-describedby": p["aria-describedby"],
+        "aria-expanded": c.isOpen,
+        "aria-describedby": f["aria-describedby"],
         className: m(
-          // See Select's identical note: `bg-surface-neutral` is a light
-          // surface, so the placeholder/value text needs `Input`'s
-          // light-surface colors (`text-muted`/`text-neutral-5`), not
-          // `text-main` (invisible white-on-white once something's picked).
-          "inline-flex items-center gap-2 min-h-10 px-3 py-1.5 rounded-md bg-surface-neutral border border-subtle text-body-m font-sans transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none",
-          w.length > 0 ? "text-neutral-5" : "text-muted",
-          l && "border-danger-5 focus-visible:outline-danger-5"
+          // The design's chip, identical to `Select`'s trigger — see that component for
+          // the full derivation, the measured ratios, and why the white surface this
+          // replaces was wrong. Identical on purpose: the two sit side by side in a
+          // filter row, and nothing about holding a set rather than a scalar should make
+          // this control a different height or shape.
+          "inline-flex items-center gap-2 h-8 px-4 rounded-4 bg-neutral-2/10 text-body-m font-semibold font-sans whitespace-nowrap transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none",
+          y.length > 0 ? "text-main" : "text-muted-on-dark",
+          l && "ring-1 ring-danger-text focus-visible:outline-danger-text"
         ),
         children: [
           r,
-          w.length > 0 ? /* @__PURE__ */ t("span", { className: "flex flex-wrap items-center gap-1", children: w.map((N) => /* @__PURE__ */ t(W, { variant: "red", children: N.rendered }, N.key)) }) : /* @__PURE__ */ t("span", { children: n }),
+          /* @__PURE__ */ t("span", { className: "flex-1 text-left truncate", children: y.length > 0 ? y.map((N, L) => /* @__PURE__ */ u(Ct, { children: [
+            L > 0 ? ", " : null,
+            N.rendered
+          ] }, N.key)) : n }),
           /* @__PURE__ */ t(De, { className: "w-3 h-3 shrink-0" })
         ]
       }
@@ -4260,21 +4383,21 @@ function us({
         errorMessageProps: v
       }
     ),
-    d.isOpen ? /* @__PURE__ */ t(Oe, { state: d, triggerRef: c, placement: "bottom start", children: /* @__PURE__ */ t(wt, { "aria-label": e, state: g, autoFocus: !0 }) }) : null
+    c.isOpen ? /* @__PURE__ */ t(Oe, { state: c, triggerRef: d, placement: "bottom start", children: /* @__PURE__ */ t(wt, { "aria-label": e, state: h, autoFocus: !0 }) }) : null
   ] });
 }
-function ms({
+function bs({
   label: e,
   triggerContent: n,
   isDisabled: r,
   triggerClassName: s,
   ...l
 }) {
-  const o = qt({}), i = M(null), { menuTriggerProps: a, menuProps: d } = At(
+  const o = Xt({}), i = M(null), { menuTriggerProps: a, menuProps: c } = Dt(
     { isDisabled: r },
     o,
     i
-  ), { buttonProps: c } = X(
+  ), { buttonProps: d } = X(
     { ...a, isDisabled: r, "aria-label": e },
     i
   );
@@ -4282,20 +4405,20 @@ function ms({
     /* @__PURE__ */ t(
       "button",
       {
-        ...c,
+        ...d,
         ref: i,
         type: "button",
         className: m(
-          "cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none",
+          "cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none",
           s
         ),
         children: n
       }
     ),
     o.isOpen ? /* @__PURE__ */ t(Oe, { state: o, triggerRef: i, placement: "bottom end", children: /* @__PURE__ */ t(
-      Pn,
+      Vn,
       {
-        ...d,
+        ...c,
         ...l,
         autoFocus: l.autoFocus ?? o.focusStrategy ?? !0,
         onClose: () => o.close()
@@ -4303,12 +4426,12 @@ function ms({
     ) }) : null
   ] });
 }
-function Pn({ children: e, onAction: n, onClose: r, ...s }) {
-  const l = Xt({ ...s, children: e, selectionMode: "none" }), o = M(null), { menuProps: i } = Dt({ ...s, onAction: n, onClose: r }, l, o);
-  return /* @__PURE__ */ t("ul", { ...i, ref: o, className: "max-h-64 min-w-40 overflow-auto py-2 outline-none", children: [...l.collection].map((a) => /* @__PURE__ */ t(Ln, { item: a, state: l, onClose: r }, a.key)) });
+function Vn({ children: e, onAction: n, onClose: r, ...s }) {
+  const l = Jt({ ...s, children: e, selectionMode: "none" }), o = M(null), { menuProps: i } = jt({ ...s, onAction: n, onClose: r }, l, o);
+  return /* @__PURE__ */ t("ul", { ...i, ref: o, className: "max-h-64 min-w-40 overflow-auto py-2 outline-none", children: [...l.collection].map((a) => /* @__PURE__ */ t(In, { item: a, state: l, onClose: r }, a.key)) });
 }
-function Ln({ item: e, state: n, onClose: r }) {
-  const s = M(null), { menuItemProps: l, isFocused: o, isDisabled: i } = jt(
+function In({ item: e, state: n, onClose: r }) {
+  const s = M(null), { menuItemProps: l, isFocused: o, isDisabled: i } = Ot(
     { key: e.key, onClose: r },
     n,
     s
@@ -4319,15 +4442,20 @@ function Ln({ item: e, state: n, onClose: r }) {
       ...l,
       ref: s,
       className: m(
-        "text-body-m font-sans cursor-pointer px-4 py-1.5 outline-none text-main",
-        o && "bg-neutral-4",
+        "text-body-m font-sans cursor-pointer px-4 py-1.5 text-main",
+        // Same defect and same fix as `ListBox` — see its comment for the reasoning.
+        // `bg-neutral-4` on the menu's `surface-overlay` is 1.23:1, so the highlight was
+        // effectively invisible, and `outline-none` left nothing else. This matters more
+        // here than anywhere: the app's task-card menu is the sole entry point to
+        // Edit/Delete, and this kit has already lost that focus indicator once.
+        o && "bg-neutral-4 outline-solid outline-2 -outline-offset-2 outline-interactive-text",
         i && "cursor-not-allowed opacity-50"
       ),
       children: e.rendered
     }
   );
 }
-function fs({
+function hs({
   title: e,
   isOpen: n,
   onClose: r,
@@ -4335,25 +4463,25 @@ function fs({
   width: l = "max-w-md",
   role: o = "dialog"
 }) {
-  const i = M(null), a = M(null), d = He({
+  const i = M(null), a = M(null), c = He({
     isOpen: n,
     onOpenChange: (v) => {
       v || r();
     }
-  }), { modalProps: c, underlayProps: g } = Ot(
+  }), { modalProps: d, underlayProps: h } = Bt(
     { isDismissable: !0 },
-    d,
+    c,
     i
-  ), { dialogProps: p, titleProps: k } = Bt({ role: o }, a);
+  ), { dialogProps: f, titleProps: k } = Et({ role: o }, a);
   return n ? /* @__PURE__ */ t(
     "div",
     {
-      ...g,
+      ...h,
       className: "fixed inset-0 z-overlay flex items-center justify-center bg-black/60 backdrop-blur-sm p-4",
-      children: /* @__PURE__ */ t(ze, { contain: !0, restoreFocus: !0, autoFocus: !0, children: /* @__PURE__ */ t("div", { ...c, ref: i, className: m("w-full", l), children: /* @__PURE__ */ u(
+      children: /* @__PURE__ */ t(ze, { contain: !0, restoreFocus: !0, autoFocus: !0, children: /* @__PURE__ */ t("div", { ...d, ref: i, className: m("w-full", l), children: /* @__PURE__ */ u(
         "div",
         {
-          ...p,
+          ...f,
           ref: a,
           className: "flex flex-col bg-surface-overlay rounded-sm border border-subtle overflow-hidden",
           children: [
@@ -4365,7 +4493,7 @@ function fs({
                   type: "button",
                   onClick: r,
                   "aria-label": "Close modal",
-                  className: "flex items-center justify-center w-8 h-8 rounded-md text-muted hover:bg-neutral-4 hover:text-main transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
+                  className: "flex items-center justify-center w-8 h-8 rounded-md text-muted hover:bg-neutral-4 hover:text-main transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
                   children: /* @__PURE__ */ t(je, { className: "w-4 h-4" })
                 }
               )
@@ -4377,7 +4505,7 @@ function fs({
     }
   ) : null;
 }
-function ps(e = !1) {
+function xs(e = !1) {
   const n = He({ defaultOpen: e });
   return {
     isOpen: n.isOpen,
@@ -4387,12 +4515,12 @@ function ps(e = !1) {
   };
 }
 function Qe(e) {
-  return new rr(e.getFullYear(), e.getMonth() + 1, e.getDate());
+  return new nr(e.getFullYear(), e.getMonth() + 1, e.getDate());
 }
-function Sn(e) {
+function Tn(e) {
   return e.toDate(Le());
 }
-function Vn({
+function zn({
   value: e,
   defaultValue: n,
   onChange: r,
@@ -4400,10 +4528,10 @@ function Vn({
   triggerRef: l,
   className: o
 }) {
-  const i = e !== void 0 ? { value: Qe(e) } : { defaultValue: n ? Qe(n) : null }, a = Jt({
+  const i = e !== void 0 ? { value: Qe(e) } : { defaultValue: n ? Qe(n) : null }, a = Qt({
     ...i,
-    onChange: (N) => r == null ? void 0 : r(Sn(N)),
-    createCalendar: tr,
+    onChange: (N) => r == null ? void 0 : r(Tn(N)),
+    createCalendar: rr,
     // Hardcoded, matching the prior implementation's hardcoded English
     // MONTHS/DAYS arrays — no `I18nProvider`/locale story exists in this kit
     // yet, so introducing locale-dependent formatting here would be an
@@ -4411,11 +4539,11 @@ function Vn({
     locale: "en-US",
     firstDayOfWeek: "sun",
     weeksInMonth: 6
-  }), { calendarProps: d, prevButtonProps: c, nextButtonProps: g } = Et(
+  }), { calendarProps: c, prevButtonProps: d, nextButtonProps: h } = Zt(
     { "aria-label": "Date picker" },
     a
-  ), p = M(null), k = M(null), { buttonProps: v } = X(c, p), { buttonProps: C } = X(g, k), w = () => {
-    const N = nr(Le());
+  ), f = M(null), k = M(null), { buttonProps: v } = X(d, f), { buttonProps: C } = X(h, k), y = () => {
+    const N = sr(Le());
     a.setFocusedDate(N), a.selectDate(N);
   };
   return /* @__PURE__ */ u(
@@ -4430,7 +4558,7 @@ function Vn({
         o
       ),
       children: [
-        /* @__PURE__ */ u("div", { ...d, className: "flex flex-col", children: [
+        /* @__PURE__ */ u("div", { ...c, className: "flex flex-col", children: [
           /* @__PURE__ */ u("div", { className: "flex items-center justify-between px-2 py-[9px] h-10", children: [
             /* @__PURE__ */ u("div", { className: "flex items-center gap-1", children: [
               /* @__PURE__ */ t(
@@ -4439,18 +4567,18 @@ function Vn({
                   type: "button",
                   onClick: () => a.focusPreviousSection(!0),
                   "aria-label": "Previous year",
-                  className: "flex items-center justify-center w-4 h-4 text-main hover:text-interactive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-1 rounded-xs",
-                  children: /* @__PURE__ */ t(ln, { className: "w-4 h-4" })
+                  className: "flex items-center justify-center w-4 h-4 text-main hover:text-interactive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-1 rounded-xs",
+                  children: /* @__PURE__ */ t(an, { className: "w-4 h-4" })
                 }
               ),
               /* @__PURE__ */ t(
                 "button",
                 {
                   ...v,
-                  ref: p,
+                  ref: f,
                   "aria-label": "Previous month",
-                  className: "flex items-center justify-center w-4 h-4 text-main hover:text-interactive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-1 rounded-xs disabled:pointer-events-none disabled:opacity-50",
-                  children: /* @__PURE__ */ t(on, { className: "w-4 h-4" })
+                  className: "flex items-center justify-center w-4 h-4 text-main hover:text-interactive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-1 rounded-xs disabled:pointer-events-none disabled:opacity-50",
+                  children: /* @__PURE__ */ t(ln, { className: "w-4 h-4" })
                 }
               )
             ] }),
@@ -4462,8 +4590,8 @@ function Vn({
                   ...C,
                   ref: k,
                   "aria-label": "Next month",
-                  className: "flex items-center justify-center w-4 h-4 text-main hover:text-interactive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-1 rounded-xs disabled:pointer-events-none disabled:opacity-50",
-                  children: /* @__PURE__ */ t(xt, { className: "w-4 h-4" })
+                  className: "flex items-center justify-center w-4 h-4 text-main hover:text-interactive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-1 rounded-xs disabled:pointer-events-none disabled:opacity-50",
+                  children: /* @__PURE__ */ t(gt, { className: "w-4 h-4" })
                 }
               ),
               /* @__PURE__ */ t(
@@ -4472,22 +4600,22 @@ function Vn({
                   type: "button",
                   onClick: () => a.focusNextSection(!0),
                   "aria-label": "Next year",
-                  className: "flex items-center justify-center w-4 h-4 text-main hover:text-interactive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-1 rounded-xs",
-                  children: /* @__PURE__ */ t(an, { className: "w-4 h-4" })
+                  className: "flex items-center justify-center w-4 h-4 text-main hover:text-interactive transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-1 rounded-xs",
+                  children: /* @__PURE__ */ t(cn, { className: "w-4 h-4" })
                 }
               )
             ] })
           ] }),
           /* @__PURE__ */ t("div", { className: "h-px w-full bg-neutral-2" }),
-          /* @__PURE__ */ t(In, { state: a })
+          /* @__PURE__ */ t(Hn, { state: a })
         ] }),
         /* @__PURE__ */ t("div", { className: "h-px w-full bg-neutral-2" }),
         /* @__PURE__ */ t("div", { className: "flex items-center justify-center py-[9px] h-10", children: /* @__PURE__ */ t(
           "button",
           {
             type: "button",
-            onClick: w,
-            className: "text-body-sm font-normal font-sans text-interactive hover:opacity-80 transition-opacity cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 rounded-xs",
+            onClick: y,
+            className: "text-body-sm font-normal font-sans text-interactive-text hover:opacity-80 transition-opacity cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 rounded-xs",
             children: "Today"
           }
         ) })
@@ -4495,32 +4623,32 @@ function Vn({
     }
   );
 }
-function In({ state: e }) {
-  const { gridProps: n, headerProps: r, weekDays: s, weeksInMonth: l } = Zt(
+function Hn({ state: e }) {
+  const { gridProps: n, headerProps: r, weekDays: s, weeksInMonth: l } = Ft(
     { weekdayStyle: "short" },
     e
   ), o = e.visibleRange.start;
   return /* @__PURE__ */ u("div", { ...n, className: "flex flex-col px-3 py-2", children: [
     /* @__PURE__ */ t("div", { ...r, className: "grid grid-cols-7", children: s.map((i, a) => /* @__PURE__ */ t("span", { className: "text-center text-body-sm font-normal text-main font-sans", children: i }, a)) }),
     Array.from({ length: l }, (i, a) => /* @__PURE__ */ t("div", { role: "row", className: "grid grid-cols-7", children: e.getDatesInWeek(a).map(
-      (d, c) => d ? /* @__PURE__ */ t(
-        Tn,
+      (c, d) => c ? /* @__PURE__ */ t(
+        Rn,
         {
           state: e,
-          date: d,
+          date: c,
           currentMonth: o
         },
-        d.toString()
-      ) : /* @__PURE__ */ t("div", { role: "gridcell", "aria-hidden": "true" }, c)
+        c.toString()
+      ) : /* @__PURE__ */ t("div", { role: "gridcell", "aria-hidden": "true" }, d)
     ) }, a))
   ] });
 }
-function Tn({
+function Rn({
   state: e,
   date: n,
   currentMonth: r
 }) {
-  const s = M(null), l = !sr(n, r), { cellProps: o, buttonProps: i, isSelected: a, isDisabled: d, formattedDate: c } = Ft(
+  const s = M(null), l = !or(n, r), { cellProps: o, buttonProps: i, isSelected: a, isDisabled: c, formattedDate: d } = Gt(
     { date: n, isOutsideMonth: l },
     e,
     s
@@ -4531,15 +4659,15 @@ function Tn({
       ...i,
       ref: s,
       className: m(
-        "flex items-center justify-center w-6 h-6 rounded-2 text-body-sm font-normal font-sans transition-colors focus-visible:outline-2 focus-visible:outline-primary-4",
-        d ? "text-muted cursor-default" : a ? "border border-primary-4 text-main cursor-pointer" : "text-main hover:bg-neutral-3 cursor-pointer"
+        "flex items-center justify-center w-6 h-6 rounded-2 text-body-sm font-normal font-sans transition-colors focus-visible:outline-2 focus-visible:outline-interactive-text",
+        c ? "text-muted cursor-default" : a ? "border border-primary-4 text-main cursor-pointer" : "text-main hover:bg-neutral-3 cursor-pointer"
       ),
-      children: c
+      children: d
     }
   ) });
 }
-const zn = [1, 2, 3, 5, 8];
-function Hn({
+const An = [1, 2, 3, 5, 8];
+function Dn({
   value: e,
   onSelect: n,
   onClose: r,
@@ -4558,16 +4686,20 @@ function Hn({
         l
       ),
       children: [
-        /* @__PURE__ */ t("div", { className: "flex items-center h-8 px-4", children: /* @__PURE__ */ t("span", { className: "text-body-xl font-semibold text-muted font-sans whitespace-nowrap", children: "Estimate" }) }),
-        zn.map((o) => /* @__PURE__ */ u(
+        /* @__PURE__ */ t("div", { className: "flex items-center h-8 px-4", children: /* @__PURE__ */ t("span", { className: "text-body-xl font-semibold text-muted-on-dark font-sans whitespace-nowrap", children: "Estimate" }) }),
+        An.map((o) => /* @__PURE__ */ u(
           "button",
           {
             type: "button",
             onClick: () => n(o),
             "aria-pressed": e === o,
             className: m(
-              "flex items-center gap-2 h-8 px-4 rounded-xs text-body-m font-normal text-main font-sans transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:-outline-offset-2",
-              e === o ? "bg-neutral-2" : "hover:bg-neutral-2"
+              "flex items-center gap-2 h-8 px-4 rounded-xs text-body-m font-normal text-main font-sans transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:-outline-offset-2",
+              // `text-neutral-5` wherever the row's fill is a solid `neutral-2`: white on
+              // that fill is 2.94:1, and it applies to the hover state as much as the
+              // selected one. Only the selected case was visible to axe — a static story
+              // has no hover.
+              e === o ? "bg-neutral-2 text-neutral-5" : "hover:bg-neutral-2 hover:text-neutral-5"
             ),
             children: [
               /* @__PURE__ */ t("span", { className: "w-6 h-6 shrink-0", children: /* @__PURE__ */ t(Ve, { className: "size-6" }) }),
@@ -4584,7 +4716,7 @@ function Hn({
     }
   );
 }
-function Rn({
+function jn({
   name: e,
   role: n,
   avatarSrc: r,
@@ -4606,7 +4738,7 @@ function Rn({
       className: m(
         // padding: 4px 16px, gap: 8px -- matches Figma "User" component (Avatar frame, 239x56)
         "flex items-center gap-2 px-4 py-1 min-w-0",
-        i && "cursor-pointer hover:opacity-80 transition-opacity focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 rounded-sm",
+        i && "cursor-pointer hover:opacity-80 transition-opacity focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 rounded-sm",
         o
       ),
       children: [
@@ -4616,13 +4748,22 @@ function Rn({
         ] }),
         /* @__PURE__ */ u("div", { className: "flex flex-col min-w-0", children: [
           /* @__PURE__ */ t("span", { className: "font-sans font-normal text-body-m text-main truncate", children: e }),
-          n ? /* @__PURE__ */ t("span", { className: m("font-sans text-muted truncate leading-tight", a[s]), children: n }) : null
+          n ? /* @__PURE__ */ t(
+            "span",
+            {
+              className: m(
+                "font-sans text-muted-on-dark truncate leading-tight",
+                a[s]
+              ),
+              children: n
+            }
+          ) : null
         ] })
       ]
     }
   );
 }
-function An({
+function On({
   assignees: e,
   onSelect: n,
   onClose: r,
@@ -4641,14 +4782,14 @@ function An({
         l
       ),
       children: [
-        /* @__PURE__ */ t("div", { className: "flex items-center h-8 px-4", children: /* @__PURE__ */ t("span", { className: "text-body-xl font-semibold text-muted font-sans truncate", children: "Assignee" }) }),
+        /* @__PURE__ */ t("div", { className: "flex items-center h-8 px-4", children: /* @__PURE__ */ t("span", { className: "text-body-xl font-semibold text-muted-on-dark font-sans truncate", children: "Assignee" }) }),
         e.map((o) => /* @__PURE__ */ t(
           "button",
           {
             type: "button",
             onClick: () => n(o),
-            className: "flex items-center w-full h-14 hover:bg-neutral-2/10 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:-outline-offset-2",
-            children: /* @__PURE__ */ t(Rn, { name: o.name, role: o.role, avatarSrc: o.avatarSrc, size: "sm" })
+            className: "flex items-center w-full h-14 hover:bg-neutral-2/10 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:-outline-offset-2",
+            children: /* @__PURE__ */ t(jn, { name: o.name, role: o.role, avatarSrc: o.avatarSrc, size: "sm" })
           },
           o.id
         ))
@@ -4656,7 +4797,7 @@ function An({
     }
   );
 }
-function Dn({ labels: e, onSelect: n, onClose: r, triggerRef: s, className: l }) {
+function Bn({ labels: e, onSelect: n, onClose: r, triggerRef: s, className: l }) {
   return /* @__PURE__ */ u(
     ye,
     {
@@ -4669,14 +4810,14 @@ function Dn({ labels: e, onSelect: n, onClose: r, triggerRef: s, className: l })
         l
       ),
       children: [
-        /* @__PURE__ */ t("div", { className: "flex items-center h-8 px-4", children: /* @__PURE__ */ t("span", { className: "text-body-xl font-semibold text-muted font-sans truncate", children: "Label" }) }),
+        /* @__PURE__ */ t("div", { className: "flex items-center h-8 px-4", children: /* @__PURE__ */ t("span", { className: "text-body-xl font-semibold text-muted-on-dark font-sans truncate", children: "Label" }) }),
         e.map((o) => /* @__PURE__ */ t(
           "button",
           {
             type: "button",
             onClick: () => n(o),
-            className: "flex items-center w-full px-4 py-1.5 hover:bg-neutral-2/10 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:-outline-offset-2",
-            children: /* @__PURE__ */ t(W, { variant: o.variant ?? "neutral", children: o.text })
+            className: "flex items-center w-full px-4 py-1.5 hover:bg-neutral-2/10 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:-outline-offset-2",
+            children: /* @__PURE__ */ t($, { variant: o.variant ?? "neutral", children: o.text })
           },
           o.id
         ))
@@ -4684,7 +4825,7 @@ function Dn({ labels: e, onSelect: n, onClose: r, triggerRef: s, className: l })
     }
   );
 }
-function bs({
+function gs({
   isOpen: e,
   onClose: n,
   assignees: r = [],
@@ -4693,16 +4834,16 @@ function bs({
   initialTitle: o = "",
   initialDueDate: i,
   initialPoints: a,
-  initialAssignee: d,
-  initialLabel: c,
-  className: g
+  initialAssignee: c,
+  initialLabel: d,
+  className: h
 }) {
-  const [p, k] = B.useState(o), [v, C] = B.useState(i), [w, N] = B.useState(a), [S, I] = B.useState(d), [F, _] = B.useState(c), [T, j] = B.useState(null), H = (P) => j((U) => U === P ? null : P), h = () => j(null), R = B.useRef(null), re = B.useRef(null), ne = B.useRef(null), Q = B.useRef(null);
+  const [f, k] = B.useState(o), [v, C] = B.useState(i), [y, N] = B.useState(a), [L, I] = B.useState(c), [F, _] = B.useState(d), [T, j] = B.useState(null), H = (P) => j((W) => W === P ? null : P), x = () => j(null), R = B.useRef(null), re = B.useRef(null), ne = B.useRef(null), Q = B.useRef(null);
   if (!e) return null;
   const oe = () => {
     k(""), C(void 0), N(void 0), I(void 0), _(void 0), j(null);
   }, le = (P) => {
-    P.preventDefault(), p.trim() && (l == null || l({ title: p.trim(), dueDate: v, points: w, assignee: S, label: F }), oe(), n());
+    P.preventDefault(), f.trim() && (l == null || l({ title: f.trim(), dueDate: v, points: y, assignee: L, label: F }), oe(), n());
   }, K = () => {
     oe(), n();
   };
@@ -4712,23 +4853,23 @@ function bs({
       onSubmit: le,
       className: m(
         "flex flex-col items-end gap-6 w-[578px] p-4 bg-surface-overlay rounded-sm",
-        g
+        h
       ),
       children: [
         /* @__PURE__ */ t(
           "input",
           {
             autoFocus: !0,
-            value: p,
+            value: f,
             onChange: (P) => k(P.target.value),
             placeholder: "Task name",
             "aria-label": "Task name",
-            className: "w-full bg-transparent text-body-xl font-semibold text-main placeholder:text-muted font-sans rounded-xs focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2"
+            className: "w-full bg-transparent text-body-xl font-semibold text-main placeholder:text-muted-on-dark font-sans rounded-xs focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2"
           }
         ),
         /* @__PURE__ */ u("div", { className: "flex items-center gap-4 w-full", children: [
           /* @__PURE__ */ u("div", { className: "relative", children: [
-            w === void 0 ? /* @__PURE__ */ t(
+            y === void 0 ? /* @__PURE__ */ t(
               "button",
               {
                 ref: R,
@@ -4736,8 +4877,8 @@ function bs({
                 onClick: () => H("estimate"),
                 "aria-haspopup": "dialog",
                 "aria-expanded": T === "estimate",
-                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
-                children: /* @__PURE__ */ t(W, { icon: /* @__PURE__ */ t(Ve, { className: "size-6" }), children: "Estimate" })
+                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
+                children: /* @__PURE__ */ t($, { icon: /* @__PURE__ */ t(Ve, { className: "size-6" }), children: "Estimate" })
               }
             ) : /* @__PURE__ */ u(
               "button",
@@ -4747,30 +4888,30 @@ function bs({
                 onClick: () => H("estimate"),
                 "aria-haspopup": "dialog",
                 "aria-expanded": T === "estimate",
-                className: "flex items-center gap-2 h-8 px-4 rounded-xs text-body-m font-normal text-main font-sans hover:bg-neutral-2 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
+                className: "flex items-center gap-2 h-8 px-4 rounded-xs text-body-m font-normal text-main font-sans hover:bg-neutral-2 hover:text-neutral-5 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
                 children: [
                   /* @__PURE__ */ t("span", { className: "w-6 h-6 shrink-0", children: /* @__PURE__ */ t(Ve, { className: "size-6" }) }),
-                  w,
+                  y,
                   " Point",
-                  w !== 1 ? "s" : ""
+                  y !== 1 ? "s" : ""
                 ]
               }
             ),
             T === "estimate" ? /* @__PURE__ */ t(
-              Hn,
+              Dn,
               {
-                value: w,
+                value: y,
                 onSelect: (P) => {
                   N(P), j(null);
                 },
-                onClose: h,
+                onClose: x,
                 triggerRef: R,
                 className: "absolute top-full left-0 mt-1 z-nested"
               }
             ) : null
           ] }),
           /* @__PURE__ */ u("div", { className: "relative", children: [
-            S ? /* @__PURE__ */ u(
+            L ? /* @__PURE__ */ u(
               "button",
               {
                 ref: re,
@@ -4778,10 +4919,10 @@ function bs({
                 onClick: () => H("assignee"),
                 "aria-haspopup": "dialog",
                 "aria-expanded": T === "assignee",
-                className: "flex items-center gap-2 h-8 px-2 rounded-xs text-body-m font-normal text-main font-sans hover:bg-neutral-2 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
+                className: "flex items-center gap-2 h-8 px-2 rounded-xs text-body-m font-normal text-main font-sans hover:bg-neutral-2 hover:text-neutral-5 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
                 children: [
-                  /* @__PURE__ */ t(de, { src: S.avatarSrc, name: S.name, size: "sm" }),
-                  S.name
+                  /* @__PURE__ */ t(de, { src: L.avatarSrc, name: L.name, size: "sm" }),
+                  L.name
                 ]
               }
             ) : /* @__PURE__ */ t(
@@ -4792,18 +4933,18 @@ function bs({
                 onClick: () => H("assignee"),
                 "aria-haspopup": "dialog",
                 "aria-expanded": T === "assignee",
-                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
-                children: /* @__PURE__ */ t(W, { icon: /* @__PURE__ */ t(rn, { className: "size-6" }), children: "Assignee" })
+                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
+                children: /* @__PURE__ */ t($, { icon: /* @__PURE__ */ t(nn, { className: "size-6" }), children: "Assignee" })
               }
             ),
             T === "assignee" ? /* @__PURE__ */ t(
-              An,
+              On,
               {
                 assignees: r,
                 onSelect: (P) => {
                   I(P), j(null);
                 },
-                onClose: h,
+                onClose: x,
                 triggerRef: re,
                 className: "absolute top-full left-0 mt-1 z-nested"
               }
@@ -4818,8 +4959,8 @@ function bs({
                 onClick: () => H("label"),
                 "aria-haspopup": "dialog",
                 "aria-expanded": T === "label",
-                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
-                children: /* @__PURE__ */ t(W, { variant: F.variant ?? "neutral", children: F.text })
+                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
+                children: /* @__PURE__ */ t($, { variant: F.variant ?? "neutral", children: F.text })
               }
             ) : /* @__PURE__ */ t(
               "button",
@@ -4829,18 +4970,18 @@ function bs({
                 onClick: () => H("label"),
                 "aria-haspopup": "dialog",
                 "aria-expanded": T === "label",
-                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
-                children: /* @__PURE__ */ t(W, { icon: /* @__PURE__ */ t(nn, { className: "size-6" }), children: "Label" })
+                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
+                children: /* @__PURE__ */ t($, { icon: /* @__PURE__ */ t(sn, { className: "size-6" }), children: "Label" })
               }
             ),
             T === "label" ? /* @__PURE__ */ t(
-              Dn,
+              Bn,
               {
                 labels: s,
                 onSelect: (P) => {
                   _(P), j(null);
                 },
-                onClose: h,
+                onClose: x,
                 triggerRef: ne,
                 className: "absolute top-full left-0 mt-1 z-nested"
               }
@@ -4855,18 +4996,18 @@ function bs({
                 onClick: () => H("date"),
                 "aria-haspopup": "dialog",
                 "aria-expanded": T === "date",
-                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2",
-                children: /* @__PURE__ */ t(W, { icon: /* @__PURE__ */ t(sn, { className: "size-6" }), children: v ? v.toLocaleDateString("en-US") : "Due date" })
+                className: "cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2",
+                children: /* @__PURE__ */ t($, { icon: /* @__PURE__ */ t(on, { className: "size-6" }), children: v ? v.toLocaleDateString("en-US") : "Due date" })
               }
             ),
             T === "date" ? /* @__PURE__ */ t(
-              Vn,
+              zn,
               {
                 value: v,
                 onChange: (P) => {
                   C(P), j(null);
                 },
-                onClose: h,
+                onClose: x,
                 triggerRef: Q,
                 className: "absolute top-full left-0 mt-1 z-nested"
               }
@@ -4875,13 +5016,13 @@ function bs({
         ] }),
         /* @__PURE__ */ u("div", { className: "flex items-center gap-6", children: [
           /* @__PURE__ */ t(Je, { variant: "secondary", onPress: K, children: "Cancel" }),
-          /* @__PURE__ */ t(Je, { variant: "primary", type: "submit", isDisabled: !p.trim(), children: "Create Task" })
+          /* @__PURE__ */ t(Je, { variant: "primary", type: "submit", isDisabled: !f.trim(), children: "Create Task" })
         ] })
       ]
     }
   );
 }
-function hs({ variant: e = "neutral", children: n, className: r }) {
+function vs({ variant: e = "neutral", children: n, className: r }) {
   return /* @__PURE__ */ t(
     "span",
     {
@@ -4889,9 +5030,9 @@ function hs({ variant: e = "neutral", children: n, className: r }) {
         "inline-flex items-center px-2.5 py-0.5 text-xs font-semibold rounded-full border font-sans",
         {
           neutral: "bg-surface-neutral text-neutral-4 border-subtle",
-          success: "bg-success-1 text-success-4 border-success-2",
-          warning: "bg-warning-1 text-warning-5 border-warning-2",
-          danger: "bg-danger-1 text-danger border-danger-2"
+          success: "bg-success-1 text-neutral-4 border-success-2",
+          warning: "bg-warning-1 text-warning-6 border-warning-2",
+          danger: "bg-danger-1 text-danger-6 border-danger-2"
         }[e],
         r
       ),
@@ -4899,29 +5040,38 @@ function hs({ variant: e = "neutral", children: n, className: r }) {
     }
   );
 }
-const kt = Nt(null);
-function gs() {
-  const e = Ct(kt);
+const kt = Mt(null);
+function ys() {
+  const e = Nt(kt);
   if (!e)
     throw new Error("useToast must be used within a ToastProvider");
   return e;
 }
-const jn = 5e3, On = {
+const En = 5e3, Zn = {
   neutral: "bg-surface-overlay text-main border border-subtle/10",
   success: "bg-success-4 text-neutral-5",
   warning: "bg-warning-5 text-neutral-5",
-  danger: "bg-danger text-main"
+  // `bg-danger-4 text-neutral-5`, not the `bg-danger text-main` this was. Danger was the
+  // odd one out in this map — the only tone inverting the pattern, a dark fill with white
+  // text — and it was the only one that failed: white on `danger-5` is **4.29:1**, under
+  // AA. It also never appeared in any audit, because no story renders a toast without a
+  // click and the sweep only ever saw static stories.
+  //
+  // Moving the label to `neutral-5` on the same fill does not help (3.59:1); the fill has
+  // to move. `danger-4` (#FF7875) clears **6.01:1** with `neutral-5` and puts danger on
+  // the same footing as its neighbours: a saturated fill with dark text.
+  danger: "bg-danger-4 text-neutral-5"
 };
-function Bn({
+function Fn({
   toast: e,
   state: n,
   closeLabel: r
 }) {
-  const s = M(null), l = M(null), { toastProps: o, contentProps: i, titleProps: a, closeButtonProps: d } = Wt(
+  const s = M(null), l = M(null), { toastProps: o, contentProps: i, titleProps: a, closeButtonProps: c } = Wt(
     { toast: e },
     n,
     s
-  ), { buttonProps: c } = X(d, l);
+  ), { buttonProps: d } = X(c, l);
   return /* @__PURE__ */ u(
     "div",
     {
@@ -4930,14 +5080,14 @@ function Bn({
       className: m(
         "pointer-events-auto flex items-center gap-3 px-4 py-2 rounded-sm shadow-elevation",
         "text-body-m font-semibold font-sans",
-        On[e.content.tone]
+        Zn[e.content.tone]
       ),
       children: [
         /* @__PURE__ */ t("div", { ...i, children: /* @__PURE__ */ t("span", { ...a, children: e.content.message }) }),
         /* @__PURE__ */ t(
           "button",
           {
-            ...c,
+            ...d,
             ref: l,
             "aria-label": r,
             className: "shrink-0 opacity-70 hover:opacity-100 transition-opacity cursor-pointer rounded-xs focus-visible:outline-2 focus-visible:outline-current focus-visible:outline-offset-2",
@@ -4948,60 +5098,60 @@ function Bn({
     }
   );
 }
-function En({
+function Gn({
   state: e,
   label: n,
   closeLabel: r
 }) {
-  const s = M(null), { regionProps: l } = Gt({ "aria-label": n }, e, s);
-  return or(
+  const s = M(null), { regionProps: l } = _t({ "aria-label": n }, e, s);
+  return lr(
     /* @__PURE__ */ t(
       "div",
       {
         ...l,
         ref: s,
         className: "pointer-events-none fixed right-4 bottom-4 z-toast flex flex-col gap-2",
-        children: e.visibleToasts.map((o) => /* @__PURE__ */ t(Bn, { toast: o, state: e, closeLabel: r }, o.key))
+        children: e.visibleToasts.map((o) => /* @__PURE__ */ t(Fn, { toast: o, state: e, closeLabel: r }, o.key))
       }
     ),
     document.body
   );
 }
-function xs({
+function ws({
   children: e,
-  duration: n = jn,
+  duration: n = En,
   maxVisibleToasts: r = 4,
   label: s = "Notifications",
   closeLabel: l = "Dismiss"
 }) {
-  const o = Qt({ maxVisibleToasts: r }), i = M(o);
-  We(() => {
+  const o = er({ maxVisibleToasts: r }), i = M(o);
+  _e(() => {
     i.current = o;
   }, [o]);
   const a = M(n);
-  We(() => {
+  _e(() => {
     a.current = n;
   }, [n]);
-  const d = rt(
+  const c = rt(
     () => ({
-      show: (c, g, p) => i.current.add(
-        { tone: c, message: g },
+      show: (d, h, f) => i.current.add(
+        { tone: d, message: h },
         // `undefined` in `options.timeout` means "not specified, use the default";
         // an explicit `null` means "stay until dismissed", which react-stately
         // expresses as a timeout of 0.
         {
-          timeout: (p == null ? void 0 : p.timeout) === null ? 0 : (p == null ? void 0 : p.timeout) ?? a.current
+          timeout: (f == null ? void 0 : f.timeout) === null ? 0 : (f == null ? void 0 : f.timeout) ?? a.current
         }
       )
     }),
     []
   );
-  return /* @__PURE__ */ u(kt.Provider, { value: d, children: [
+  return /* @__PURE__ */ u(kt.Provider, { value: c, children: [
     e,
-    o.visibleToasts.length > 0 ? /* @__PURE__ */ t(En, { state: o, label: s, closeLabel: l }) : null
+    o.visibleToasts.length > 0 ? /* @__PURE__ */ t(Gn, { state: o, label: s, closeLabel: l }) : null
   ] });
 }
-function vs({
+function ks({
   children: e,
   isSelected: n,
   defaultSelected: r = !1,
@@ -5010,29 +5160,29 @@ function vs({
   isIndeterminate: o = !1,
   error: i,
   description: a,
-  isRequired: d = !1,
-  className: c
+  isRequired: c = !1,
+  className: d
 }) {
-  const g = er({
+  const h = tr({
     isSelected: n,
     defaultSelected: r,
     onChange: s
-  }), p = M(null), { fieldProps: k, descriptionProps: v, errorMessageProps: C } = Ie({
+  }), f = M(null), { fieldProps: k, descriptionProps: v, errorMessageProps: C } = Ie({
     description: a,
     errorMessage: i,
     isInvalid: !!i
-  }), { inputProps: w, labelProps: N } = _t(
+  }), { inputProps: y, labelProps: N } = Ut(
     {
-      isSelected: g.isSelected,
+      isSelected: h.isSelected,
       isIndeterminate: o,
       isDisabled: l,
-      isRequired: d,
+      isRequired: c,
       isInvalid: !!i,
       "aria-label": typeof e == "string" ? e : "Checkbox"
     },
-    g,
-    p
-  ), S = /* @__PURE__ */ u(
+    h,
+    f
+  ), L = /* @__PURE__ */ u(
     "label",
     {
       ...N,
@@ -5040,16 +5190,26 @@ function vs({
         // padding: 4px 16px, gap: 8px, border-radius: 4px (Tailwind's unmodified
         // `rounded` step) -- matches Figma "Label Checkbox" component exactly
         // (Property 1=Default/Selected, Tags01.md / Add Task Modal04/05.md).
-        "inline-flex items-center gap-2 px-4 py-1 rounded cursor-pointer select-none group has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-primary-4 has-[:focus-visible]:outline-offset-2",
+        // `has-[:focus-visible]:outline-solid` is load-bearing, not decoration. The real
+        // checkbox is `sr-only`, so the ring has to be drawn on this label via `:has()` —
+        // and under the `has-` variant, `outline-2`'s `outline-style:
+        // var(--tw-outline-style)` does not resolve to `solid` the way it does under
+        // `focus-visible:`. The width and the colour compute, and nothing paints: this
+        // control had **no visible focus indicator at all**, a 2.4.7 failure rather than a
+        // contrast one. Verified at the pixel level in a real browser — zero ring pixels
+        // before, 1604 after — and `getComputedStyle` was no help, reporting a colour for
+        // an outline that was never drawn. Same trap as the `outline-none` bug this kit
+        // already paid for once; see `button.tsx`. Do not drop `outline-solid` as redundant.
+        "inline-flex items-center gap-2 px-4 py-1 rounded cursor-pointer select-none group has-[:focus-visible]:outline-solid has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-interactive-text has-[:focus-visible]:outline-offset-2",
         l && "opacity-50 cursor-not-allowed",
-        c
+        d
       ),
       children: [
         /* @__PURE__ */ t(
           "input",
           {
-            ...w,
-            ref: p,
+            ...y,
+            ref: f,
             "aria-describedby": k["aria-describedby"],
             className: "sr-only"
           }
@@ -5057,7 +5217,7 @@ function vs({
         /* @__PURE__ */ u(
           "svg",
           {
-            className: m("w-6 h-6 shrink-0", i ? "text-danger" : "text-main"),
+            className: m("w-6 h-6 shrink-0", i ? "text-danger-text" : "text-main"),
             viewBox: "0 0 24 24",
             fill: "none",
             stroke: "currentColor",
@@ -5065,7 +5225,7 @@ function vs({
             "aria-hidden": !0,
             children: [
               /* @__PURE__ */ t("rect", { x: "4", y: "4", width: "16", height: "16", rx: "3" }),
-              g.isSelected && !o ? /* @__PURE__ */ t(
+              h.isSelected && !o ? /* @__PURE__ */ t(
                 "path",
                 {
                   d: "M8 12.5 11 15.5 16 9.5",
@@ -5079,13 +5239,13 @@ function vs({
         ),
         /* @__PURE__ */ u("span", { className: "text-body-m font-normal font-sans text-main", children: [
           e,
-          d ? /* @__PURE__ */ t(ce, {}) : null
+          c ? /* @__PURE__ */ t(ce, {}) : null
         ] })
       ]
     }
   );
-  return !i && !a ? S : /* @__PURE__ */ u("div", { className: "inline-flex flex-col gap-1", children: [
-    S,
+  return !i && !a ? L : /* @__PURE__ */ u("div", { className: "inline-flex flex-col gap-1", children: [
+    L,
     /* @__PURE__ */ t("span", { className: "px-4", children: /* @__PURE__ */ t(
       se,
       {
@@ -5097,41 +5257,48 @@ function vs({
     ) })
   ] });
 }
-function ys({ label: e, error: n, description: r, className: s, ...l }) {
-  const o = M(null), { labelProps: i, inputProps: a, descriptionProps: d, errorMessageProps: c } = Te(
-    { ...l, label: e, description: r, type: "date", isInvalid: !!n, errorMessage: n },
-    o
+function Cs({
+  label: e,
+  isLabelVisible: n = !1,
+  error: r,
+  description: s,
+  className: l,
+  ...o
+}) {
+  const i = M(null), { labelProps: a, inputProps: c, descriptionProps: d, errorMessageProps: h } = Te(
+    { ...o, label: e, description: s, type: "date", isInvalid: !!r, errorMessage: r },
+    i
   );
   return /* @__PURE__ */ u("div", { className: "flex flex-col gap-1.5 w-full", children: [
-    e ? /* @__PURE__ */ u("label", { ...i, className: ve, children: [
+    e ? /* @__PURE__ */ u("label", { ...a, className: ve(n), children: [
       e,
-      l.isRequired ? /* @__PURE__ */ t(ce, {}) : null
+      o.isRequired ? /* @__PURE__ */ t(ce, {}) : null
     ] }) : null,
     /* @__PURE__ */ t(
       "input",
       {
-        ...a,
-        ref: o,
+        ...c,
+        ref: i,
         type: "date",
         className: m(
-          "h-10 px-3 py-2 text-sm bg-surface-neutral text-neutral-5 border border-subtle rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:outline-offset-2 focus-visible:border-transparent disabled:opacity-50 disabled:bg-surface-neutral font-sans cursor-pointer",
-          n && "border-danger-5 focus-visible:outline-danger-5",
-          s
+          "h-10 px-3 py-2 text-sm bg-surface-neutral text-neutral-5 border border-subtle rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:outline-offset-2 focus-visible:border-transparent disabled:opacity-50 disabled:bg-surface-neutral font-sans cursor-pointer",
+          r && "border-danger-5 focus-visible:outline-danger-text",
+          l
         )
       }
     ),
     /* @__PURE__ */ t(
       se,
       {
-        description: r,
-        error: n,
+        description: s,
+        error: r,
         descriptionProps: d,
-        errorMessageProps: c
+        errorMessageProps: h
       }
     )
   ] });
 }
-function Zn({
+function _n({
   icon: e,
   label: n,
   isActive: r = !1,
@@ -5146,8 +5313,15 @@ function Zn({
       onClick: l,
       "aria-current": r ? "page" : void 0,
       className: m(
-        "relative w-full h-14 flex items-center gap-4 pl-4 font-sans text-body-m font-semibold transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-primary-4 focus-visible:-outline-offset-2",
-        r ? "text-interactive bg-gradient-to-r from-transparent to-primary-4/10" : "text-muted hover:text-interactive",
+        "relative w-full h-14 flex items-center gap-4 pl-4 font-sans text-body-m font-semibold transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-interactive-text focus-visible:-outline-offset-2",
+        // `-text`, not the bare `text-interactive`, on both the active and the hover
+        // label: an item's label is text, and primary-4 as text clears 4.5:1 nowhere
+        // (2.86 / 3.51 / 4.02). The sidebar is `surface-panel`, so the active item was
+        // 3.51:1. `primary-2` measures 6.67:1 there, and 6.02:1 at the far end of the
+        // gradient where the label sits on a 10% primary-4 wash — both clear. The wash
+        // itself is unchanged: it is decoration, not a boundary, and the label carries
+        // the state.
+        r ? "text-interactive-text bg-gradient-to-r from-transparent to-primary-4/10" : "text-muted hover:text-interactive-text",
         o
       ),
       children: [
@@ -5158,7 +5332,19 @@ function Zn({
           {
             className: m(
               "px-2 py-0.5 text-xs font-bold rounded-full shrink-0",
-              r ? "bg-primary-4 text-main" : "bg-neutral-3 text-main"
+              // The active badge was `bg-primary-4 text-main` — white on the brand red at
+              // **3.83:1**, the same failing pairing as the primary CTA but on text the
+              // CTA's documented exemption does not cover. axe files it under `incomplete`
+              // rather than `violations` (messageKey `shortTextContent`: a two-digit count
+              // might be decorative), which is why a violations-only sweep never saw it.
+              //
+              // Unlike the CTA there is nothing to preserve: `badgeCount` has no
+              // ground-truth basis at all — no export shows a count on this component, as
+              // the doc comment above says — so it is an opt-in addition rather than
+              // something Figma draws. And no label colour rescues `primary-4`; the fill had
+              // to move. `interactive-text` with `neutral-5` clears **7.63:1** and keeps the
+              // badge in the same accent family as the active label beside it.
+              r ? "bg-interactive-text text-neutral-5" : "bg-neutral-3 text-main"
             ),
             children: s
           }
@@ -5176,7 +5362,7 @@ function Zn({
     }
   );
 }
-function Fn({ logo: e, items: n, className: r }) {
+function Wn({ logo: e, items: n, className: r }) {
   return /* @__PURE__ */ u(
     "nav",
     {
@@ -5188,12 +5374,12 @@ function Fn({ logo: e, items: n, className: r }) {
       ),
       children: [
         e ? /* @__PURE__ */ t("div", { className: "flex justify-center pt-3 h-24 shrink-0", children: e }) : null,
-        /* @__PURE__ */ t("div", { className: "flex flex-col gap-2 flex-1 overflow-y-auto", children: n.map((s, l) => /* @__PURE__ */ t(Zn, { ...s }, l)) })
+        /* @__PURE__ */ t("div", { className: "flex flex-col gap-2 flex-1 overflow-y-auto", children: n.map((s, l) => /* @__PURE__ */ t(_n, { ...s }, l)) })
       ]
     }
   );
 }
-function ws({
+function Ns({
   value: e,
   onChange: n,
   leftIcon: r,
@@ -5225,7 +5411,7 @@ function ws({
     )
   ] });
 }
-function ks({
+function Ms({
   logo: e,
   sidebarItems: n,
   topNavProps: r,
@@ -5238,9 +5424,9 @@ function ks({
     {
       className: m("flex items-start gap-8 w-full min-h-screen bg-surface-shell p-8", o),
       children: [
-        /* @__PURE__ */ t(Fn, { logo: e, items: n, className: "self-stretch" }),
+        /* @__PURE__ */ t(Wn, { logo: e, items: n, className: "self-stretch" }),
         /* @__PURE__ */ u("div", { className: "flex flex-col gap-8 flex-1 min-w-0", children: [
-          /* @__PURE__ */ t(mn, { ...r }),
+          /* @__PURE__ */ t(bn, { ...r }),
           /* @__PURE__ */ u("div", { className: "flex flex-col gap-4", children: [
             s ? /* @__PURE__ */ t("div", { className: "flex items-start justify-between gap-6", children: s }) : null,
             l
@@ -5251,78 +5437,80 @@ function ks({
   );
 }
 export {
-  bs as AddTaskModal,
-  Qr as AlarmIcon,
-  ks as AppShell,
-  Fn as ApplicationSidebar,
-  rn as AssigneeIcon,
-  An as AssigneeModal,
-  vn as AssigneeNameCell,
-  qn as AttachmentIcon,
+  gs as AddTaskModal,
+  en as AlarmIcon,
+  Ms as AppShell,
+  Wn as ApplicationSidebar,
+  nn as AssigneeIcon,
+  On as AssigneeModal,
+  kn as AssigneeNameCell,
+  Qn as AttachmentIcon,
   de as Avatar,
-  hs as Badge,
-  tn as BellIcon,
+  vs as Badge,
+  rn as BellIcon,
   Xe as Button,
-  sn as CalendarIcon,
-  is as Card,
-  ln as ChevronDoubleLeftIcon,
-  an as ChevronDoubleRightIcon,
+  on as CalendarIcon,
+  ds as Card,
+  an as ChevronDoubleLeftIcon,
+  cn as ChevronDoubleRightIcon,
   De as ChevronDownIcon,
-  on as ChevronLeftIcon,
-  xt as ChevronRightIcon,
+  ln as ChevronLeftIcon,
+  gt as ChevronRightIcon,
   je as CloseIcon,
-  Jn as CommentIcon,
-  Jr as DUE_DATE_URGENCY_COLOR,
-  Vn as DatePickerMenu,
-  ys as Datepicker,
-  xn as DueDateCell,
+  ts as CommentIcon,
+  Qr as DUE_DATE_URGENCY_COLOR,
+  zn as DatePickerMenu,
+  Cs as Datepicker,
+  wn as DueDateCell,
   yt as EmptyState,
-  Hn as EstimateModal,
-  yn as EstimationCell,
-  cn as FIELD_DESCRIPTION_CLASS,
-  dn as FIELD_ERROR_CLASS,
-  ve as FIELD_LABEL_CLASS,
+  Dn as EstimateModal,
+  Cn as EstimationCell,
+  mn as FIELD_DESCRIPTION_CLASS,
+  fn as FIELD_ERROR_CLASS,
+  dn as FIELD_LABEL_CLASS,
+  un as FIELD_LABEL_HIDDEN_CLASS,
   se as FieldMessages,
   Oe as FloatingPopover,
-  ns as FormField,
-  Qn as GridViewIcon,
-  ss as Input,
-  vs as LabelCheckbox,
-  nn as LabelIcon,
-  Dn as LabelModal,
+  ls as FormField,
+  rs as GridViewIcon,
+  is as Input,
+  ks as LabelCheckbox,
+  sn as LabelIcon,
+  Bn as LabelModal,
   wt as ListBox,
-  es as ListViewIcon,
-  rs as LogoMark,
-  ms as Menu,
-  Yn as MenuDotsIcon,
-  fs as Modal,
-  us as MultiSelect,
-  ts as PlusIcon,
+  ns as ListViewIcon,
+  os as LogoMark,
+  bs as Menu,
+  Jn as MenuDotsIcon,
+  hs as Modal,
+  ps as MultiSelect,
+  ss as PlusIcon,
   Ve as PointsIcon,
   ye as Popover,
   vt as ProjectInfo,
   ce as RequiredIndicator,
-  un as SearchBar,
-  en as SearchIcon,
-  ls as SegmentedControl,
-  ds as Select,
-  Zn as SidebarItem,
+  pn as SearchBar,
+  tn as SearchIcon,
+  cs as SegmentedControl,
+  fs as Select,
+  _n as SidebarItem,
   E as Skeleton,
-  Xn as SubtaskIcon,
-  os as Tabs,
-  W as Tag,
-  wn as TagCell,
-  hn as TaskCard,
-  as as TaskListView,
-  bn as TaskMetaBadges,
-  cs as TaskTable,
-  Cn as TaskTableRow,
+  es as SubtaskIcon,
+  as as Tabs,
+  $ as Tag,
+  Nn as TagCell,
+  vn as TaskCard,
+  us as TaskListView,
+  gn as TaskMetaBadges,
+  ms as TaskTable,
+  Pn as TaskTableRow,
   Je as TextButton,
-  xs as ToastProvider,
-  mn as TopNav,
-  Rn as UserRow,
-  ws as ViewSwitcher,
+  ws as ToastProvider,
+  bn as TopNav,
+  jn as UserRow,
+  Ns as ViewSwitcher,
   m as cn,
-  ps as useModalState,
-  gs as useToast
+  ve as fieldLabelClass,
+  xs as useModalState,
+  ys as useToast
 };

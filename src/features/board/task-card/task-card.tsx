@@ -118,9 +118,13 @@ export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskC
 
           `textValue` is what typeahead and the accessible name are computed from.
           Plain-string children supply it implicitly; wrapping them in an element
-          does not, and react-stately warns about exactly that. */}
+          does not, and react-stately warns about exactly that.
+
+          `text-danger-text`, not `text-danger`: the kit's `Menu` paints its surface
+          `surface-overlay` and its focused item `neutral-4`, and danger-5 measures
+          2.55:1 and 3.14:1 on those. danger-3 is 5.65:1 and 6.94:1. */}
       <Item key="delete" textValue="Delete">
-        <span className="text-danger">Delete</span>
+        <span className="text-danger-text">Delete</span>
       </Item>
     </Menu>
   )
