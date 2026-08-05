@@ -1,8 +1,8 @@
 import { useId, useReducer, useRef, useState } from 'react'
 import { Item, type OverlayTriggerState } from 'react-stately'
+import { Modal } from '@ravn/ui-kit'
 import { toDateInputValue } from '@/lib/due-date'
 import { Button } from '@/ui/button/button'
-import { Dialog } from '@/ui/dialog/dialog'
 import { AssigneeIcon, CalendarIcon, LabelIcon, PointsIcon } from '@/ui/icons/icons'
 import { MultiSelect } from '@/ui/select/multi-select'
 import { Select } from '@/ui/select/select'
@@ -114,7 +114,16 @@ export function TaskFormDialog({
   const isSubmitting = submitState.status === 'submitting'
 
   return (
-    <Dialog state={state} title={title} isDismissable={!isSubmitting}>
+    <Modal
+      title={title}
+      isOpen={state.isOpen}
+      onClose={() => {
+        if (!isSubmitting) {
+          state.close()
+        }
+      }}
+      width="max-w-[578px]"
+    >
       <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-6">
         <div>
           <label htmlFor={nameId} className="sr-only">
@@ -262,6 +271,6 @@ export function TaskFormDialog({
           </Button>
         </div>
       </form>
-    </Dialog>
+    </Modal>
   )
 }
