@@ -3,6 +3,14 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    # Without this, Dependabot opens against the repository's *default* branch,
+    # which is `main` — and `main` only ever receives promotions of a verified
+    # `dev` (see "Branch layout" in CLAUDE.md). Nothing about a dependency PR
+    # announces its base, so merging one looks like an ordinary merge while
+    # quietly bypassing `dev`: `graphql` 17 landed on `main` exactly that way
+    # before this line existed, leaving the two branches disagreeing about
+    # `package.json`.
+    target-branch: dev
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
