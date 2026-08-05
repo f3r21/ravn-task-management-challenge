@@ -23,7 +23,13 @@ export const taskKeys = {
  * filtering client-side would mean fetching every task to show three.
  *
  * The filter object is part of the query key, so each combination is cached
- * separately and returning to a previous filter is instant.
+ * separately and returning to a previous filter is instant — for as long as the
+ * entry survives. Nothing sets `gcTime`, so React Query's 5-minute default
+ * applies and an unrendered filter combination is evicted after that; come back
+ * to it later in a long session and it refetches. That is the intended trade,
+ * not an oversight: the alternative is holding every filter permutation a user
+ * has ever typed for the life of the tab, and this board is shared, so a
+ * half-hour-old cached result is one worth re-fetching anyway.
  *
  * `placeholderData` keeps the previous filter's tasks on screen while the next
  * request is in flight. Without it every keystroke that settles and every filter
