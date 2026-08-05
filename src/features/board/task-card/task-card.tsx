@@ -1,9 +1,9 @@
 import { Item } from 'react-stately'
+import { Menu } from '@ravn/ui-kit'
 import { parseApiDate } from '@/lib/due-date'
 import { cn } from '@/lib/cn'
 import { Avatar } from '@/ui/avatar/avatar'
 import { AttachmentIcon, CommentIcon, MenuDotsIcon, SubtaskIcon } from '@/ui/icons/icons'
-import { Menu } from '@/ui/menu/menu'
 import { Tag } from '@/ui/tag/tag'
 import { pointsLabel, tagAccent, tagLabel } from '../task-display'
 import type { Task } from '../task-types'
@@ -87,7 +87,7 @@ export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskC
        lists the buttons on the page. */
     <Menu
       label={`Task options for ${task.name}`}
-      icon={<MenuDotsIcon className="size-6" />}
+      triggerContent={<MenuDotsIcon className="size-6" />}
       triggerClassName="text-muted hover:text-main shrink-0 transition-colors"
       onAction={(key) => {
         // Deferred by a frame so the menu finishes closing first.
@@ -109,7 +109,19 @@ export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskC
       }}
     >
       <Item key="edit">Edit</Item>
-      <Item key="delete">Delete</Item>
+      {/* Deleting is destructive and is worth marking as such. The kit's `Menu`
+          deliberately has no destructive-item flag — a `'delete'`-keyed special
+          case is one app's key naming, not something a generic component should
+          assume — so the colour is applied here, to the item's own children. It
+          is decoration on top of the word "Delete", never the only signal: colour
+          alone would not reach a screen reader, and the item's text already does.
+
+          `textValue` is what typeahead and the accessible name are computed from.
+          Plain-string children supply it implicitly; wrapping them in an element
+          does not, and react-stately warns about exactly that. */}
+      <Item key="delete" textValue="Delete">
+        <span className="text-danger">Delete</span>
+      </Item>
     </Menu>
   )
 
