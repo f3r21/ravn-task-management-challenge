@@ -10,10 +10,14 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./theme.css": "./dist/theme.css"
+    "./theme.css": "./dist/theme.css",
+    "./ui-kit.css": "./dist/ui-kit.css"
   },
   "files": [
     "dist"
+  ],
+  "sideEffects": [
+    "*.css"
   ],
   "peerDependencies": {
     "react": "^19.0.0",
