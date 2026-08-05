@@ -206,7 +206,13 @@ describe('creating a task', () => {
 
     await user.click(within(dialog).getByRole('button', { name: 'Create' }))
 
-    const card = await screen.findByRole('article', { name: 'Tagged task' })
+    // The kit's TaskCard is a plain <div>, `role="button"` once `onClick` is set
+    // (see UI_KIT_MIGRATION_PLAN.md's Phase 2 kit facts) — no `<article>` landmark
+    // and no `aria-labelledby`, so its accessible name is computed from all its
+    // visible text rather than the title alone. A regex on that name still
+    // uniquely finds this card among the seeded tasks that also carry a React or
+    // Rails tag.
+    const card = await screen.findByRole('button', { name: /Tagged task/ })
     expect(within(card).getByText('React')).toBeInTheDocument()
     expect(within(card).getByText('Rails')).toBeInTheDocument()
   })
