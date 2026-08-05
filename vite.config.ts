@@ -5,6 +5,44 @@ import { configDefaults, coverageConfigDefaults, defineConfig } from 'vitest/con
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    // `rolldownOptions`, not `rollupOptions` — Vite 8 bundles with Rolldown, whose
+    // chunking API is `advancedChunks.groups` (name + test regex) rather than
+    // Rollup's `manualChunks` id-to-name map. The old shape type-errors here.
+    rolldownOptions: {
+      output: {
+        // `codeSplitting`, not `advancedChunks` — the latter is the same shape but
+        // deprecated, and warns on every build.
+        codeSplitting: {
+          // Split the framework layer out of the app chunk. These move on a
+          // dependency bump; app code moves on every commit — with both in one
+          // file, a one-line change invalidates the whole thing for every
+          // returning visitor.
+          //
+          // Named groups rather than a blanket `/node_modules/` rule on purpose:
+          // `@ravn/ui-kit` resolves into `node_modules` via a `file:` dependency
+          // but changes as often as the app does, so bundling it as "vendor"
+          // would defeat the caching this is for. It stays in the app chunk.
+          groups: [
+            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+            {
+              name: 'react-aria',
+              test: /node_modules[\\/](react-aria|react-stately|@react-aria|@react-stately|@react-types|@internationalized)[\\/]/,
+            },
+            { name: 'query', test: /node_modules[\\/]@tanstack[\\/]/ },
+          ],
+        },
+      },
+    },
+    // Raised from Rollup's 500 kB default to just above where the entry chunk
+    // actually lands, so the warning means "something grew" instead of firing on
+    // every single build and being ignored. Lower it when the number drops.
+    //
+    // Deliberately does NOT cover `mocks/browser` (~426 kB of MSW runtime) — see
+    // the comment in `src/main.tsx` for why that chunk is shipped on purpose. It
+    // is excluded from the CI size budget by name for the same reason.
+    chunkSizeWarningLimit: 450,
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
