@@ -19,7 +19,7 @@ export function ErrorPage({
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-card bg-brand px-4 py-2 font-semibold text-text-primary"
+          className="rounded-sm bg-interactive px-4 py-2 font-semibold text-main"
         >
           Try again
         </button>

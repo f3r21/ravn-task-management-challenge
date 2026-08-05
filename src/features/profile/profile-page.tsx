@@ -15,8 +15,8 @@ import { useProfile } from './use-profile'
  */
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-text-secondary/10 flex flex-col gap-1 border-b py-4 last:border-b-0">
-      <dt className="text-text-secondary text-body-m">{label}</dt>
+    <div className="border-muted/10 flex flex-col gap-1 border-b py-4 last:border-b-0">
+      <dt className="text-muted text-body-m">{label}</dt>
       <dd className="text-body-m font-semibold">{value}</dd>
     </div>
   )
@@ -83,7 +83,7 @@ export function ProfilePage() {
       {status === 'error' ? (
         <div role="alert" className="flex flex-col items-start gap-4">
           <p className="text-body-l font-semibold">Could not load your profile</p>
-          <p className="text-text-secondary text-body-m">
+          <p className="text-muted text-body-m">
             {error instanceof ApiError ? error.message : 'Please try again.'}
           </p>
           {error instanceof ApiError && error.isUnauthenticated ? null : (
@@ -92,7 +92,7 @@ export function ProfilePage() {
               onClick={() => {
                 void refetch()
               }}
-              className="rounded-card bg-brand text-body-m px-4 py-2 font-semibold"
+              className="rounded-sm bg-interactive text-body-m px-4 py-2 font-semibold"
             >
               Try again
             </button>
@@ -103,7 +103,7 @@ export function ProfilePage() {
       {status === 'success' ? (
         <section
           aria-labelledby="profile-heading"
-          className="bg-surface-raised rounded-bar flex max-w-2xl flex-col gap-6 p-6"
+          className="bg-surface-panel rounded-md flex max-w-2xl flex-col gap-6 p-6"
         >
           <div className="flex items-center gap-4">
             <Avatar src={profile.avatar} name={profile.fullName} size={40} />

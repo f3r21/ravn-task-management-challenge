@@ -207,6 +207,47 @@ describe('editing a task', () => {
     expect(screen.getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Discarded' })).not.toBeInTheDocument()
   })
+
+  it('returns focus to the menu button that opened it, on Cancel', async () => {
+    // Mirrors the delete dialog's own "returns focus to the card that opened it"
+    // check below — the menu item that opened this dialog unmounts in the same
+    // commit as the dialog opening, so React Aria's restore-focus target has to
+    // be recorded before that unmount, not read from it afterwards.
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Edit')
+    const dialog = await screen.findByRole('dialog')
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Task options for Slack' })).toHaveFocus()
+    })
+  })
+
+  it('keeps the points list open past the first frame it opens in', async () => {
+    // Regression canary for the cross-module FocusScope bug the kit's Modal used
+    // to have — see the identical check in create-task.test.tsx for the full
+    // explanation.
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Edit')
+    const dialog = await screen.findByRole('dialog')
+
+    await user.click(within(dialog).getByRole('button', { name: /estimated points/i }))
+    expect(await screen.findByRole('option', { name: '1 Point' })).toBeInTheDocument()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByRole('option', { name: '1 Point' })).toBeInTheDocument()
+  })
+
+  it('keeps the tags list open past the first frame it opens in', async () => {
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Edit')
+    const dialog = await screen.findByRole('dialog')
+
+    await user.click(within(dialog).getByRole('button', { name: /tags/i }))
+    expect(await screen.findByRole('option', { name: 'React' })).toBeInTheDocument()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByRole('option', { name: 'React' })).toBeInTheDocument()
+  })
 })
 
 describe('deleting a task', () => {

@@ -37,12 +37,12 @@ function BoardError({ error, onRetry }: { error: unknown; onRetry: () => void })
   return (
     <div role="alert" className="flex flex-col items-center gap-4 py-16 text-center">
       <p className="text-body-l font-semibold">Could not load the board</p>
-      <p className="text-text-secondary text-body-m max-w-md">{message}</p>
+      <p className="text-muted text-body-m max-w-md">{message}</p>
       {isAuth ? null : (
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-card bg-brand text-body-m px-4 py-2 font-semibold"
+          className="rounded-sm bg-interactive text-body-m px-4 py-2 font-semibold"
         >
           Try again
         </button>
@@ -162,9 +162,9 @@ export function BoardPage() {
         // Stated rather than hidden: a reviewer running this without a token
         // should know why the board has data, and should not mistake mock data
         // for a working connection to RAVN's API.
-        <p className="text-text-secondary text-body-m">
-          Running on mocked data. Add <code className="text-text-primary">VITE_API_TOKEN</code> to
-          your <code className="text-text-primary">.env</code> to use the live API.
+        <p className="text-muted text-body-m">
+          Running on mocked data. Add <code className="text-main">VITE_API_TOKEN</code> to your{' '}
+          <code className="text-main">.env</code> to use the live API.
         </p>
       ) : null}
 

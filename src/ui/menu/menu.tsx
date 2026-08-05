@@ -113,8 +113,8 @@ function MenuItem({ item, state, onAction, onClose }: MenuItemProps) {
       ref={ref}
       className={cn(
         'text-body-m cursor-pointer px-4 py-1 outline-none',
-        isFocused && 'bg-text-secondary/10',
-        isDestructive ? 'text-danger' : 'text-text-primary',
+        isFocused && 'bg-muted/10',
+        isDestructive ? 'text-danger' : 'text-main',
       )}
     >
       {item.rendered}

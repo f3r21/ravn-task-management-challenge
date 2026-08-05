@@ -83,10 +83,7 @@ function ModalContents({
         <div
           {...dialogProps}
           ref={dialogRef}
-          className={cn(
-            'bg-surface-overlay rounded-card flex flex-col p-4 outline-none',
-            className,
-          )}
+          className={cn('bg-surface-overlay rounded-sm flex flex-col p-4 outline-none', className)}
         >
           <h2 {...titleProps} className="sr-only">
             {title}

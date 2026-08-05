@@ -24,7 +24,7 @@ export function BoardSkeleton() {
         <div key={status} className="flex min-w-0 flex-col gap-4 xl:w-87 xl:shrink-0">
           <Skeleton className="h-8 w-40" />
           {Array.from({ length: CARDS_PER_COLUMN[index] }, (_, cardIndex) => (
-            <Skeleton key={cardIndex} className="rounded-card h-52 w-full" />
+            <Skeleton key={cardIndex} className="rounded-sm h-52 w-full" />
           ))}
         </div>
       ))}

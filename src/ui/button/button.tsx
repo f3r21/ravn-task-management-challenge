@@ -11,8 +11,8 @@ interface ButtonProps extends AriaButtonProps<'button'> {
 }
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-text-primary',
-  text: 'text-text-primary hover:bg-text-secondary/10',
+  primary: 'bg-interactive text-main',
+  text: 'text-main hover:bg-muted/10',
 }
 
 /**
@@ -33,7 +33,7 @@ export function Button({ variant = 'text', children, className, ...props }: Butt
       {...buttonProps}
       ref={ref}
       className={cn(
-        'rounded-card text-body-m px-4 py-2 transition-colors',
+        'rounded-sm text-body-m px-4 py-2 transition-colors',
         'disabled:cursor-not-allowed disabled:opacity-50',
         isPressed && 'opacity-80',
         VARIANT_CLASSES[variant],

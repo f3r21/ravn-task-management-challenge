@@ -43,7 +43,7 @@ export function BoardColumn({
       </h2>
 
       {tasks.length === 0 ? (
-        <p className="text-text-secondary text-body-m">No tasks here yet.</p>
+        <p className="text-muted text-body-m">No tasks here yet.</p>
       ) : (
         <ul className={cn('flex flex-col', itemLayout === 'row' ? 'gap-2' : 'gap-4')}>
           {tasks.map((task) => (

@@ -51,7 +51,7 @@ export function Popover({ state, children, popoverRef, ...props }: PopoverProps)
             state.close()
           }
         }}
-        className="bg-surface-overlay rounded-card z-50 border border-white/10 shadow-xl"
+        className="bg-surface-overlay rounded-sm z-50 border border-white/10 shadow-xl"
       >
         <DismissButton
           onDismiss={() => {

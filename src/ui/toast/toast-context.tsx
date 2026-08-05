@@ -60,10 +60,10 @@ function Toast({
       {...toastProps}
       ref={ref}
       className={cn(
-        'rounded-card text-body-m pointer-events-auto flex items-center gap-3 px-4 py-2 font-semibold shadow-lg',
+        'rounded-sm text-body-m pointer-events-auto flex items-center gap-3 px-4 py-2 font-semibold shadow-lg',
         toast.content.tone === 'error'
-          ? 'bg-danger text-text-primary'
-          : 'bg-surface-overlay text-text-primary border border-white/10',
+          ? 'bg-danger text-main'
+          : 'bg-surface-overlay text-main border border-white/10',
       )}
     >
       <div {...contentProps}>
@@ -72,7 +72,7 @@ function Toast({
       <button
         {...closeProps}
         ref={closeRef}
-        className="text-text-primary/70 hover:text-text-primary shrink-0 transition-colors"
+        className="text-main/70 hover:text-main shrink-0 transition-colors"
       >
         <CloseIcon className="size-4" />
       </button>

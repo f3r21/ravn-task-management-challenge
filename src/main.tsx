@@ -2,7 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/app'
 import { shouldStartMockWorker } from './lib/env'
-import './styles/tokens.css'
+import '../node_modules/@ravn/ui-kit/dist/ui-kit.css'
+import './styles/base.css'
 
 /**
  * Starts the Service Worker before the first render whenever the app is serving

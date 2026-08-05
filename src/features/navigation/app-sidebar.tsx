@@ -40,16 +40,12 @@ export function AppSidebar() {
     <nav
       aria-label="Main"
       className={cn(
-        'bg-surface-raised rounded-sidebar flex shrink-0 overflow-hidden',
+        'bg-surface-panel rounded-lg flex shrink-0 overflow-hidden',
         'w-full flex-row items-center gap-4 px-4 py-3',
         'md:w-58 md:flex-col md:items-stretch md:gap-0 md:px-0',
       )}
     >
-      <LogoMark
-        className="text-text-primary size-10 shrink-0 md:mx-auto"
-        role="img"
-        aria-label="Ravn"
-      />
+      <LogoMark className="text-main size-10 shrink-0 md:mx-auto" role="img" aria-label="Ravn" />
 
       <ul className="flex flex-row items-center gap-1 md:mt-11 md:flex-col md:items-stretch md:gap-2">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
@@ -63,15 +59,15 @@ export function AppSidebar() {
                   'md:h-14 md:w-full md:justify-start md:gap-4 md:pl-4',
                   'text-body-m font-semibold uppercase',
                   // The ring is drawn inside the row rather than around it. These
-                  // rows are full-bleed inside a `rounded-sidebar` nav that clips
+                  // rows are full-bleed inside a `rounded-lg` nav that clips
                   // its overflow, so the default 2px *outside* offset puts the
                   // left and right strokes past the clip boundary and only the
                   // middle of the top and bottom survives — on the first two tab
                   // stops in the app.
                   'focus-visible:-outline-offset-2',
                   isActive
-                    ? 'text-brand from-brand/0 to-brand/10 bg-gradient-to-r'
-                    : 'text-text-secondary hover:text-text-primary',
+                    ? 'text-interactive from-interactive/0 to-interactive/10 bg-gradient-to-r'
+                    : 'text-muted hover:text-main',
                 )
               }
             >
@@ -90,7 +86,10 @@ export function AppSidebar() {
                       right edge to sit against. */}
                   <span
                     aria-hidden="true"
-                    className={cn('bg-brand hidden h-14 w-1 md:block', !isActive && 'md:invisible')}
+                    className={cn(
+                      'bg-interactive hidden h-14 w-1 md:block',
+                      !isActive && 'md:invisible',
+                    )}
                   />
                 </>
               )}

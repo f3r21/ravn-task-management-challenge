@@ -20,6 +20,14 @@ interface DeleteTaskDialogProps {
  * `role="alertdialog"` rather than `dialog` — it tells assistive tech this
  * interrupts for a consequential decision, and the message is announced on open
  * instead of only the title.
+ *
+ * Stays on the app's own `Dialog`, permanently, not as a TODO: `@ravn/ui-kit`'s
+ * `Modal` has no `role` prop, so it cannot produce `alertdialog` naming and has
+ * no substitute for it. `TaskFormDialog` used to stay on this same `Dialog` for
+ * an unrelated reason (a cross-module `FocusScope` bug in the kit's `Modal`,
+ * since fixed upstream) — see `UI_KIT_MIGRATION_PLAN.md`'s Phase 1 retry
+ * writeup. It has since migrated; this dialog stays on the app's own `Dialog`
+ * permanently, on the `role`/`alertdialog` grounds above.
  */
 export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false)
@@ -50,7 +58,7 @@ export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogPro
       isDismissable={!isDeleting}
     >
       <p className="text-body-l font-semibold">Delete “{task.name}”?</p>
-      <p className="text-text-secondary text-body-m">This cannot be undone.</p>
+      <p className="text-muted text-body-m">This cannot be undone.</p>
 
       <div className="flex justify-end gap-6">
         <Button
