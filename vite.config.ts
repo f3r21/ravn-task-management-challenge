@@ -55,6 +55,23 @@ export default defineConfig({
       // formatter that shifted by an hour in DST-gap zones shipped past this pin.
       // Those cases switch zone deliberately — see `src/lib/due-date.test.ts`.
       TZ: 'Pacific/Kiritimati',
+
+      // The suite always runs on the mock backend, and that has to be pinned here
+      // rather than assumed. Vitest loads `.env` through Vite like any other
+      // build, and `.env` is gitignored and per-developer — so on a machine with
+      // real credentials filled in, `readApiConfig` returned a live config and two
+      // tests broke in ways that looked unrelated: the mock banner stopped
+      // rendering (`board-page.test.tsx`), and `client.test.ts`'s transport-level
+      // `http.post(MOCK_API_URL, …)` override stopped matching, because the client
+      // was posting somewhere else and the operation-name GraphQL handler answered
+      // instead. Both were dismissed as "pre-existing failures" for several
+      // sessions. CI never saw them because CI has no `.env`.
+      //
+      // Empty, not absent: `readApiConfig` treats whitespace-only as missing on
+      // purpose, and an empty string is what a half-filled `.env` actually looks
+      // like — so this pins the exact state the tests claim to run in.
+      VITE_API_URL: '',
+      VITE_API_TOKEN: '',
     },
     coverage: {
       provider: 'v8',
