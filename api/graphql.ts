@@ -34,15 +34,31 @@ export const UPSTREAM_URL = 'https://syn-api-production-e95c.up.railway.app/grap
 const TIMEOUT_MS = 10_000
 
 /**
+ * Statuses HTTP forbids a body on, so the `Response` constructor throws if asked
+ * to pair one with a payload.
+ *
+ * The proxy always answers with a JSON `errors` body, so it can never *send*
+ * these — but it echoes the upstream's status, and an upstream that returns one
+ * of these (a `304` from a caching intermediary is the realistic case) would
+ * otherwise make the constructor throw and turn "the upstream did something odd"
+ * into "this function crashed".
+ */
+const NULL_BODY_STATUS = new Set([101, 103, 204, 205, 304])
+
+/**
  * An error in the shape `client.ts` already knows how to read.
  *
  * GraphQL reports failures as an `errors` array, so answering in that shape
  * means the app's existing error path renders this — rather than the parse
  * failure a plain-text body would produce two layers away from the cause.
+ *
+ * A status that cannot carry a body is remapped to `502`, since the payload is
+ * the whole point of this function; the intended status is left intact in the
+ * message so the cause survives the remap.
  */
 function errorResponse(message: string, status: number): Response {
   return new Response(JSON.stringify({ errors: [{ message }] }), {
-    status,
+    status: NULL_BODY_STATUS.has(status) ? 502 : status,
     headers: { 'Content-Type': 'application/json' },
   })
 }
@@ -95,10 +111,24 @@ export async function POST(request: Request): Promise<Response> {
     return errorResponse(`The API responded with ${String(upstream.status)}.`, upstream.status)
   }
 
+  // The body is read inside a guard, not as an argument to `new Response`.
+  // `fetch` resolves when the headers arrive; the body streams afterward, and a
+  // stall or reset mid-stream — or the timeout signal firing during the read —
+  // rejects here. Outside a `try` that rejection escapes the function, and
+  // Vercel answers with the opaque platform 500 that `TIMEOUT_MS` exists to
+  // avoid. A gateway error carrying the same message keeps the failure in the
+  // shape the app can render.
+  let payload: string
+  try {
+    payload = await upstream.text()
+  } catch {
+    return errorResponse('The API response ended before it was complete.', 502)
+  }
+
   // Verbatim on success, including a 200 carrying a GraphQL `errors` array:
   // those messages are the ones the UI shows, and rewriting them here would
   // replace every specific failure with the same generic one.
-  return new Response(await upstream.text(), {
+  return new Response(payload, {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   })

@@ -102,6 +102,49 @@ describe('the GraphQL proxy', () => {
     expect((await POST(post())).status).toBe(401)
   })
 
+  it('answers instead of crashing when the upstream body is cut off mid-stream', async () => {
+    // `fetch` resolves once the headers arrive; the body is streamed after. A
+    // cold dyno that flushes headers and then stalls, or a connection reset
+    // mid-response, makes the body read reject *after* the status is known — and
+    // if that read is not guarded, the whole function rejects and Vercel answers
+    // with its own opaque 500, which is the platform error page the timeout was
+    // written to avoid.
+    stubUpstream(
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('{"data":'))
+            controller.error(new Error('connection reset'))
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
+
+    const response = await POST(post())
+
+    expect(response.status).toBe(502)
+    expect(JSON.stringify(await response.json())).not.toMatch(/connection reset/)
+  })
+
+  it('does not crash on an upstream status that cannot carry a body', async () => {
+    // `304 Not Modified` (like `204`) is a null-body status the `Response`
+    // constructor refuses to pair with a body — so building the error envelope
+    // for it throws, and an unguarded throw here becomes the same opaque 500.
+    // The proxy sends no conditional headers, so this only arrives from a
+    // misbehaving intermediary, but "the upstream did something odd" must not
+    // read to the browser as "this function is broken".
+    stubUpstream(new Response(null, { status: 304 }))
+
+    const response = await POST(post())
+    const body: unknown = await response.json()
+
+    // Remapped to a status that can carry the message; the real upstream status
+    // is preserved in the text so the cause is not lost.
+    expect(response.status).toBe(502)
+    expect(body).toMatchObject({ errors: [{ message: expect.stringContaining('304') as string }] })
+  })
+
   it('reports an unreachable API as a gateway timeout', async () => {
     vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockRejectedValue(new Error('ECONNREFUSED')))
 
