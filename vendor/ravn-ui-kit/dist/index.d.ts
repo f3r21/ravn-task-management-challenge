@@ -11,6 +11,7 @@ import { ListProps } from 'react-stately';
 import { ListState } from 'react-stately';
 import { OverlayTriggerState } from 'react-stately';
 import { ReactNode } from 'react';
+import { SVGProps } from 'react';
 
 /**
  * AddTaskModal
@@ -75,6 +76,14 @@ export declare interface AddTaskModalProps {
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
+
+/**
+ * The clock on a due-date badge.
+ *
+ * Figma: `remix-icons/line/system/alarm-line`, 20.506x19.253 glyph in a 24x24 box — by far
+ * the most-referenced icon in the design file. Tier 1 (verbatim export).
+ */
+export declare function AlarmIcon(props: IconProps): JSX.Element;
 
 /**
  * ApplicationSidebar
@@ -142,7 +151,7 @@ export declare interface ApplicationSidebarProps {
  * the same "canvas-fit noise, not a real constraint" judgment call Chunk 7
  * made for Tabs' `px-5`.
  */
-export declare function AppShell({ logo, sidebarItems, topNavProps, topBar, children, className }: AppShellProps): JSX.Element;
+export declare function AppShell({ logo, sidebarItems, topNavProps, topBar, children, className, }: AppShellProps): JSX.Element;
 
 export declare interface AppShellProps {
     /** Forwarded to `ApplicationSidebar`. */
@@ -176,6 +185,13 @@ export declare interface Assignee {
 }
 
 /**
+ * Assignee — marks a person control (assignee in the modal, owner in the filters).
+ *
+ * Figma: 16x21 glyph in a 24x24 box. Tier 1 (verbatim export).
+ */
+export declare function AssigneeIcon(props: IconProps): JSX.Element;
+
+/**
  * AssigneeModal
  *
  * Figma: "Assignee Modal" COMPONENT inside "Task Column" frame (Task Column01.md L762-1386).
@@ -190,7 +206,7 @@ export declare interface Assignee {
  * action (every real "User" row instance renders identically, with no highlighted/selected
  * variant anywhere in the export).
  */
-export declare function AssigneeModal({ assignees, onSelect, onClose, triggerRef, className }: AssigneeModalProps): JSX.Element;
+export declare function AssigneeModal({ assignees, onSelect, onClose, triggerRef, className, }: AssigneeModalProps): JSX.Element;
 
 export declare interface AssigneeModalProps {
     /** Full list of assignable people shown as rows. */
@@ -218,6 +234,14 @@ export declare interface AssigneeNameCellProps {
     /** Avatar image URL. Falls back to initials derived from `name` when omitted. */
     avatarSrc?: string;
 }
+
+/**
+ * Attachment count — first of the three counters in a task card's footer.
+ *
+ * Figma: `remix-icons/line/editor/attachment-2`, 11.7382x12.6733 glyph in a 16x16 box.
+ * Tier 1 (verbatim export).
+ */
+export declare function AttachmentIcon(props: IconProps): JSX.Element;
 
 /** Circular user avatar that shows an image, or initials derived from `name` when no `src` is provided. */
 export declare function Avatar({ src, name, size, className }: AvatarProps): JSX.Element;
@@ -249,6 +273,13 @@ export declare interface BadgeProps {
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
+
+/**
+ * Notifications bell — sits at the right of the top navigation bar.
+ *
+ * Figma: 20x21 glyph in a 24x24 box. Tier 1 (verbatim export).
+ */
+export declare function BellIcon(props: IconProps): JSX.Element;
 
 /**
  * Button (icon button)
@@ -304,6 +335,13 @@ export declare interface ButtonProps extends AriaButtonProps {
     className?: string;
 }
 
+/**
+ * Calendar — marks a date control in the task modal and the filter bar.
+ *
+ * Figma: 20x20 glyph in a 24x24 box. Tier 1 (verbatim export).
+ */
+export declare function CalendarIcon(props: IconProps): JSX.Element;
+
 export declare function Card({ children, className, ...props }: CardProps): JSX.Element;
 
 export declare interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -313,7 +351,80 @@ export declare interface CardProps extends React.HTMLAttributes<HTMLDivElement> 
     className?: string;
 }
 
+/**
+ * Double chevron pointing left — the date picker's "previous year" control.
+ *
+ * Tier 3: no Figma source. The design's date picker only draws month navigation, but
+ * stepping a year at a time through single-month arrows is twelve clicks, so the kit's
+ * `DatePickerMenu` adds year controls. Drawn as two of `ChevronLeftIcon`'s strokes so it
+ * reads as "the same arrow, twice".
+ */
+export declare function ChevronDoubleLeftIcon(props: IconProps): JSX.Element;
+
+/**
+ * Double chevron pointing right — the date picker's "next year" control.
+ *
+ * Tier 3: no Figma source. See `ChevronDoubleLeftIcon`.
+ */
+export declare function ChevronDoubleRightIcon(props: IconProps): JSX.Element;
+
+/**
+ * Chevron pointing down — indicates a control opens a menu (`Select`, `MultiSelect`, and a
+ * task table's group headers).
+ *
+ * Tier 3: no Figma source. The design file has no disclosure/expand glyph anywhere, but
+ * `Select`/`MultiSelect` are themselves kit-built components with no Figma counterpart
+ * (see their doc comments), and a collapsed combobox with no affordance reads as static
+ * text. Drawn to the same 24x24 / 2px-stroke system as the chevrons above so the family
+ * stays visually coherent.
+ */
+export declare function ChevronDownIcon(props: IconProps): JSX.Element;
+
+/**
+ * Chevron pointing left — the date picker's "previous month" control.
+ *
+ * Figma: "Arrow Chevron Back" in `Date Picker.md` — a 24x24 box containing a vector inset
+ * left 33.33% / right 37.65% / top 20.83% / bottom 21.14%, stroked `2px solid #FFFFFF`.
+ * That resolves to a ~7x14 chevron at 2px. Tier 2 (reconstructed): the size and stroke
+ * are the design's, but the exact path points are derived from those insets, and the glyph
+ * is centred in its box — Figma's own Back and Forward instances each sit about a pixel
+ * off-centre in opposite directions, which is instance-placement noise rather than
+ * something a design system should reproduce.
+ */
+export declare function ChevronLeftIcon(props: IconProps): JSX.Element;
+
+/**
+ * Chevron pointing right — the date picker's "next month" control, and the trailing glyph
+ * on a task table row's "Details" link.
+ *
+ * Figma: "Arrow Chevron Forward" in `Date Picker.md`, mirroring `ChevronLeftIcon`'s
+ * metrics. The task-table "Details" link resolves to `remix-icons/line/system/
+ * arrow-right-s-line` (`UI_KIT_MASTER_PLAN.md` Chunk 25); no verbatim path export exists
+ * for either, and one stroked chevron serves both. Tier 2 (reconstructed) — see
+ * `ChevronLeftIcon` for the derivation.
+ */
+export declare function ChevronRightIcon(props: IconProps): JSX.Element;
+
+/**
+ * Close / dismiss — `Modal`'s close button, `TopNav`'s clear-search button, and a toast's
+ * dismiss control.
+ *
+ * Tier 3: no Figma source. The design draws no close affordance on any of its modals, but
+ * a dialog a user cannot dismiss by pointer is not shippable. Path data is carried over
+ * verbatim from the consuming app, where the same glyph was hand-authored for the same
+ * reason — the two sets agreeing matters more than either one's origin here.
+ */
+export declare function CloseIcon(props: IconProps): JSX.Element;
+
 export declare function cn(...inputs: ClassValue[]): string;
+
+/**
+ * Comment count — third counter in a task card's footer.
+ *
+ * Figma: `remix-icons/line/communication/chat-3-line`, 13.3333x13.3333 glyph in a 16x16
+ * box. Tier 1 (verbatim export).
+ */
+export declare function CommentIcon(props: IconProps): JSX.Element;
 
 export declare function Datepicker({ label, error, className, ...props }: DatepickerProps): JSX.Element;
 
@@ -424,7 +535,7 @@ export declare interface DueDateCellProps {
  * (icon + label, 4px/16px padding, 4px radius, no background by default) with no footer —
  * clicking a row is the confirm action.
  */
-export declare function EstimateModal({ value, onSelect, onClose, triggerRef, className }: EstimateModalProps): JSX.Element;
+export declare function EstimateModal({ value, onSelect, onClose, triggerRef, className, }: EstimateModalProps): JSX.Element;
 
 export declare interface EstimateModalProps {
     /** Currently selected point value, if any — highlights the matching row. */
@@ -512,6 +623,90 @@ export declare interface FloatingPopoverProps extends Omit<AriaPopoverProps, 'po
     className?: string;
 }
 
+/**
+ * Grid/board view — the sidebar's "dashboard" tab, and the grid option in the view switcher.
+ *
+ * Figma: `remix-icons/line/system/function-line`, 18x18 glyph in a 24x24 box (the export
+ * records the vector inset at 12.5% on all four sides, which is exactly 18/24).
+ * Tier 1 (verbatim export).
+ */
+export declare function GridViewIcon(props: IconProps): JSX.Element;
+
+/**
+ * The kit's icon vocabulary.
+ *
+ * ## Why this exists
+ *
+ * Icon *slots* (`SidebarItemProps.icon`, `TagProps.icon`, `TaskMetaBadge.icon`, ...) are
+ * typed `React.ReactNode`, which pushed the entire glyph vocabulary onto the consumer:
+ * the kit shipped zero icons while baking ad-hoc `<svg>` literals into eleven of its own
+ * components, and the consuming app maintained a seventeenth-of-its-own set in parallel.
+ * The two drifted — the kit's local `AlarmIcon` was a hand-drawn clock, the app's is the
+ * design's actual `alarm-line` glyph — so the same concept rendered differently depending
+ * on which side of the package boundary you were on. A design system that owns the slots
+ * has to own the glyphs too.
+ *
+ * ## Provenance
+ *
+ * Three tiers, and every icon below says which one it is. Do not blur them.
+ *
+ * 1. **Figma-exported** — the `d` attribute is the design's own SVG export, verbatim. The
+ *    consuming app keeps those raw exports in `src/ui/icons/assets/*.svg` for byte-level
+ *    comparison; the path data here was carried across unchanged.
+ * 2. **Reconstructed from Figma layout metrics** — no path export exists, but the design
+ *    file records the glyph's box, stroke width and percentage insets, so the geometry is
+ *    derived rather than guessed. The comment shows the numbers it was derived from.
+ * 3. **No Figma source** — an engineering addition for a control the design never drew.
+ *    Stated plainly, with why it exists anyway.
+ *
+ * Where a glyph resolves to a named `remix-icons` component in the Figma file, that name
+ * is recorded. (The design is built on remix-icons; `UI_KIT_MASTER_PLAN.md` Chunks 24/25
+ * established this, and the per-component CSS exports name several of them outright.)
+ *
+ * ## Two things change on the way in from Figma, both deliberate
+ *
+ * - The baked `fill` becomes `currentColor`, so colour comes from the token layer instead
+ *   of being frozen at export time. The design ships the alarm glyph twice, once white and
+ *   once red, purely because a fill cannot be overridden; here that is one icon and a text
+ *   colour.
+ * - Nothing else. In particular the artboard is **not** normalised to a square viewBox.
+ *   Most of these glyphs are non-square (`0 0 18 4`, `0 0 20.506 19.253`, ...) and are
+ *   kept exactly as the design draws them, because `preserveAspectRatio` defaults to
+ *   `xMidYMid meet`: a caller setting `size-6` gets the glyph scaled to fit a 24x24 box
+ *   with its own aspect ratio and padding intact, which is what the design intends. Each
+ *   icon's comment records the box the design places it in.
+ *
+ *   Normalising every viewBox to a square was considered and rejected: it would make
+ *   `size-*` optically uniform across the set, but it also silently rescales every glyph
+ *   at every existing call site, which turns a mechanical import swap into a visual diff
+ *   nobody asked for. Uniformity is not worth re-tuning sizes across two repos.
+ *
+ * ## Sizing
+ *
+ * The caller's job, via `className` — `size-4`, `size-6`, and so on. No `size` prop: these
+ * are plain `<svg>` elements and Tailwind's sizing utilities already express every case,
+ * so a prop would be a second, weaker way to say the same thing. Icons carry no intrinsic
+ * dimensions, so an unsized icon inherits the SVG default of 300x150 — always size them.
+ *
+ * ## Accessibility
+ *
+ * Decorative by default: every icon renders `aria-hidden="true"` unless it is given an
+ * accessible name. Pass `aria-label` (or `aria-labelledby`) and the icon promotes itself
+ * to `role="img"` and drops the `aria-hidden`, because an icon that has been named is by
+ * definition not decorative. Both can still be overridden explicitly — caller-supplied
+ * props are spread last and win.
+ *
+ * ## One component per icon, not `<Icon name="..." />`
+ *
+ * A name-indexed component needs a lookup map holding every glyph, which is a single
+ * module-level object every consumer imports whole — no bundler can tree-shake an unused
+ * icon out of it. One export per icon keeps each glyph independently shakeable, gives the
+ * consumer real autocomplete and a compile error on a typo rather than a blank render,
+ * and matches how the kit's icon slots are already typed (`React.ReactNode`, i.e. you pass
+ * `<PlusIcon />`, not a string).
+ */
+export declare type IconProps = SVGProps<SVGSVGElement>;
+
 export declare function Input({ label, error, className, ...props }: InputProps): JSX.Element;
 
 export declare interface InputProps extends AriaTextFieldProps {
@@ -576,6 +771,14 @@ export declare interface LabelCheckboxProps {
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
+
+/**
+ * Label / tag — marks a tag control in the task modal and the filter bar.
+ *
+ * Figma: `remix-icons/fill/finance/price-tag-3-fill`, 20.7988x20.7998 glyph in a 24x24 box.
+ * Tier 1 (verbatim export).
+ */
+export declare function LabelIcon(props: IconProps): JSX.Element;
 
 /**
  * LabelModal
@@ -645,6 +848,33 @@ export declare interface ListBoxProps<T extends object> extends AriaListBoxOptio
 }
 
 /**
+ * List view — the sidebar's "my task" tab, and the list option in the view switcher.
+ *
+ * Figma: 18x16 glyph in a 24x24 box. Tier 1 (verbatim export).
+ *
+ * Note the design's own sidebar puts `remix-icons/line/business/briefcase-4-line` (a 20x20
+ * glyph) on the second sidebar tab rather than this one — see `ApplicationSidebar01.md`.
+ * This icon is the one the design uses for the *list* option of the view switcher, and the
+ * consuming app reuses it for the sidebar tab as well. Recorded here rather than silently
+ * reconciled: swapping the sidebar tab to a briefcase is a design decision, not an icon-set
+ * one, and nothing in this kit is blocked on it.
+ */
+export declare function ListViewIcon(props: IconProps): JSX.Element;
+
+/**
+ * The RAVN logomark.
+ *
+ * Figma: 40x40 in the design. Tier 1 (verbatim export), with one mechanical change:
+ * Figma exports it as two separate vectors positioned by percentage inset, and those
+ * insets are resolved here into one square artboard — the wordmark occupies
+ * x 0-39.62 / y 2-38, and the dot an 11x11 box at x 3.5 / y 27.
+ *
+ * Unlike every other icon here this one is usually *meaningful* rather than decorative,
+ * so it is normally given a name: `<LogoMark aria-label="Ravn" />`.
+ */
+export declare function LogoMark(props: IconProps): JSX.Element;
+
+/**
  * Menu
  *
  * A dropdown/context menu of actions — e.g. the task card's three-dot
@@ -675,6 +905,13 @@ export declare interface ListBoxProps<T extends object> extends AriaListBoxOptio
  */
 export declare function Menu<T extends object>({ label, triggerContent, isDisabled, triggerClassName, ...menuProps }: MenuProps<T>): JSX.Element;
 
+/**
+ * Overflow / "more actions" affordance — opens a task card's options menu.
+ *
+ * Figma: 18x4 glyph in a 24x24 box. Tier 1 (verbatim export).
+ */
+export declare function MenuDotsIcon(props: IconProps): JSX.Element;
+
 export declare interface MenuProps<T extends object> extends Omit<AriaMenuProps<T>, 'selectionMode' | 'selectedKeys' | 'defaultSelectedKeys' | 'onSelectionChange' | 'disallowEmptySelection' | 'onClose'> {
     /** Accessible name for the trigger button. Required — an icon-only trigger has no name without it. */
     label: string;
@@ -697,7 +934,7 @@ export declare interface MenuProps<T extends object> extends Omit<AriaMenuProps<
  * the dialog is `inert`/`aria-hidden` to assistive tech — not just visually
  * obscured behind the backdrop.
  */
-export declare function Modal({ title, isOpen, onClose, children, width, role }: ModalProps): default_2.JSX.Element | null;
+export declare function Modal({ title, isOpen, onClose, children, width, role, }: ModalProps): default_2.JSX.Element | null;
 
 export declare interface ModalProps {
     /** Dialog heading, rendered in the header and programmatically associated via `aria-labelledby`. */
@@ -760,6 +997,20 @@ export declare interface MultiSelectProps<T extends object> extends Omit<ListPro
     /** Additional class names applied to the trigger's wrapping container, merged last via `cn()`. */
     className?: string;
 }
+
+/**
+ * Add / create.
+ *
+ * Figma: 14x14 glyph inside the 40x40 create button. Tier 1 (verbatim export).
+ */
+export declare function PlusIcon(props: IconProps): JSX.Element;
+
+/**
+ * Estimate / story points — marks the points control in the task modal and the filter bar.
+ *
+ * Figma: 20x18 glyph in a 24x24 box. Tier 1 (verbatim export).
+ */
+export declare function PointsIcon(props: IconProps): JSX.Element;
 
 /**
  * Popover
@@ -875,6 +1126,13 @@ export declare interface SearchBarProps {
     /** Additional class names, merged last via `cn()` so they can override defaults. */
     className?: string;
 }
+
+/**
+ * Search — sits at the left of the search bar.
+ *
+ * Figma: 20.314x20.314 glyph in a 24x24 box. Tier 1 (verbatim export).
+ */
+export declare function SearchIcon(props: IconProps): JSX.Element;
 
 /**
  * SegmentedControl
@@ -1042,6 +1300,14 @@ export declare interface SkeletonProps {
     className?: string;
 }
 
+/**
+ * Subtask count — second counter in a task card's footer.
+ *
+ * Figma: `remix-icons/line/editor/node-tree`, 12x13.3333 glyph in a 16x16 box.
+ * Tier 1 (verbatim export).
+ */
+export declare function SubtaskIcon(props: IconProps): JSX.Element;
+
 export declare interface TabItem {
     /** Unique identifier for the tab; used to key the tab button, its panel, and their ARIA relationships. */
     id: string;
@@ -1199,7 +1465,7 @@ export declare interface TaskCardProps {
  * badge, or "add task" affordance on the frame itself in any real instance
  * across the isolated doc export or the in-context dashboard mockup.
  */
-export declare function TaskListView({ title, icon, tasks, isLoading, className }: TaskListViewProps): JSX.Element;
+export declare function TaskListView({ title, icon, tasks, isLoading, className, }: TaskListViewProps): JSX.Element;
 
 export declare interface TaskListViewProps {
     /** Project/section title, rendered via `ProjectInfo` (e.g. `"Working (03)"`). */

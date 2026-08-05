@@ -92,7 +92,9 @@
      see colors.mdx for the full list of what's intentionally left un-aliased. */
   --color-surface-overlay: var(--color-neutral-3); /* floating popover/dialog/modal backgrounds */
   --color-surface-panel: var(--color-neutral-4); /* card/container/panel backgrounds */
-  --color-surface-shell: var(--color-neutral-5); /* outermost app-shell / deepest dropdown backgrounds */
+  --color-surface-shell: var(
+    --color-neutral-5
+  ); /* outermost app-shell / deepest dropdown backgrounds */
 
   /* Typography Families */
   /* Re-verified directly against UI Guidelines/Branding. Desktop.md: every
@@ -144,7 +146,9 @@
      documentation page frame itself, never on a product component, so it is
      intentionally NOT tokenized here. */
   --shadow-small: 0px 0px 16px rgba(0, 0, 0, 0.04); /* Button, Switch Button00/01.md - segmented-control active pill */
-  --shadow-elevation: 0px 9px 28px 8px rgba(0, 0, 0, 0.05), 0px 6px 16px rgba(0, 0, 0, 0.08), 0px 3px 6px -4px rgba(0, 0, 0, 0.12); /* Datepicker.md dropdown */
+  --shadow-elevation:
+    0px 9px 28px 8px rgba(0, 0, 0, 0.05), 0px 6px 16px rgba(0, 0, 0, 0.08),
+    0px 3px 6px -4px rgba(0, 0, 0, 0.12); /* Datepicker.md dropdown */
   --shadow-nav: 0px 2px 0px #2c2f33; /* Top Navigation Bar00.md hard-edge separator */
 
   /* Type scale - consolidated from the values already in use across
