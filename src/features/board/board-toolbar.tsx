@@ -59,6 +59,13 @@ function ViewRadio({
         // The ring belongs on the label, because the input it would normally sit on
         // is clipped to a pixel.
         'has-[:focus-visible]:outline-interactive has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2',
+        // `text-interactive` stays here, deliberately, while five sibling sites moved
+        // to `text-interactive-text` for AA. There is no text in this control — the
+        // name is on `aria-label` and the only painted thing is an 18px glyph and a
+        // border. Both are non-text UI under WCAG 1.4.11 and owe 3:1, not 4.5:1, and
+        // primary-4 on this toolbar's `surface-shell` track measures 4.02:1. Moving
+        // it would lose the selected state's tie to the focus ring and the active
+        // sidebar marker, both of which are the same colour for the same reason.
         isSelected ? 'border-interactive text-interactive border' : 'text-muted',
       )}
     >
