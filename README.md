@@ -96,7 +96,7 @@ src/
 ├── main.tsx     bootstrap: starts MSW when unconfigured, then renders
 ├── app/         routing, providers, query client, error boundary
 ├── features/    board/ · profile/ · navigation/
-├── ui/          design-system pieces: button, dialog, menu, select, tag, toast, …
+├── ui/          design-system pieces still owned here: button, dialog, tag, toast, …
 ├── graphql/     operations, the fetch client, generated types
 ├── lib/         cn, dates, env, assertNever, exhaustive
 ├── shared/      debounce
