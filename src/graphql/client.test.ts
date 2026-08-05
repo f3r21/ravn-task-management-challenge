@@ -1,5 +1,5 @@
 import { graphql, http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { TasksDocument } from '@/graphql/generated/graphql'
 import { MOCK_API_URL } from '@/lib/env'
 import { server } from '@/mocks/server'
@@ -83,5 +83,78 @@ describe('non-GraphQL failures', () => {
     server.use(http.post(MOCK_API_URL, () => new HttpResponse('<html>gateway timeout</html>')))
 
     await expect(request(TasksDocument, { input: {} })).rejects.toThrow(/not valid JSON/)
+  })
+})
+
+/**
+ * What the client puts on the wire in each of the three modes from `lib/env`.
+ *
+ * Driven through a stubbed `fetch` rather than MSW, for one blunt reason: the
+ * proxied URL is the relative path `/api/graphql`, and while a browser resolves
+ * that against its own origin, Node's `fetch` under jsdom rejects it as
+ * unparseable before any interceptor sees it. Stubbing the boundary is what lets
+ * the deployed shape be asserted at all — and the request object is still the
+ * real one `request()` built.
+ */
+describe('what reaches the network in each mode', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
+  async function send(env: Partial<ImportMetaEnv>, response = Response.json({ data: {} })) {
+    vi.stubEnv('VITE_API_URL', env.VITE_API_URL ?? '')
+    vi.stubEnv('VITE_API_TOKEN', env.VITE_API_TOKEN ?? '')
+    // `lib/env` reads `import.meta.env` once at module scope, so the stubbed
+    // values only reach it through a fresh module graph.
+    vi.resetModules()
+
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response)
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { request: freshRequest } = await import('./client')
+    const result = freshRequest(TasksDocument, { input: {} })
+    // Settled either way before the assertions, so a rejection is inspected
+    // rather than escaping as an unhandled rejection.
+    const error = await result.then(
+      () => undefined,
+      (reason: unknown) => reason,
+    )
+
+    const call = fetchMock.mock.calls[0]
+    return { url: call[0], headers: new Headers(call[1]?.headers), error }
+  }
+
+  it('sends the token as a Bearer header when talking to the API directly', async () => {
+    const { url, headers } = await send({
+      VITE_API_URL: 'https://api.test/graphql',
+      VITE_API_TOKEN: 'abc',
+    })
+
+    expect(url).toBe('https://api.test/graphql')
+    expect(headers.get('authorization')).toBe('Bearer abc')
+  })
+
+  it('sends no Authorization header at all through the proxy', async () => {
+    // No header, rather than an empty or `Bearer undefined` one. The credential
+    // is the server's in this mode, and the browser was never given one to send.
+    const { url, headers } = await send({ VITE_API_URL: '/api/graphql' })
+
+    expect(url).toBe('/api/graphql')
+    expect(headers.has('authorization')).toBe(false)
+  })
+
+  it('does not send a visitor of a deployed URL looking for a .env file', async () => {
+    // The rejection message names whoever can act on it. On a deployed build
+    // that is not the person reading it: they have no `.env`, and the token
+    // that was rejected is the one in the host's environment.
+    const { error } = await send(
+      { VITE_API_URL: '/api/graphql' },
+      new Response(null, { status: 401 }),
+    )
+
+    expect(error).toMatchObject({ isUnauthenticated: true })
+    expect((error as Error).message).not.toMatch(/\.env/)
   })
 })

@@ -17,7 +17,18 @@ import { apiConfig, apiUrl } from '@/lib/env'
  * in tests is the request that runs in production.
  */
 
-const AUTH_MESSAGE = 'Your access token was rejected. Check VITE_API_TOKEN in your .env file.'
+/**
+ * Written for whoever can act on it, which is not the same person in both modes.
+ *
+ * In `direct` mode that is a developer with a `.env` to fix. On a proxied
+ * deploy the token lives in the host's environment and the visitor has no
+ * `.env` at all, so naming one would send them looking for a file that does not
+ * exist on their machine.
+ */
+const AUTH_MESSAGE =
+  apiConfig?.mode === 'proxied'
+    ? 'The server rejected this app’s access token.'
+    : 'Your access token was rejected. Check VITE_API_TOKEN in your .env file.'
 
 /**
  * A failure worth showing a user, separated from one worth retrying.
@@ -59,7 +70,11 @@ export async function request<Result, Variables extends object>(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(apiConfig ? { Authorization: `Bearer ${apiConfig.token}` } : {}),
+        // `direct` only. In proxied mode the credential is the server's, not
+        // the browser's — and narrowing on the mode rather than on the config's
+        // presence is what makes reaching for a token that isn't there a
+        // compile error instead of a `Bearer undefined` header.
+        ...(apiConfig?.mode === 'direct' ? { Authorization: `Bearer ${apiConfig.token}` } : {}),
       },
       body: JSON.stringify({ query: print(document), variables }),
     })
