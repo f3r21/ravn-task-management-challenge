@@ -1305,11 +1305,20 @@ export declare interface ModalProps {
  * design, and the control is never submitted as a form field directly — a
  * consuming form reads the selection from `onSelectionChange`.
  *
- * Selected items render as `Tag` chips in the trigger — visual only, no
- * `onRemove`, so the trigger stays a single real `<button>` rather than a
- * button nesting more buttons (invalid and a screen-reader trap). Removal
- * happens the same way selection does: reopen the list and toggle the item
- * off, where its checkmark already shows which items are selected.
+ * The selection renders as the trigger's own comma-separated value, the same
+ * way `Select` renders its single one. It used to render as `Tag` chips
+ * instead, which stopped making sense the moment the trigger became the
+ * design's chip: a `Tag` is exactly 32px, so two of them filled a 32px
+ * trigger edge to edge and the control read as two loose tags with a stray
+ * chevron rather than as one field. The design agrees — every filled picker
+ * in the Edit Task modal (`Dashboard Edit Task/Add  Task Modal00.md:78-217`)
+ * is one chip with plain white value text, never a chip inside a chip.
+ *
+ * There is still no `onRemove` on anything here, so the trigger stays a
+ * single real `<button>` rather than a button nesting more buttons (invalid,
+ * and a screen-reader trap). Removal happens the way selection does: reopen
+ * the list and toggle the item off, where its checkmark already shows what is
+ * selected.
  */
 export declare function MultiSelect<T extends object>({ label, placeholder, icon, isDisabled, error, description, className, ...props }: MultiSelectProps<T>): JSX.Element;
 
@@ -1565,7 +1574,7 @@ export declare interface SegmentedControlProps {
  * same state. That isn't redundant with the visible trigger — it's what
  * makes the control work inside a `<form>`, gives mobile browsers their
  * native picker UI, and lets autofill/password managers see a field they
- * recognize. The visible pill-shaped trigger below is purely presentational.
+ * recognize. The visible chip-shaped trigger below is purely presentational.
  */
 export declare function Select<T extends object>({ isLabelVisible, placeholder, icon, error, description, className, ...props }: SelectProps<T>): JSX.Element;
 

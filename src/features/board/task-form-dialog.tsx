@@ -253,7 +253,13 @@ export function TaskFormDialog({
         </div>
 
         {shownError ? (
-          <p id={errorId} role="alert" className="text-danger text-body-m">
+          // `text-danger-text` (danger-3), not `text-danger` (danger-5), which the
+          // kit documents as a *border* colour. This paragraph sits on the modal's
+          // `surface-overlay`, the darkest surface a form here can land on, where
+          // danger-5 measures 2.55:1 against danger-3's 5.65:1. It is also the only
+          // report of a failed save, so it is the last place to be relying on a
+          // colour a reader has to squint at.
+          <p id={errorId} role="alert" className="text-danger-text text-body-m">
             {shownError}
           </p>
         ) : null}
