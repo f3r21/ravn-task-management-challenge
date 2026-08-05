@@ -267,11 +267,9 @@ listens for. Anything about focus or the accessibility tree is checked in both.
 
 ## Notes
 
-- **The endpoint moved.** The URL in the original brief
-  (`syn-api-prod.herokuapp.com`) no longer resolves; the current one is on Railway.
-  `schema.graphql` is committed and `npm run schema:check` re-introspects the API to prove
-  it has not drifted. Codegen reads the file, so neither it nor CI needs network access or
-  a credential.
+- **The schema is pinned, not fetched.** `schema.graphql` is committed and
+  `npm run schema:check` re-introspects the API to prove it has not drifted. Codegen reads
+  the file, so neither it nor CI needs network access or a credential.
 - **History** is one branch and one pull request per step: §1, §2, §3 read, §3 create, §4,
   §5, §6, and the README. Eight for six sections, because §3 is large enough to split and
   the README is a graded deliverable of its own. Each was revised after an adversarial
