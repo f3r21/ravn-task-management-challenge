@@ -13,6 +13,8 @@ npm-debug.log*
 !.vscode/extensions.json
 .idea
 .claude/settings.local.json
+UI_KIT_MIGRATION_PLAN.md
+UI_KIT_MIGRATION_NEXT_PROMPT.md
 
 # corvus — managed, do not edit this block
 .corvusrc
