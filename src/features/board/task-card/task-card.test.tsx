@@ -71,6 +71,54 @@ describe('TaskCard', () => {
     expect(screen.getByRole('img', { name: 'Priya Nair' })).toBeInTheDocument()
   })
 
+  it('shows the assignee as initials when the API points their avatar at a dead host', () => {
+    // Every seeded user the live API returns has an avatar on
+    // `avatars.dicebear.com`, which is decommissioned. It answers 410 while still
+    // returning a valid grey-and-red SVG, so the `<img>` fires `load`, not `error`
+    // — nothing about the failure is observable in the DOM, and the card renders
+    // the placeholder. Asserting that the avatar *contains text* is what pins the
+    // fix: initials are there only when no image is being rendered at all.
+    renderWithProviders(
+      <TaskCard
+        task={makeTask({
+          assignee: makeUser({
+            fullName: 'Priya Nair',
+            avatar: 'https://avatars.dicebear.com/api/initials/pn.svg',
+          }),
+        })}
+        now={now}
+      />,
+    )
+
+    expect(screen.getByRole('img', { name: 'Priya Nair' })).toHaveTextContent('PN')
+  })
+
+  it('still renders a real avatar, since only the one dead host is discarded', () => {
+    renderWithProviders(
+      <TaskCard
+        task={makeTask({
+          assignee: makeUser({
+            fullName: 'Priya Nair',
+            avatar: 'https://cdn.ravn.co/avatars/priya.png',
+          }),
+        })}
+        now={now}
+      />,
+    )
+
+    const avatar = screen.getByRole('img', { name: 'Priya Nair' })
+
+    // The `<img>` is `alt=""` on purpose — the accessible name belongs to the
+    // wrapper, so no role query can reach the element itself. Its absence is
+    // perceivable as initials appearing in its place, which is what the first
+    // assertion covers; the second says which picture is being shown.
+    expect(avatar).not.toHaveTextContent('PN')
+    expect(avatar.querySelector('img')).toHaveAttribute(
+      'src',
+      'https://cdn.ravn.co/avatars/priya.png',
+    )
+  })
+
   it('says a task is unassigned rather than showing an empty avatar', () => {
     renderWithProviders(<TaskCard task={makeTask({ assignee: null })} now={now} />)
 
