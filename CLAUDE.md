@@ -455,6 +455,17 @@ Claude Code drives them. A denial is also a `permissionDecision` object on stdou
 non-zero exit: any exit code other than 2 is a _non-blocking_ error, so the old `exit 1` would
 have printed its refusal and then run the command.
 
+**Three layers refuse a force push, and they are not the same rule.** `block-dangerous.sh`
+excludes `--force-with-lease` and `--force-if-includes` on purpose, and says why; `permissions.deny`
+in `.claude/settings.local.json` is a glob list; the repository ruleset rejects the push server-side
+on `main` and `dev`. The middle layer is per-machine and **gitignored**, so it drifts out of
+agreement with the hook and nothing in the repository can see that it has. A `Bash(git push
+--force*)` glob there matched `--force-with-lease` — the glob does not stop at the word — and
+`deny` offers no prompt, so a lane that had rebased correctly could not push at all and simply
+stopped. Touch any one of the three and run the other two against a command they are meant to
+judge differently; the coarser layer wins silently, and its blast radius is every session on the
+machine rather than this repository.
+
 `permissions.deny` in `settings.json` keeps `package-lock.json`, `coverage/`, `dist/` and
 `node_modules/` out of context. `.claudeignore`, which used to claim that job, is not a Claude
 Code feature and never excluded anything. Note the reach of a `Read()` rule: it also covers
