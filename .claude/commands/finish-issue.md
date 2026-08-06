@@ -18,8 +18,16 @@ Finish an issue and hand it off. Takes the issue number as an argument.
 
    **Before waiting on any condition, name who can satisfy it, and confirm it is not you.** If the
    answer is "the party waiting on me", that is a deadlock rather than a dependency — push, and
-   say what is unresolved. Three of these happened in Foundation, all the same shape, and in every
-   one of them both sides were behaving correctly. The cycle was the bug, not either party.
+   say what is unresolved.
+
+   The gatekeeper is not always a person. app-1 rebased #46 onto `dev` — correct, the PR read
+   `BEHIND` — which left the branch ahead of its remote and made `--force-with-lease` the right
+   push. A `permissions.deny` entry reading `Bash(git push --force*)` matched it, because the glob
+   does not stop at the word, and `deny` blocks outright: no prompt, nothing the lane could
+   approve, no way for it to edit the rule. The lane did everything right and stopped, holding the
+   fix in an unpushed commit. **A gate whose release condition the blocked party cannot reach is
+   the same bug whether the gatekeeper is a reviewer or a config file** — and the config-file kind
+   is worse, because it produces no artifact and looks exactly like a lane that is working.
 
    - **Changes the reviewer is blocking on go to the branch under review. Net-new work goes to a
      follow-up issue.** That one line settles most of the argument about what belongs in this PR.
@@ -41,6 +49,14 @@ Finish an issue and hand it off. Takes the issue number as an argument.
    inherits Node's globals and so defines it in every test: not one test in the suite could have
    caught it (#58). The format hooks passed the same way, by running, exiting 0, and formatting
    nothing (#45).
+
+   **When two layers enforce the same rule, check them against each other with a case each is
+   meant to judge differently.** A hook's careful regex is worth nothing if a permission glob
+   above it is coarser. List the commands one allows and the other denies; if that list is not
+   empty and not deliberate, one of them is wrong. `block-dangerous.sh` excludes
+   `--force-with-lease` deliberately and says why in a comment; a blunter `permissions.deny` glob
+   above it overrode that reasoning silently, and the cruder layer won because nobody had ever run
+   the two against the same command.
 
 5. Post the handoff comment on the issue. **Use this shape exactly** — the next session reads the "Now true that wasn't" line and little else survives the boundary:
 
