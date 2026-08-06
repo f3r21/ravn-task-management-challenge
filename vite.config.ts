@@ -20,9 +20,12 @@ export default defineConfig({
           // returning visitor.
           //
           // Named groups rather than a blanket `/node_modules/` rule on purpose:
-          // `@ravn/ui-kit` resolves into `node_modules` via a `file:` dependency
-          // but changes as often as the app does, so bundling it as "vendor"
-          // would defeat the caching this is for. It stays in the app chunk.
+          // `@ravn/ui-kit` is installed into `node_modules` like anything else,
+          // but a blanket rule would file it under "vendor" and that defeats the
+          // caching this is for. Its pin moves whenever this app needs a kit
+          // change, and this app is the kit's only consumer, so in practice it
+          // moves at app cadence rather than at framework cadence. It stays in
+          // the app chunk.
           groups: [
             { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
             {
@@ -52,20 +55,29 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
     // Guards the *other* way `@ravn/ui-kit` gets consumed. As committed, the
-    // dependency is `file:./vendor/ravn-ui-kit` — a built copy with no
-    // `node_modules` of its own — so every bare specifier already resolves up to
-    // this project's single install and this list is a no-op. Working on the kit
-    // means switching to `file:../ravn-ui-kit` (see `vendor/ravn-ui-kit/README.md`),
-    // and the sibling checkout *does* have its own `node_modules`. Then:
+    // dependency is `github:f3r21/ravn-ui-kit#v0.4.0` and this list is a no-op:
+    // npm packs only what the kit's `files: ["dist"]` names and installs only its
+    // `dependencies`, never its devDependencies, so `node_modules/@ravn/ui-kit`
+    // has no `node_modules` of its own. Every bare specifier the kit's build emits
+    // resolves up to this project's single install — verified, not assumed: there
+    // is exactly one copy of each of the four below on disk.
+    //
+    // (The kit's *published* `package.json` does list `react-aria` and
+    // `react-stately` under devDependencies as well as peerDependencies, and a git
+    // install ships that manifest whole rather than a trimmed one. It changes
+    // nothing here: npm does not install a dependency's devDependencies.)
+    //
+    // Working on the kit means switching to `file:../ravn-ui-kit`, and the sibling
+    // checkout *does* have its own `node_modules`, populated from exactly those
+    // devDependencies. Then:
     //
     // - Node resolves `react`/`react-dom` from that copy before walking up to this
     //   project's, so any hook a kit component calls throws "Invalid hook call" —
     //   two React instances, two dispatchers.
     // - `react-aria`/`react-stately` need entries for the same reason, one layer
     //   removed. The kit's build imports them as bare specifiers rather than
-    //   bundling their source, and its `package.json` lists both as peerDependencies
-    //   *and* devDependencies — the devDependency copy is not a mistake to chase
-    //   upstream, it is what the kit's own Storybook and vitest run against. So a
+    //   bundling their source, and the devDependency copy is not a mistake to chase
+    //   upstream — it is what the kit's own Storybook and vitest run against. So a
     //   second, physically distinct install exists at the same version, React Aria's
     //   module-scoped `FocusScope` context exists twice, and a `FocusScope` rendered
     //   by one of this app's own components (e.g. `Select`'s popover) can never be
