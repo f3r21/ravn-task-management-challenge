@@ -31,20 +31,30 @@ jobs:
     # default gives up. Same value as the sibling `ravn-ui-kit` workflow.
     timeout-minutes: 15
     steps:
-      # Pinned to the same majors as `ravn-ui-kit`'s workflow, deliberately.
-      # The two repositories are built and reviewed together, and letting each
-      # drift to whatever was current the day someone touched it is how you end
-      # up debugging a difference between pipelines that are supposed to be the
-      # same. Bump them in lockstep, in both repositories, or not at all.
-      - uses: actions/checkout@v4
+      # What is locked across this repository and `ravn-ui-kit` is the **Node
+      # version**, not these action majors. Node decides the bytes `npm run build`
+      # produces, so the two pipelines have to agree on it or the kit's committed
+      # `dist/` and this app's bundle stop being comparable — that is what `.nvmrc`
+      # is for.
+      #
+      # These `actions/*` majors govern the runner-side JS runtime of the action
+      # wrapper, not the toolchain that builds the code. Holding them identical
+      # across the two repositories buys nothing the Node pin does not already buy,
+      # and it costs currency: an outdated major is the live risk, not a difference
+      # between the two. An earlier revision of this file said the opposite — bump
+      # in lockstep or not at all — which in practice meant aligning *downward* to
+      # whichever repository was staler, and left both on a runtime GitHub is
+      # retiring. Let them float to current via Dependabot's `github-actions`
+      # ecosystem instead (`.github/dependabot.yml`).
+      - uses: actions/checkout@v7
 
-      # Kept in step with `.nvmrc`, which pins the same major for local `nvm use`.
-      # The kit reaches 22 too, via `node-version-file: .nvmrc` on its foundation
-      # branch — so this is no longer a deliberate divergence, and the two should
-      # move together. `engines` here requires >=22.13.0.
-      - uses: actions/setup-node@v4
+      # Read from `.nvmrc` rather than repeated here, so CI and a local `nvm use`
+      # cannot disagree — this is the value the rule above says is locked across
+      # both repositories, and the kit reads it the same way. `engines` requires
+      # >=22.13.0.
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
 
       # `npm ci` rather than `npm install`: it installs exactly the lockfile and
