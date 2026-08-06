@@ -118,9 +118,14 @@ Consequences:
 - **The kit's source is not in this checkout**, so "what does this component actually do" is
   answered by `vendor/ravn-ui-kit/dist/index.d.ts` — the doc comments survive the build and
   are unusually detailed — or by the sibling repo, or the published Storybook.
-- **`vite.config.ts`'s `dedupe` list exists for this.** The `file:` dependency has its own
-  `node_modules`, so `react`, `react-dom`, `react-aria` and `react-stately` each resolve to a
-  second physical copy unless forced onto this project's. The comment there has the full
+- **`vite.config.ts`'s `dedupe` list is a no-op as committed, and kept anyway.** The vendored
+  `file:./vendor/ravn-ui-kit` is a built copy with **no `node_modules` of its own**, so every
+  bare specifier already resolves up to this project's single install — there is exactly one
+  copy of `react`, `react-dom`, `react-aria` and `react-stately` on disk. The list guards the
+  _other_ consumption mode: switching to the sibling `file:../ravn-ui-kit` to work on the kit
+  brings a checkout that does have its own `node_modules`, and then two React instances mean
+  "Invalid hook call". That switch is a one-line `package.json` edit, and the failure reads as
+  a bug in the component rather than in how it was installed. The comment there has the full
   shape of it.
 
 **The standing rule: when a kit component fails an assertion here, the fix goes in the kit,
