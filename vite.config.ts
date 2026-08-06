@@ -84,7 +84,14 @@ export default defineConfig({
     // `TaskCard`s, two `src/ui` trees, ~20 failures that belonged to neither
     // checkout. `.git/info/exclude` hides the directory from git but not from a
     // test runner, so it has to be named here.
-    exclude: [...configDefaults.exclude, '.worktrees/**'],
+    //
+    // `e2e/**` is here for a different reason. Vitest's default `include`
+    // matches `*.spec.ts` at any depth, so it collects the Playwright spec and
+    // fails the whole run at import with Playwright's own "Playwright Test did
+    // not expect test() to be called here" — a message that lists four causes,
+    // none of them "a second test runner picked up my file". Playwright reads
+    // `e2e/playwright.config.ts` and owns that directory; Vitest owns `src/`.
+    exclude: [...configDefaults.exclude, '.worktrees/**', 'e2e/**'],
     env: {
       // The suite runs 14 hours ahead of UTC on purpose. Due dates arrive from the
       // API as midnight-UTC instants and are read as calendar dates, so any code

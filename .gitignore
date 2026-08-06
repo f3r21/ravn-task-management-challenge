@@ -7,6 +7,10 @@ dist-ssr
 !vendor/ravn-ui-kit/dist/
 !vendor/ravn-ui-kit/dist/**
 coverage
+# Playwright's per-failure artefacts — traces, screenshots, videos. The spec and
+# its config are tracked; what a run produces is not. Matching entries live in
+# `.prettierignore` and `eslint.config.js`.
+e2e/test-results
 *.local
 .DS_Store
 .env

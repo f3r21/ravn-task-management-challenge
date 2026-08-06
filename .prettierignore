@@ -1,5 +1,7 @@
 dist
 coverage
+# Playwright writes traces and screenshots here on a failure.
+e2e/test-results
 node_modules
 src/graphql/generated
 public/mockServiceWorker.js
