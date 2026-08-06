@@ -1,4 +1,3 @@
-import { print } from 'graphql'
 import {
   CreateTaskDocument,
   DeleteTaskDocument,
@@ -112,11 +111,12 @@ const MAX_BODY_BYTES = 16_384
  * caller's text is never forwarded, so what can reach RAVN is a set of six
  * constants rather than a claim about how carefully the checking was written.
  *
- * `print` over the generated documents is the same call `src/graphql/client.ts`
- * makes, on the same documents, which is what keeps the two in step without a
- * second list maintained by hand. If codegen is ever switched to emit documents
- * as strings rather than as ASTs, this line is where that lands — as a type
- * error, with `String(document)` as the fix.
+ * `String(document)` is the same call `src/graphql/client.ts` makes, on the same
+ * documents, which is what keeps the two in step without a second list
+ * maintained by hand. Codegen emits each document as a `String` subclass
+ * carrying the phantom types, so this is the query text verbatim rather than a
+ * re-print of an AST — which is what lets `graphql` be a devDependency instead
+ * of shipping to production for one `print` call.
  */
 /** The one difference between two spellings of a document that does not matter. */
 function collapseWhitespace(query: string): string {
@@ -132,7 +132,7 @@ const ALLOWED_DOCUMENTS = new Map<string, string>(
     UpdateTaskDocument,
     DeleteTaskDocument,
   ].map((document): [string, string] => {
-    const text = print(document)
+    const text = String(document)
     return [collapseWhitespace(text), text]
   }),
 )
