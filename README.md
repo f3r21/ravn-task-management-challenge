@@ -418,10 +418,14 @@ listens for. Anything about focus or the accessibility tree is checked in both.
 - **The schema is pinned, not fetched.** `schema.graphql` is committed and
   `npm run schema:check` re-introspects the API to prove it has not drifted. Codegen reads
   the file, so neither it nor CI needs network access or a credential.
-- **History** is one branch and one pull request per step: §1, §2, §3 read, §3 create, §4,
-  §5, §6, and the README. Eight for six sections, because §3 is large enough to split and
-  the README is a graded deliverable of its own. Each was revised after an adversarial
-  review; the fixes are in the commit messages.
+- **History** is one branch and one pull request per unit of work, throughout. The brief
+  itself shipped as eight stacked branches — §1, §2, §3 read, §3 create, §4, §5, §6, and
+  the README — eight for six sections, because §3 is large enough to split and the README
+  is a graded deliverable of its own. Each was revised after an adversarial review; the
+  fixes are in the commit messages. Everything since has arrived the same way and the
+  count keeps climbing, so `gh pr list --state all` is the answer rather than a number
+  written here: work now branches off `dev` and merges back by pull request with CI green,
+  which a repository ruleset enforces rather than trusting to habit.
 
 ## AI Tooling (Claude Code)
 
