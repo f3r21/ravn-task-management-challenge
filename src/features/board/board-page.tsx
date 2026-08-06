@@ -74,11 +74,20 @@ function boardStatusMessage(status: 'pending' | 'error' | 'success', count: numb
 
 export function BoardPage() {
   const [view, setView] = useState<BoardView>('grid')
-  const { data: users } = useUsers()
+  // `status` as well as `data`, because the three outcomes need telling apart. An
+  // errored `Users` query and a still-loading one both leave `data` undefined, and
+  // treating them alike is what let a failed directory disable owner validation
+  // permanently — see `readOwner`. It is also the only thing that can put the
+  // failure on screen: with `data` alone the owner filter just renders empty, and
+  // the assignee picker just offers "Unassigned", explaining neither.
+  const { data: users, status: usersStatus } = useUsers()
   // The owner ids are handed to the filters so an `?owner=` that nobody matches is
   // dropped rather than sent on, the same as a bad status or tag.
   const ownerIds = useMemo(() => (users ?? []).map((user) => user.id), [users])
-  const { filters, queryInput, setFilter, clearAll, isFiltered } = useBoardFilters(ownerIds)
+  const { filters, queryInput, setFilter, clearAll, isFiltered } = useBoardFilters(
+    ownerIds,
+    usersStatus === 'pending' ? 'pending' : 'ready',
+  )
   const { data: tasks, status, error, refetch } = useTasks(queryInput)
   const toast = useToast()
 
@@ -182,6 +191,7 @@ export function BoardPage() {
         clearAll={clearAll}
         isFiltered={isFiltered}
         users={users ?? []}
+        directoryUnavailable={usersStatus === 'error'}
       />
 
       {/* Mounted only while open, so every visit starts from a blank form rather

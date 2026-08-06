@@ -1,17 +1,26 @@
+import { Kind, type OperationDefinitionNode, parse } from 'graphql'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import * as generated from '../src/graphql/generated/graphql'
 import { POST, UPSTREAM_URL } from './graphql'
 
 /**
  * The proxy is a plain `Request` → `Response` function, so it is tested as one:
  * no server, no Vercel runtime, just the handler and a stubbed `fetch` standing
  * in for RAVN's API. What matters here is what does and does not cross the two
- * boundaries — a credential going out, and an upstream body coming back.
+ * boundaries — a credential going out, an upstream body coming back, and a
+ * request that RAVN's shared API should never be asked to answer.
  */
 
-function post(body: unknown = { query: '{ tasks { id } }' }): Request {
+/** An operation the app really sends, printed exactly as `client.ts` prints it. */
+const ALLOWED_QUERY = String(generated.TasksDocument)
+
+function post(
+  body: unknown = { query: ALLOWED_QUERY, variables: { input: {} } },
+  headers: Record<string, string> = {},
+): Request {
   return new Request('https://deployed.test/api/graphql', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify(body),
   })
 }
@@ -27,6 +36,38 @@ function json(body: unknown, status = 200): Response {
     status,
     headers: { 'Content-Type': 'application/json' },
   })
+}
+
+/** What was actually sent upstream, as the JSON body it was serialised from. */
+function sentBody(fetchMock: ReturnType<typeof stubUpstream>): {
+  query: string
+  variables: unknown
+} {
+  const body = fetchMock.mock.calls[0][1]?.body
+  if (typeof body !== 'string') {
+    throw new Error('The proxy sent no serialised body upstream.')
+  }
+  return JSON.parse(body) as { query: string; variables: unknown }
+}
+
+/**
+ * Codegen emits each document as a `String` subclass carrying phantom types,
+ * not as an AST, so anything structural has to be parsed back out. Typed
+ * structurally rather than as `TypedDocumentString<…>` because the generated
+ * documents' type parameters differ per operation, and a common supertype of
+ * those is not one TypeScript will infer.
+ *
+ * `graphql` is still importable here: it stayed a devDependency, and it is only
+ * the shipped code that must not reach for it.
+ */
+type DocumentText = { toString(): string }
+
+/** Names a generated document by the one operation it defines. */
+function operationName(document: DocumentText): string | undefined {
+  return parse(String(document)).definitions.find(
+    (definition): definition is OperationDefinitionNode =>
+      definition.kind === Kind.OPERATION_DEFINITION,
+  )?.name?.value
 }
 
 beforeEach(() => {
@@ -49,13 +90,26 @@ describe('the GraphQL proxy', () => {
     expect(new Headers(init?.headers).get('authorization')).toBe('Bearer server-side-token')
   })
 
-  it('forwards the query body unchanged', async () => {
+  it('forwards the variables it was given, untouched', async () => {
     const fetchMock = stubUpstream(json({ data: { tasks: [] } }))
-    const body = { query: 'query Tasks($input: FilterTaskInput!) { tasks(input: $input) { id } }' }
+    const variables = { input: { name: 'design', status: 'IN_PROGRESS' } }
 
-    await POST(post(body))
+    await POST(post({ query: ALLOWED_QUERY, variables }))
 
-    expect(fetchMock.mock.calls[0][1]?.body).toBe(JSON.stringify(body))
+    expect(sentBody(fetchMock).variables).toEqual(variables)
+  })
+
+  it('sends its own copy of the document rather than the caller’s text', async () => {
+    // The allowlist is only worth as much as the guarantee that the document it
+    // matched is the document that runs. Forwarding the caller's bytes would
+    // leave that resting on this function and RAVN's parser reading the same
+    // JSON the same way; forwarding the stored copy makes it structural.
+    const fetchMock = stubUpstream(json({ data: { tasks: [] } }))
+    const reindented = ALLOWED_QUERY.replace(/\s+/g, '\n\t')
+
+    await POST(post({ query: reindented, variables: { input: {} } }))
+
+    expect(sentBody(fetchMock).query).toBe(ALLOWED_QUERY)
   })
 
   it('gives up rather than hanging when the API does not answer', async () => {
@@ -173,4 +227,168 @@ describe('the GraphQL proxy', () => {
 
     expect(await response.text()).not.toMatch(/server-side-token/)
   })
+})
+
+/**
+ * The half of this file that is about RAVN's API rather than about this app.
+ *
+ * The proxy holds a credential to a backend shared with other candidates, so
+ * every one of these asserts the same thing twice: the caller is refused, and
+ * — the part that actually matters — RAVN was never asked.
+ */
+describe('what the proxy refuses to forward', () => {
+  it('refuses an operation the app never sends', async () => {
+    const fetchMock = stubUpstream(json({ data: {} }))
+
+    const response = await POST(post({ query: '{ __schema { types { name } } }' }))
+
+    expect(response.status).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses an operation wearing an allowed operation’s name', async () => {
+    // The reason the allowlist is keyed by document and not by name: a name is
+    // whatever the caller typed after `query`, and `operationName` is whatever
+    // they put in the JSON. Neither says anything about what will be executed.
+    const fetchMock = stubUpstream(json({ data: {} }))
+
+    const response = await POST(
+      post({ query: 'query Tasks { __schema { types { name } } }', operationName: 'Tasks' }),
+    )
+
+    expect(response.status).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses an allowed document with one extra field selected', async () => {
+    const fetchMock = stubUpstream(json({ data: {} }))
+
+    const response = await POST(
+      post({ query: ALLOWED_QUERY.replace('tasks(', '__typename tasks(') }),
+    )
+
+    expect(response.status).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses a body that is not JSON', async () => {
+    const fetchMock = stubUpstream(json({ data: {} }))
+
+    const response = await POST(
+      new Request('https://deployed.test/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: 'query Tasks { tasks { id } }',
+      }),
+    )
+
+    expect(response.status).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses a JSON body that carries no query', async () => {
+    const fetchMock = stubUpstream(json({ data: {} }))
+
+    expect((await POST(post({ variables: { input: {} } }))).status).toBe(400)
+    expect((await POST(post({ query: { not: 'a string' } }))).status).toBe(400)
+    expect((await POST(post([ALLOWED_QUERY]))).status).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses a content type it cannot parse', async () => {
+    // A `fetch` with a string body and no explicit header sends `text/plain`,
+    // so this is also the shape of a request from something that is not this
+    // app at all.
+    const fetchMock = stubUpstream(json({ data: {} }))
+
+    const response = await POST(
+      new Request('https://deployed.test/api/graphql', {
+        method: 'POST',
+        body: JSON.stringify({ query: ALLOWED_QUERY }),
+      }),
+    )
+
+    expect(response.status).toBe(415)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('accepts the charset the media type is allowed to carry', async () => {
+    const fetchMock = stubUpstream(json({ data: { tasks: [] } }))
+
+    const response = await POST(
+      post(undefined, { 'Content-Type': 'application/json; charset=utf-8' }),
+    )
+
+    expect(response.status).toBe(200)
+    expect(fetchMock).toHaveBeenCalled()
+  })
+
+  it('refuses a body that declares a size over the cap, before reading it', async () => {
+    // `Request` does not set `Content-Length` itself — the HTTP layer does, at
+    // send time — so the header has to be set by hand to exercise the check
+    // that runs before a byte is buffered.
+    const fetchMock = stubUpstream(json({ data: {} }))
+
+    const response = await POST(post(undefined, { 'Content-Length': '5000000' }))
+
+    expect(response.status).toBe(413)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses an oversized body that declared nothing at all', async () => {
+    const fetchMock = stubUpstream(json({ data: {} }))
+
+    const response = await POST(
+      post({ query: ALLOWED_QUERY, variables: { input: { name: 'x'.repeat(20_000) } } }),
+    )
+
+    expect(response.status).toBe(413)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('what the proxy will forward', () => {
+  /**
+   * Every operation codegen emits, read off the generated module rather than
+   * listed here, so an operation added to `src/graphql/operations/tasks.graphql`
+   * arrives in this test whether or not anyone remembers to add it — and fails
+   * until the proxy's allowlist has it too. The two fragment documents are
+   * filtered out: the client never sends a fragment on its own. So is the
+   * `TypedDocumentString` class, which the module exports alongside the
+   * documents and which `Object.values` therefore hands back too — hence the
+   * `instanceof` rather than a duck-type check.
+   */
+  const clientDocuments = Object.values(generated).filter(
+    (value) =>
+      value instanceof generated.TypedDocumentString &&
+      parse(String(value)).definitions.some(
+        (definition) => definition.kind === Kind.OPERATION_DEFINITION,
+      ),
+  )
+
+  it('finds every operation the brief lists, and no more', () => {
+    // Not a restatement of the six tests below: it is what stops them passing
+    // vacuously. A filter that matched nothing would generate no tests at all,
+    // and an empty suite is green.
+    expect(clientDocuments.map(operationName)).toEqual([
+      'Tasks',
+      'Users',
+      'Profile',
+      'CreateTask',
+      'UpdateTask',
+      'DeleteTask',
+    ])
+  })
+
+  for (const document of clientDocuments) {
+    it(`forwards ${operationName(document)}, which the app really sends`, async () => {
+      const fetchMock = stubUpstream(json({ data: {} }))
+      const query = String(document)
+
+      const response = await POST(post({ query, variables: { input: {} } }))
+
+      expect(response.status).toBe(200)
+      expect(sentBody(fetchMock).query).toBe(query)
+    })
+  }
 })

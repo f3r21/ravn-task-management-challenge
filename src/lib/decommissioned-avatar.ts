@@ -1,0 +1,69 @@
+/**
+ * A workaround for one dead host in RAVN's seed data. Delete it when that is fixed.
+ *
+ * Every seeded `User.avatar` the live API returns points at
+ * `https://avatars.dicebear.com/api/initials/<initials>.svg`, a service that was
+ * decommissioned. So every task card on the deployed site shows a grey square with
+ * a red mark instead of a person.
+ *
+ * The reflex fix — an `onError` handler on the `<img>` — cannot work here, and it
+ * is worth saying why before someone spends an afternoon on it. The host answers
+ * `410 Gone`, but with a *valid* 14.6 kB SVG body (`#E3E3E3` background, `#BABABA`
+ * shapes, `#C70000` text — that is the placeholder on screen). Browsers ignore the
+ * status code for an image whose payload decodes, so the element fires `load`, not
+ * `error`, and reports a `naturalWidth` of 150. There is no failure to hook.
+ *
+ * Rewriting the URL to dicebear's current API is not the fix either: the path says
+ * `initials`, so the seed data is asking a third party to draw two letters that
+ * `Avatar` already derives from `fullName`. Treating the dead host as "no avatar"
+ * hands the same intent to the fallback that is already there, with nothing
+ * third-party in the loop — and it is what the design draws, since every avatar in
+ * the Figma mockups and in `docs/screenshots/dashboard.jpg` is initials.
+ *
+ * This lives here rather than inside `Avatar` because the component is not wrong:
+ * it renders the `src` it is handed. The defect is that the app hands it a URL it
+ * knows is dead, so the correction belongs at the boundary where a GraphQL `User`
+ * becomes component props — the call sites of `Avatar`.
+ */
+
+/**
+ * Hosts known to serve a decoding placeholder image instead of a real avatar.
+ *
+ * Matched on hostname rather than on a substring of the URL, so a path that merely
+ * mentions the host (`https://cdn.example/avatars.dicebear.com/x.svg`) is left alone.
+ */
+const DECOMMISSIONED_AVATAR_HOSTS = new Set(['avatars.dicebear.com'])
+
+/**
+ * The avatar URL to render, or `undefined` when there is nothing worth rendering —
+ * which is the value that makes `Avatar` fall back to the person's initials.
+ *
+ * A URL that does not parse is passed through untouched: only a known-dead host is
+ * this function's business, and a relative path is a perfectly good `src`.
+ */
+export function avatarSrcUnlessDecommissioned(
+  avatar: string | null | undefined,
+): string | undefined {
+  if (avatar == null) {
+    return undefined
+  }
+
+  // `try`/`catch` rather than `URL.canParse`, which is not a style preference.
+  // `canParse` shipped in Chrome 120 / Firefox 115 / Safari 17, and this build's
+  // floor is Vite's `baseline-widely-available` default — chrome111, edge111,
+  // firefox114, safari16.4, ios16.4 — every one of which predates it. A build
+  // target lowers *syntax* and never polyfills an *API*, so the call shipped
+  // verbatim into `dist/`. Reached unconditionally on three render paths, on a
+  // browser at that floor it threw `URL.canParse is not a function` and the error
+  // boundary replaced the whole board: an outage where the defect it fixes is a
+  // grey square. Nothing in `gate` could see it — jsdom runs on Node 22, and the
+  // preview and e2e both run current Chromium.
+  let hostname: string
+  try {
+    hostname = new URL(avatar).hostname
+  } catch {
+    return avatar
+  }
+
+  return DECOMMISSIONED_AVATAR_HOSTS.has(hostname) ? undefined : avatar
+}
