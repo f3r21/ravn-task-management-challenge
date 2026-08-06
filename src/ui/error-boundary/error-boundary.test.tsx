@@ -65,6 +65,40 @@ describe('ErrorBoundary', () => {
     expect(screen.queryByText('fallback')).not.toBeInTheDocument()
   })
 
+  it('hands the error to onError, which is where crash reporting attaches', () => {
+    silenceExpectedErrorLogs()
+    const onError = vi.fn()
+
+    renderWithProviders(
+      <ErrorBoundary fallback={<p>fallback</p>} onError={onError}>
+        <Boom />
+      </ErrorBoundary>,
+    )
+
+    expect(onError).toHaveBeenCalledTimes(1)
+    // The error itself, not a message: a reporter needs the stack, and the whole
+    // point of the seam is that it gets what `componentDidCatch` got.
+    const [error, info] = onError.mock.calls[0] as [Error, { componentStack?: string | null }]
+    expect(error).toBeInstanceOf(Error)
+    expect(error.message).toBe('render failed')
+    expect(info.componentStack).toContain('Boom')
+  })
+
+  it('still shows the fallback when the reporter is not supplied', () => {
+    silenceExpectedErrorLogs()
+
+    renderWithProviders(
+      <ErrorBoundary fallback={<p>fallback</p>}>
+        <Boom />
+      </ErrorBoundary>,
+    )
+
+    // Guards the optional call itself. `this.props.onError?.(…)` with the prop
+    // absent has to be a no-op rather than a second crash inside the handler for
+    // the first one — which would leave no fallback and no log.
+    expect(screen.getByText('fallback')).toBeInTheDocument()
+  })
+
   it('recovers when the caller changes the key, which is the only supported retry', async () => {
     silenceExpectedErrorLogs()
     const user = userEvent.setup()

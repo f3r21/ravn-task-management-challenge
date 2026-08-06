@@ -1,6 +1,5 @@
-import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { print } from 'graphql'
 import { apiConfig, apiUrl } from '@/lib/env'
+import type { TypedDocumentString } from './generated/graphql'
 
 /**
  * The app's GraphQL transport.
@@ -56,12 +55,14 @@ interface GraphQLResponseBody<Result> {
 /**
  * Runs a generated document and returns its typed result.
  *
- * Taking a `TypedDocumentNode` is what ties variables and result together:
+ * Taking a `TypedDocumentString` is what ties variables and result together:
  * passing the wrong variables for a document, or reading a field the document
- * did not select, is a compile error rather than a runtime `undefined`.
+ * did not select, is a compile error rather than a runtime `undefined`. The
+ * phantom type parameters are the whole reason to take the generated wrapper
+ * rather than a plain `string` — a `string` would type-check against anything.
  */
 export async function request<Result, Variables extends object>(
-  document: TypedDocumentNode<Result, Variables>,
+  document: TypedDocumentString<Result, Variables>,
   variables: Variables,
 ): Promise<Result> {
   let response: Response
@@ -76,7 +77,12 @@ export async function request<Result, Variables extends object>(
         // compile error instead of a `Bearer undefined` header.
         ...(apiConfig?.mode === 'direct' ? { Authorization: `Bearer ${apiConfig.token}` } : {}),
       },
-      body: JSON.stringify({ query: print(document), variables }),
+      // The document is already the query text — no `print()`, and so no
+      // `graphql` in the bundle. `String(…)` because codegen emits a `String`
+      // subclass carrying the phantom types: `JSON.stringify` would unwrap it
+      // anyway, but relying on that leaves the body's shape depending on a
+      // detail of a wrapper object nobody expects to be one.
+      body: JSON.stringify({ query: String(document), variables }),
     })
   } catch {
     // Offline, DNS failure, CORS — anything that never reached a resolver.

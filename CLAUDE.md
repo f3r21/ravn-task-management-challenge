@@ -15,6 +15,7 @@ npm run build          # tsc --noEmit, then a production bundle. CI runs this to
 npm test               # the suite, once
 npm run codegen        # regenerate src/graphql/generated/ from schema.graphql
 npm run schema:check   # re-introspect the live API and fail if schema.graphql has drifted
+npm run test:e2e       # one Playwright spec against a DEPLOYMENT. Needs E2E_BASE_URL — see below
 ```
 
 Running less than everything:
@@ -30,8 +31,17 @@ npx vitest run --coverage src/lib          # coverage over a subset (thresholds 
 someone else's server is having a bad afternoon is not a signal about this code. It only
 **checks** — updating `schema.graphql` is by hand, then `npm run codegen`.
 
+`test:e2e` is outside `gate` for a harder reason than `schema:check`: it needs a deployment,
+not just a network. `E2E_BASE_URL` is required with no default and no localhost fallback,
+because a fallback would turn the one test that reaches `api/graphql.ts` into a slow copy of
+the unit suite. Pointing it at `npm run dev` is legitimate for exactly one purpose — proving
+the selectors still match after a UI change — and it will still fail its last assertion,
+which is the one checking the run went through `/api/graphql`. See "The e2e spec" below.
+
 CI runs `gate` plus `build` on every pull request, not only those targeting `main` — a stacked
-PR needs checks most, because its base has not landed yet.
+PR needs checks most, because its base has not landed yet. Two more workflows sit beside it:
+`dependency-review.yml` (every PR, advisory check on the dependencies the diff adds) and
+`e2e.yml` (every successful deployment, plus manual dispatch).
 
 ## Architecture
 
@@ -85,6 +95,54 @@ nothing surfaces the conflict _before_ that point, so if an MCP tool that should
 failing outright, check `claude mcp remove <name>` first: if it complains about multiple
 scopes, that's the bug.
 
+### The UI layer is somebody else's package
+
+The second load-bearing decision, and the one this document used to omit entirely.
+
+The Figma file for this challenge is a component library rather than a set of screens, so it
+was built as one: **`@ravn/ui-kit`** (https://github.com/f3r21/ravn-ui-kit), a separate repo
+with its own Storybook, tests and CI. This app is its first consumer. `Modal`, `Select`,
+`MultiSelect` and `Menu` come from it today; `Avatar`, `Button`, `Tag`, `Skeleton` and the
+board components are still app-owned and queued to move.
+
+**It arrives through `vendor/`, not npm.** There is no registry to publish to, so the
+dependency is `file:./vendor/ravn-ui-kit` — a committed copy of the kit's `dist/` plus a
+trimmed `package.json`. The obvious `file:../ravn-ui-kit` cannot work: CI clones only this
+repository, so that path never resolves there and `npm ci` fails on the first import.
+Consequences:
+
+- **`vendor/ravn-ui-kit/` is build output. Never hand-edit it.** A fix made there is
+  invisible to the kit's own tests and is destroyed by the next re-sync.
+  `vendor/ravn-ui-kit/README.md` has the re-sync procedure; it lands as its own commit so a
+  kit change is never mixed into an app change.
+- **The kit's source is not in this checkout**, so "what does this component actually do" is
+  answered by `vendor/ravn-ui-kit/dist/index.d.ts` — the doc comments survive the build and
+  are unusually detailed — or by the sibling repo, or the published Storybook.
+- **`vite.config.ts`'s `dedupe` list is a no-op as committed, and kept anyway.** The vendored
+  `file:./vendor/ravn-ui-kit` is a built copy with **no `node_modules` of its own**, so every
+  bare specifier already resolves up to this project's single install — there is exactly one
+  copy of `react`, `react-dom`, `react-aria` and `react-stately` on disk. The list guards the
+  _other_ consumption mode: switching to the sibling `file:../ravn-ui-kit` to work on the kit
+  brings a checkout that does have its own `node_modules`, and then two React instances mean
+  "Invalid hook call". That switch is a one-line `package.json` edit, and the failure reads as
+  a bug in the component rather than in how it was installed. The comment there has the full
+  shape of it.
+
+**The standing rule: when a kit component fails an assertion here, the fix goes in the kit,
+not in the test.** This app is what proves the package works, and every defect found by
+wiring it into something real — a popover that could not escape an `overflow: hidden`
+ancestor, a focus ring that computed a colour and painted nothing, `onAction` firing twice
+per menu pick — was found exactly this way. Loosening an assertion to accommodate the kit
+throws away the only signal the arrangement generates, and leaves the defect in a package
+meant to outlive this app. Weakening a test to match a component is the one refactor that is
+never in scope here.
+
+The corollary is that a migration can be _blocked_ on the kit, and that is a legitimate
+place to stop — see `delete-task-dialog.tsx`, which stays on the app's own `Dialog` because
+the kit's `Modal` drops `useDialog`'s `contentProps` and so cannot describe an
+`alertdialog`. Record the gap and leave the app correct; do not migrate a component into a
+regression.
+
 ### The data path
 
 `useBoardFilters` (URL query params) → debounce → `FilterTaskInput` → React Query key →
@@ -135,11 +193,24 @@ not-found page inside chrome implying the app is fine.
 
 ### The token layer
 
-`src/styles/tokens.css` holds the raw Figma ramp in `:root` and only _semantic_ names in
-`@theme`. Tailwind v4 only generates utilities for what it finds in `@theme`, so `bg-neutral-4`
-is not a class that exists and a component physically cannot reach a colour except through a
-name that says what it is for. Add a `@theme` name rather than reaching for the ramp. Icons are
-the design's own SVG exports with `fill` swapped for `currentColor`.
+**The app defines no tokens.** `src/styles/base.css` is the only stylesheet here, and it
+imports `@ravn/ui-kit/theme.css` for the whole colour, radius and type vocabulary — the raw
+Figma ramp and the semantic `@theme` names both live in the kit now. A new token is a change
+to the kit, re-vendored, not a `:root` block added here.
+
+Two things in `base.css` are easy to delete as noise and are not. The kit ships tokens only,
+never compiled utilities, so this app's own `@tailwindcss/vite` build generates every class —
+including the ones baked into the kit's `dist/index.js` as string literals. Tailwind excludes
+`node_modules` from automatic scanning, so the `@source "../../node_modules/@ravn/ui-kit/dist"`
+line is what keeps kit components from rendering unstyled. And `color-scheme: dark` is set
+because the design is dark-only, so form controls, scrollbars and focus rings need telling.
+
+Colours still reach a component only through a semantic name that says what the colour is
+_for_ (`text-main`, `bg-surface-panel`, `border-subtle`): Tailwind v4 generates utilities only
+for what it finds in `@theme`, so `bg-neutral-4` is not a class that exists in the app's
+output. Icons in `src/ui/icons/` are the design's own SVG exports with `fill` swapped for
+`currentColor`, so their colour comes from the token layer too. The kit exports the same set
+and this one is a duplicate awaiting migration, not a deliberate fork.
 
 ### Two structures that look like tidiness and are not
 
@@ -167,6 +238,30 @@ so the `...coverageConfigDefaults.exclude` spread is what keeps colocated `*.tes
 from counting as source and inflating every metric toward ~99%. `mocks/` and `generated/` are
 excluded from the _metric_ but `task-store.test.ts` still pins the fake's filter semantics
 directly, because the filter tests trust it to narrow correctly.
+
+### The e2e spec
+
+`e2e/` is Playwright's, `src/` is Vitest's, and the boundary is enforced in three places
+because nothing else keeps two test runners out of each other's files:
+
+- **`vite.config.ts` excludes `e2e/**`.** Vitest's default `include` matches `*.spec.ts` at
+  any depth, so without it `npm test` collects the Playwright file and fails the entire run
+  with "Playwright Test did not expect test() to be called here" — a message listing four
+  causes, none of them "a second runner picked this up".
+- **`e2e/tsconfig.json` is a third project**, alongside the root one and `api/`, for the same
+  reason `api/` has its own: this code runs in Node and must not see the DOM lib. `typecheck`
+  builds all three.
+- **`e2e/playwright.config.ts` lives beside the spec**, not at the root, so that tsconfig
+  covers it and typescript-eslint's project service finds it by walking up.
+
+One spec, `deployed-proxy.spec.ts`: create → filter → edit → delete, in a browser, against a
+deployment. It is the only test that reaches `api/graphql.ts` as it actually runs — nothing
+imports that file, so no unit test can. It writes to RAVN's live board through the proxy and
+deletes what it created, including from `test.afterEach` when the assertions never got that
+far; a leftover `e2e smoke <token>` card means a run died mid-flight.
+
+Adding a second spec is almost always the wrong move. Everything else is already covered in
+jsdom, faster and more precisely, and each extra flow is more live mutation.
 
 ## Conventions
 
@@ -234,6 +329,42 @@ it. `main` only receives periodic promotions of a verified-stable `dev` (gate gr
 anything MCP-related, live-checked, not just "connected") via a `dev` → `main` PR. Nothing
 merges into `main` directly.
 
+**That is now enforced on the server, not by habit.** A repository ruleset covers
+`refs/heads/main` and `refs/heads/dev` with four rules: changes arrive by pull request, the
+`Typecheck, lint, format, test, build` check must be green, no force-push, no deletion.
+`bypass_actors` is empty on purpose, so the owner account is subject to it too — before this,
+CI was decorative: red runs never blocked the merge button, and PR #17 (`build(deps): bump
+graphql from 16.14.2 to 17.0.2`) merged straight into `main` unreviewed, leaving the two
+branches disagreeing about `package.json` until `chore/reunify-dev-with-main` cleaned it up.
+That is what an ungated merge button costs, and it is the failure `dependabot.yml`'s
+`target-branch: dev` comment already records. Three consequences for anyone working here:
+
+- **It is a _ruleset_, not classic branch protection.** `gh api repos/…/branches/main/protection`
+  answers `404 Branch not protected` and that is not the answer to the question — read it back
+  with `gh api repos/f3r21/ravn-task-management-challenge/rulesets`.
+- **`Typecheck, lint, format, test, build` is the _only_ required check.** `Dependency review`
+  and the e2e workflow report without blocking, deliberately: promoting a check to required is
+  a ruleset edit with the whole repository as its blast radius, and a required check that
+  cannot report — the e2e one only fires on a deployment — deadlocks every merge. Decide that
+  separately from adding a workflow.
+- **Approvals are deliberately _not_ required** (`required_approving_review_count: 0`). There is
+  one account here and GitHub forbids approving your own pull request, so requiring even one
+  approval deadlocks the repository outright. Review is a `gh pr review --comment` from a
+  separate session, and the PR template's `Second-session review:` line is the only record that
+  it happened.
+- **The check must be green _against current `dev`_, not against whatever `dev` was when the
+  branch was cut** (`strict_required_status_checks_policy: true`). Two lanes land into `dev`
+  concurrently, so without this a run goes green describing a merge base that no longer exists
+  — issues #27, #35 and #42 all edit `.github/workflows/ci.yml`, and git will catch the
+  textual conflict between them while saying nothing about the semantic one. The cost is real
+  and intended: **every merge into `dev` staleness-marks the other lane's open PR**, which then
+  has to update its branch and re-run the check before it can merge. Combined with zero
+  required approvals that serializes merges rather than deadlocking them. A PR sitting at
+  `mergeStateStatus: BEHIND` is this rule, not a broken build — update the branch, wait for CI.
+
+Merged branches now delete themselves (`deleteBranchOnMerge`), so a branch still on the remote
+means unmerged work, not litter.
+
 This wasn't always the layout. The six brief sections plus the README shipped as eight
 stacked branches, `feat/01-project-setup` → `feat/02-dashboard-ui` → `feat/03-connect-api` →
 `feat/04-create-task` → `feat/05-update-delete` → `feat/06-search-filter` → `feat/07-profile`
@@ -251,12 +382,37 @@ assuming.
 
 ## Claude Code setup in this repo
 
-`.claude/` holds optional extras, none of which the code depends on: `commands/` (`/gate`,
-`/schema-check`, `/rebase-stack` — thin wrappers over the npm scripts), `agents/`, and
-`rules/`, which restate the conventions above. `settings.json` runs `eslint --fix` and
-`prettier --write` on every edit, and a `PreToolUse` hook that blocks a handful of destructive
-bash patterns (`rm -rf /`, force push, `curl | sh`). **Nothing enforces `gate` before a
-commit** — running it is on you.
+`.claude/commands/` (`/gate`, `/schema-check`, `/rebase-stack`, `/start-issue`, `/finish-issue`
+— thin wrappers over the npm scripts and the issue workflow) and `.claude/rules/`
+(`bonus-points`, `code-review`, `graphql-api`, `ui-kit`) are optional extras the code does not
+depend on; the rules restate the conventions above, and `ui-kit.md` exists because the
+fix-it-in-the-kit rule was previously carried only in host-local agent memory, one machine away
+from being lost.
+
+`.claude/hooks/` is not optional in the same way — `scripts/hooks.test.mjs` runs inside
+`npm run gate`, so deleting either script fails the build. `format-file.sh` (`PostToolUse`)
+runs ESLint and Prettier over the file just edited; `block-dangerous.sh` (`PreToolUse`) refuses
+a recursive forced `rm` aimed at `/` or `$HOME`, a plain force push, and a download piped into
+a shell.
+
+**Both of those read their payload as JSON on stdin, and that is the whole point of the test.**
+The pair shipped in `7ff3376` did not: the formatters interpolated a `$FILE_PATH` that Claude
+Code never sets, and the safety hook read `$1` when a `PreToolUse` hook is passed no positional
+arguments. Installed, running, exiting 0, and completely inert — a state nothing in `gate`
+could distinguish from a working hook, which is why `hooks.test.mjs` now drives both the way
+Claude Code drives them. A denial is also a `permissionDecision` object on stdout, never a
+non-zero exit: any exit code other than 2 is a _non-blocking_ error, so the old `exit 1` would
+have printed its refusal and then run the command.
+
+`permissions.deny` in `settings.json` keeps `package-lock.json`, `coverage/`, `dist/` and
+`node_modules/` out of context. `.claudeignore`, which used to claim that job, is not a Claude
+Code feature and never excluded anything. Note the reach of a `Read()` rule: it also covers
+Edit, Write, Glob, Grep and the shell's own readers, so reading a dependency's source now takes
+a deliberate change here rather than a `cat`.
+
+**Nothing enforces `gate` before a commit** — running it is on you. It _is_ enforced before a
+merge (see "Branch layout"), but finding out in CI costs a push and a five-minute round trip to
+learn what four minutes locally would have told you.
 
 ## Not built
 
