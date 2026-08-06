@@ -2,7 +2,9 @@ import { isInaccessible } from '@testing-library/dom'
 import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react'
 import { graphql, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
+import type { TasksQueryVariables, UpdateTaskMutationVariables } from '@/graphql/generated/graphql'
 import { server } from '@/mocks/server'
+import { taskStore } from '@/mocks/task-store'
 import { renderApp, userEvent } from '@/test/test-utils'
 
 async function renderBoard() {
@@ -78,6 +80,90 @@ describe('editing a task', () => {
 
     expect(await screen.findByRole('heading', { name: 'Slack integration' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Slack' })).not.toBeInTheDocument()
+  })
+
+  it('does not resend a stale name when a second edit starts before the refetch lands', async () => {
+    // The save is confirmed to the user the moment the mutation resolves — the
+    // dialog closes, the toast fires — but the list refetch it triggers is a second
+    // round trip, and `useTasks` keeps the previous result on screen for the whole
+    // of it. So unless the response is written into the cache, the board spends that
+    // window still rendering the pre-save card, mounted and clickable. Re-open it
+    // and the form seeds from that stale Task; save again and every field goes back,
+    // including the name the server has already changed. Two "Task updated" toasts,
+    // no error, and the rename is gone.
+    //
+    // The window is real but latency-gated in the wild, so it is held open here
+    // rather than waited for: the first `Tasks` response paints the board, every
+    // refetch after it blocks until this test says otherwise. That makes the race
+    // deterministic instead of dependent on how fast the machine running it is.
+    let releaseRefetches = () => {}
+    const refetchGate = new Promise<void>((resolve) => {
+      releaseRefetches = resolve
+    })
+    let refetches = 0
+    let refetchesAnswered = 0
+    const namesSent: (string | null | undefined)[] = []
+
+    server.use(
+      graphql.query<Record<string, unknown>, TasksQueryVariables>(
+        'Tasks',
+        async ({ variables }) => {
+          refetches += 1
+          if (refetches > 1) {
+            await refetchGate
+            refetchesAnswered += 1
+          }
+          return HttpResponse.json({ data: { tasks: taskStore.listTasks(variables.input) } })
+        },
+      ),
+      graphql.mutation<Record<string, unknown>, UpdateTaskMutationVariables>(
+        'UpdateTask',
+        ({ variables }) => {
+          namesSent.push(variables.input.name)
+          return HttpResponse.json({ data: { updateTask: taskStore.updateTask(variables.input) } })
+        },
+      ),
+    )
+
+    const user = await renderBoard()
+
+    await chooseAction(user, 'Slack', 'Edit')
+    const renameDialog = await screen.findByRole('dialog')
+    const title = within(renameDialog).getByRole('textbox', { name: /task title/i })
+    await user.clear(title)
+    await user.type(title, 'Slack integration')
+    await user.click(within(renameDialog).getByRole('button', { name: 'Save' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    // The same card again, reached by its place in the column rather than by name:
+    // which name it is carrying at this point is the whole question, so the test
+    // cannot use it to find the card without deciding the answer in advance.
+    const todo = screen.getByRole('region', { name: /todo/i })
+    await user.click(within(todo).getAllByRole('button', { name: /^task options for /i })[0])
+    await user.click(await screen.findByRole('menuitem', { name: 'Edit' }))
+    const statusDialog = await screen.findByRole('dialog')
+
+    await user.click(within(statusDialog).getByRole('button', { name: /status/i }))
+    await user.click(await screen.findByRole('option', { name: 'Cancelled' }))
+    await user.click(within(statusDialog).getByRole('button', { name: 'Save' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    releaseRefetches()
+    await waitFor(() => {
+      expect(refetchesAnswered).toBe(refetches - 1)
+    })
+
+    // The second save carried the name the first one established, not the one the
+    // board was still painting.
+    expect(namesSent).toEqual(['Slack integration', 'Slack integration'])
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Slack' })).not.toBeInTheDocument()
+    })
+    expect(screen.getByRole('heading', { name: 'Slack integration' })).toBeInTheDocument()
   })
 
   it('leaves the fields it was not asked to change alone', async () => {
