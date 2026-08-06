@@ -65,6 +65,13 @@ function readBrowserFloor() {
  * are not the API as written. `version_added: true` does ("supported, version
  * unknown") — treating it as unsupported would restrict a long tail of APIs that
  * have been in every browser since before MDN started counting.
+ *
+ * A *partial* implementation counts as support, and every statement is considered
+ * rather than only the first. The question this rule answers is "does calling this
+ * throw", not "is it perfect": `AbortSignal.timeout` is the worked example — MDN
+ * carries two Chrome statements, a correct one from 124 and a partial one from 103
+ * that it replaced. Reading only the first makes it unsupported at chrome 111 and
+ * fires on a call that works there, aborting with the wrong error name at worst.
  */
 function isSupportedAtFloor(support, floorVersion) {
   const statements = support === undefined ? [] : Array.isArray(support) ? support : [support]
