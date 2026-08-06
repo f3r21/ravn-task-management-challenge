@@ -107,9 +107,32 @@ jobs:
             fi
           done
           TOTAL=0
+          COUNTED=0
+          NAMED=$(grep -oE '/assets/[^"]+\.js' dist/index.html | sort -u | wc -l | tr -d ' ')
           for f in $(grep -oE '/assets/[^"]+\.js' dist/index.html | sort -u); do
-            TOTAL=$((TOTAL + $(wc -c < "dist$f")))
+            # Guarded rather than inlined into the arithmetic. `$((TOTAL + $(wc -c
+            # < missing)))` is an arithmetic syntax error, and under GitHub's
+            # default `bash -e` that aborts only the enclosing loop, not the step:
+            # every remaining asset is skipped, TOTAL keeps a partial sum, the
+            # zero-guard below does not fire because TOTAL != 0, and the budget
+            # passes on a number that measured half the bundle. The step still
+            # exits 0. The trigger is any `/assets/*.js` in the emitted HTML that
+            # is not a local build artifact — a third-party script URL, or a
+            # change in output layout.
+            SZ=$(wc -c < "dist$f" 2>/dev/null) || {
+              echo "::error::dist$f is named in index.html but is not on disk"
+              FAILED=1
+              continue
+            }
+            TOTAL=$((TOTAL + SZ))
+            COUNTED=$((COUNTED + 1))
           done
+          # Counted against named, so a skipped asset is loud even if the sum it
+          # left behind happens to sit under the budget.
+          if [ "$COUNTED" -ne "$NAMED" ]; then
+            echo "::error::counted $COUNTED of $NAMED first-load scripts — the total is incomplete"
+            FAILED=1
+          fi
           printf '%8d B  first-load JS (entry + modulepreload)\n' "$TOTAL"
           # Zero means the HTML stopped naming its assets the way this expects,
           # not that the bundle got small. Without this the check would quietly
