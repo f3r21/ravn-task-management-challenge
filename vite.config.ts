@@ -51,25 +51,29 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
-    // `@ravn/ui-kit` is a `file:` dependency pointing at a sibling checkout with its
-    // own `node_modules` — Node resolves `react`/`react-dom` from *that* copy before
-    // walking up to this project's, so any hook a kit component calls throws
-    // "Invalid hook call" (two React instances, two dispatchers). `dedupe` forces
-    // both import graphs onto this project's single copy of each.
+    // Guards the *other* way `@ravn/ui-kit` gets consumed. As committed, the
+    // dependency is `file:./vendor/ravn-ui-kit` — a built copy with no
+    // `node_modules` of its own — so every bare specifier already resolves up to
+    // this project's single install and this list is a no-op. Working on the kit
+    // means switching to `file:../ravn-ui-kit` (see `vendor/ravn-ui-kit/README.md`),
+    // and the sibling checkout *does* have its own `node_modules`. Then:
     //
-    // `react-aria`/`react-stately` need an entry here too, now that `@ravn/ui-kit`'s
-    // build imports them as bare specifiers instead of bundling their source (see
-    // `UI_KIT_MIGRATION_PLAN.md`'s Phase 1 retry writeup). The kit's own
-    // `package.json` lists both as peerDependencies *and* devDependencies — the
-    // devDependency copy is not a mistake to chase upstream, it's what the kit's own
-    // Storybook/vitest run against — so `node_modules/@ravn/ui-kit/node_modules/react-aria`
-    // genuinely exists and is a second, physically distinct installed copy at the
-    // same version as this project's own. Same shape of problem as `react`/`react-dom`
-    // above, one layer removed: a duplicate *installed* copy rather than duplicated
-    // bundled source. Without this entry, React Aria's `FocusScope` context
-    // (module-scoped) exists twice, and a `FocusScope` rendered by one of this app's
-    // own components (e.g. `Select`'s popover) can never be recognised as nested
-    // inside a `FocusScope` the kit's `Modal` renders.
+    // - Node resolves `react`/`react-dom` from that copy before walking up to this
+    //   project's, so any hook a kit component calls throws "Invalid hook call" —
+    //   two React instances, two dispatchers.
+    // - `react-aria`/`react-stately` need entries for the same reason, one layer
+    //   removed. The kit's build imports them as bare specifiers rather than
+    //   bundling their source, and its `package.json` lists both as peerDependencies
+    //   *and* devDependencies — the devDependency copy is not a mistake to chase
+    //   upstream, it is what the kit's own Storybook and vitest run against. So a
+    //   second, physically distinct install exists at the same version, React Aria's
+    //   module-scoped `FocusScope` context exists twice, and a `FocusScope` rendered
+    //   by one of this app's own components (e.g. `Select`'s popover) can never be
+    //   recognised as nested inside one the kit's `Modal` renders.
+    //
+    // Kept rather than deleted because that switch is a one-line `package.json` edit
+    // a kit author makes routinely, and the failure it prevents reads as a bug in the
+    // component rather than in how it was installed.
     dedupe: ['react', 'react-dom', 'react-aria', 'react-stately'],
   },
   test: {
