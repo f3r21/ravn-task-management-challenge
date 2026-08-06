@@ -40,15 +40,16 @@ switch on.
 
 ### Commands
 
-| Command                | What it does                                                   |
-| ---------------------- | -------------------------------------------------------------- |
-| `npm run dev`          | Dev server                                                     |
-| `npm run build`        | Typecheck, then production build                               |
-| `npm test`             | Test suite                                                     |
-| `npm run coverage`     | Tests with the 85% coverage gate                               |
-| `npm run gate`         | Typecheck, lint, format check, coverage — what CI runs         |
-| `npm run codegen`      | Regenerate GraphQL types from `schema.graphql`                 |
-| `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted |
+| Command                | What it does                                                    |
+| ---------------------- | --------------------------------------------------------------- |
+| `npm run dev`          | Dev server                                                      |
+| `npm run build`        | Typecheck, then production build                                |
+| `npm test`             | Test suite                                                      |
+| `npm run test:e2e`     | One Playwright spec against a deployment — needs `E2E_BASE_URL` |
+| `npm run coverage`     | Tests with the 85% coverage gate                                |
+| `npm run gate`         | Typecheck, lint, format check, coverage — what CI runs          |
+| `npm run codegen`      | Regenerate GraphQL types from `schema.graphql`                  |
+| `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted  |
 
 ## What it does
 
@@ -318,9 +319,17 @@ options menu, which exercises the same `updateTask` mutation a drop would.
 
 ## Testing
 
-247 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
-threshold on every metric; CI runs the same thing, plus a production build, on every pull
-request.
+287 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
+threshold on every metric; CI runs the same thing, plus a production build, a bundle-size
+budget and `npm audit --audit-level=high`, on every pull request.
+
+Dependencies get a second look on the way in. A separate `Dependency review` workflow fails
+a pull request that introduces a package carrying a high-severity advisory in GitHub's
+database — a different feed from npm's, read against the diff rather than the installed
+tree, so it names the dependency this change added. That matters here because Dependabot
+opens _grouped_ bumps, and a group is exactly where one bad package rides in behind fourteen
+harmless ones. The two checks share a severity threshold on purpose: two gates disagreeing
+about what counts as a problem is how a pipeline stops being read.
 
 The suite pins `VITE_API_URL`/`VITE_API_TOKEN` empty in `vite.config.ts`'s `test.env`, so it
 always runs against the MSW mock. That is not belt-and-braces — Vitest loads `.env` through
@@ -343,6 +352,30 @@ Several defects here were found only by driving the app in a real browser rather
 trusting jsdom — a multi-select that cleared previous selections on each pick, an Escape
 key that closed a dialog along with the dropdown inside it, and an unhandled promise
 rejection every test happily passed through. Each has a regression test now.
+
+**One end-to-end spec, against a deployment.** `e2e/deployed-proxy.spec.ts` creates a task,
+filters the board to it, edits it and deletes it, in a real browser, against a real Vercel
+URL. It is the only test in the repository that touches `api/graphql.ts` as it actually
+runs: nothing imports that file — the app posts to a URL — so no amount of unit testing
+reaches it. It has already failed in a way only this could catch, exported as a default
+handler that Vercel read as `(req, res) => void`, discarding the `Response` and hanging
+every request while the types, the unit test and the local build all stayed green.
+
+`E2E_BASE_URL` is required and has no default, localhost least of all: a fallback to
+`npm run dev` would make this a slow, flaky duplicate of the suite above, passing while
+proving nothing about a deployment. The last assertion checks that the run actually went
+through `/api/graphql`, which is what makes a local run fail on purpose — pointing it at a
+dev server is useful only for proving the selectors still match after a UI change.
+
+It is one spec, not a suite, and that is a decision rather than a stopping point. Every
+additional flow would re-test components jsdom already covers, at a hundred times the cost,
+and would write to a board RAVN can see — so the spec removes what it created even when it
+fails partway through.
+
+`.github/workflows/e2e.yml` runs it on every successful deployment, and can be dispatched by
+hand against any URL. The automatic half only fires once the workflow file is on `main`,
+because that is GitHub's rule for `deployment_status` events; the manual half is what makes
+it usable before then.
 
 The traffic goes both ways, which is the more useful lesson. jsdom does not reflect the
 `inert` property to an attribute and does not evaluate media queries, so it will call a

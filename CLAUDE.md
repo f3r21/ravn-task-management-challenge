@@ -15,6 +15,7 @@ npm run build          # tsc --noEmit, then a production bundle. CI runs this to
 npm test               # the suite, once
 npm run codegen        # regenerate src/graphql/generated/ from schema.graphql
 npm run schema:check   # re-introspect the live API and fail if schema.graphql has drifted
+npm run test:e2e       # one Playwright spec against a DEPLOYMENT. Needs E2E_BASE_URL — see below
 ```
 
 Running less than everything:
@@ -30,8 +31,17 @@ npx vitest run --coverage src/lib          # coverage over a subset (thresholds 
 someone else's server is having a bad afternoon is not a signal about this code. It only
 **checks** — updating `schema.graphql` is by hand, then `npm run codegen`.
 
+`test:e2e` is outside `gate` for a harder reason than `schema:check`: it needs a deployment,
+not just a network. `E2E_BASE_URL` is required with no default and no localhost fallback,
+because a fallback would turn the one test that reaches `api/graphql.ts` into a slow copy of
+the unit suite. Pointing it at `npm run dev` is legitimate for exactly one purpose — proving
+the selectors still match after a UI change — and it will still fail its last assertion,
+which is the one checking the run went through `/api/graphql`. See "The e2e spec" below.
+
 CI runs `gate` plus `build` on every pull request, not only those targeting `main` — a stacked
-PR needs checks most, because its base has not landed yet.
+PR needs checks most, because its base has not landed yet. Two more workflows sit beside it:
+`dependency-review.yml` (every PR, advisory check on the dependencies the diff adds) and
+`e2e.yml` (every successful deployment, plus manual dispatch).
 
 ## Architecture
 
@@ -168,6 +178,30 @@ from counting as source and inflating every metric toward ~99%. `mocks/` and `ge
 excluded from the _metric_ but `task-store.test.ts` still pins the fake's filter semantics
 directly, because the filter tests trust it to narrow correctly.
 
+### The e2e spec
+
+`e2e/` is Playwright's, `src/` is Vitest's, and the boundary is enforced in three places
+because nothing else keeps two test runners out of each other's files:
+
+- **`vite.config.ts` excludes `e2e/**`.** Vitest's default `include` matches `*.spec.ts` at
+  any depth, so without it `npm test` collects the Playwright file and fails the entire run
+  with "Playwright Test did not expect test() to be called here" — a message listing four
+  causes, none of them "a second runner picked this up".
+- **`e2e/tsconfig.json` is a third project**, alongside the root one and `api/`, for the same
+  reason `api/` has its own: this code runs in Node and must not see the DOM lib. `typecheck`
+  builds all three.
+- **`e2e/playwright.config.ts` lives beside the spec**, not at the root, so that tsconfig
+  covers it and typescript-eslint's project service finds it by walking up.
+
+One spec, `deployed-proxy.spec.ts`: create → filter → edit → delete, in a browser, against a
+deployment. It is the only test that reaches `api/graphql.ts` as it actually runs — nothing
+imports that file, so no unit test can. It writes to RAVN's live board through the proxy and
+deletes what it created, including from `test.afterEach` when the assertions never got that
+far; a leftover `e2e smoke <token>` card means a run died mid-flight.
+
+Adding a second spec is almost always the wrong move. Everything else is already covered in
+jsdom, faster and more precisely, and each extra flow is more live mutation.
+
 ## Conventions
 
 - **No test ids.** Query by role, label and text — the things a user perceives. A test reaching
@@ -247,6 +281,11 @@ That is what an ungated merge button costs, and it is the failure `dependabot.ym
 - **It is a _ruleset_, not classic branch protection.** `gh api repos/…/branches/main/protection`
   answers `404 Branch not protected` and that is not the answer to the question — read it back
   with `gh api repos/f3r21/ravn-task-management-challenge/rulesets`.
+- **`Typecheck, lint, format, test, build` is the _only_ required check.** `Dependency review`
+  and the e2e workflow report without blocking, deliberately: promoting a check to required is
+  a ruleset edit with the whole repository as its blast radius, and a required check that
+  cannot report — the e2e one only fires on a deployment — deadlocks every merge. Decide that
+  separately from adding a workflow.
 - **Approvals are deliberately _not_ required** (`required_approving_review_count: 0`). There is
   one account here and GitHub forbids approving your own pull request, so requiring even one
   approval deadlocks the repository outright. Review is a `gh pr review --comment` from a
