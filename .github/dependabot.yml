@@ -43,6 +43,12 @@ updates:
       # at least one advisory range, so the version here is a deliberate choice
       # rather than "whatever resolves". A Dependabot bump would silently undo
       # that — upgrade it by hand, after checking the advisories.
+      #
+      # re-check by 2026-11-05. A manual-upgrade pin with nothing scheduling the
+      # manual part is a pin that rots: the advisories that justified it are a
+      # snapshot of 2026, and the entry that suppresses the reminder is the same
+      # entry that would otherwise be the reminder. Move the date forward when
+      # the pin is re-examined, whatever the answer — including "still pinned".
       - dependency-name: react-router
       # A `file:` dependency on the sibling design-system repo. Dependabot cannot
       # resolve it and re-syncing it is a manual, documented procedure
