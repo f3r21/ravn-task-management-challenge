@@ -265,10 +265,11 @@ cannot quietly reach past the system for a raw hex. Icons are the design's own S
 with the baked `fill` swapped for `currentColor`, so colour still comes from the token layer.
 
 **The brand's own call-to-action fails WCAG AA, and it ships that way.** The kit's palette
-pass ended with 16 accepted `colour-contrast` violations from an axe sweep over the built
-Storybook, every one of them `TextButton variant="primary"` — 14 on its `primary-4` fill at
-**3.83:1** against 1.4.3's 4.5:1 for normal text, and 2 more on the `primary-3` fill its
-selected state uses, at 2.83:1.
+pass ended with 14 accepted `colour-contrast` violations from an axe sweep over the built
+Storybook — all of them the same pairing, `text-main` on the `primary-4` fill, at **3.83:1**
+against 1.4.3's 4.5:1 for normal text. Twelve are `TextButton variant="primary"` stories; the
+other two are a `FloatingPopover` story whose hand-rolled trigger reproduces the same fill
+rather than using the component, so they are the same defect counted where it was drawn.
 
 They are accepted rather than fixed because there is nowhere to move. No label colour clears
 it: the darkest value in the entire palette, `neutral-5` (`#222528`), reaches only 4.02:1.
