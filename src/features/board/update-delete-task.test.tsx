@@ -191,6 +191,33 @@ describe('editing a task', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
+  it('reports a failed save in a notification as well, since the dialog can be dismissed', async () => {
+    // §4 asks for a notification saying whether the request succeeded *or failed*.
+    // The inline alert above is the primary report and stays — it keeps the reason
+    // beside the form — but it leaves with the dialog, and the dialog is
+    // dismissible, so a user who closes it would otherwise be left with no record
+    // that the save failed at all. Deleting has always reported both ways.
+    server.use(
+      graphql.mutation('UpdateTask', () =>
+        HttpResponse.json({ errors: [{ message: 'Task is locked' }] }),
+      ),
+    )
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Edit')
+    const dialog = await screen.findByRole('dialog')
+
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    // Scoped to the notification region rather than queried by its text, because
+    // the same message is on screen twice — once inline, once here. Reaching the
+    // region by role is the second half of the assertion: it is portalled outside
+    // the open modal, and React Aria hides everything out there from assistive tech
+    // unless the region marks itself exempt.
+    const alerts = await screen.findByRole('region', { name: 'Alerts' })
+    expect(within(alerts).getByText('Task is locked')).toBeInTheDocument()
+    expect(within(dialog).getByRole('alert')).toHaveTextContent(/task is locked/i)
+  })
+
   it('cancels without changing anything', async () => {
     const user = await renderBoard()
     await chooseAction(user, 'Slack', 'Edit')
