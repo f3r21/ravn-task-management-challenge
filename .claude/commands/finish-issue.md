@@ -2,6 +2,13 @@ Finish an issue and hand it off. Takes the issue number as an argument.
 
 1. `npm run gate` — green, zero failures.
 2. Commit with conventional commits, one concern each, `Closes #<n>` in the final one.
+
+   **That keyword will not close anything by itself here.** GitHub only auto-closes a linked
+   issue when the pull request merges into the repository's _default_ branch — which is `main`,
+   while every lane PR targets `dev`. The keyword still earns its place: it records the link on
+   both the issue and the PR. But **the reviewer closes app issues by hand on merge**, and until
+   they do, an open issue is not evidence of unfinished work.
+
 3. Push to the lane's integration branch.
 4. Post the handoff comment on the issue. **Use this shape exactly** — the next session reads the "Now true that wasn't" line and little else survives the boundary:
 
