@@ -1,0 +1,54 @@
+name: Dependency review
+
+# Pull requests only, and that is a property of the action rather than a choice:
+# it compares the dependency graph of the base against the head, so an event with
+# no two sides to compare gives it nothing to do. On a push it would need
+# `base-ref`/`head-ref` supplied by hand, which is a worse version of what a pull
+# request already provides.
+on: pull_request
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege, same reasoning as `ci.yml`: the repository default is a
+# setting rather than a guarantee. `contents: read` is all the action needs — it
+# reads the comparison from the Dependency Review API, and deliberately does not
+# get `pull-requests: write`, so a finding lands as a job annotation rather than
+# as a comment the workflow needs write access to post.
+permissions:
+  contents: read
+
+jobs:
+  # Not a required status check. The ruleset over `dev` and `main` requires only
+  # `Typecheck, lint, format, test, build`, so until this job is added there it
+  # reports without blocking — that is a ruleset change, not a change to this
+  # file, and it is deliberately a separate decision from adding the check.
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Pinned to the same major as `ci.yml` and the sibling `ravn-ui-kit`
+      # workflow. Bump in lockstep or not at all.
+      - uses: actions/checkout@v4
+
+      # What this adds over `npm audit --audit-level=high`, which `ci.yml`
+      # already runs: `audit` answers "is anything in the installed tree
+      # vulnerable", against npm's advisory feed. This answers "does *this pull
+      # request* introduce it", against GitHub's Advisory Database — a different
+      # feed, published on a different schedule — and names the dependency the
+      # diff added rather than something that was already there. Dependabot
+      # opens grouped bumps (see `dependabot.yml`), and a group is exactly where
+      # one advisory-carrying package rides in behind fourteen harmless ones.
+      #
+      # Licences are deliberately not checked. The dependency set is ordinary
+      # MIT/ISC tooling, and an allow-list nobody has agreed to is a check that
+      # gets bypassed the first time it fires.
+      - uses: actions/dependency-review-action@v5
+        with:
+          # Matched to `npm audit --audit-level=high` on purpose. Two checks in
+          # one pipeline disagreeing about what counts as a problem is how a
+          # pipeline stops meaning anything: a change blocked here and waved
+          # through there teaches people to read neither.
+          fail-on-severity: high
