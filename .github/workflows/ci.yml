@@ -38,9 +38,10 @@ jobs:
       # same. Bump them in lockstep, in both repositories, or not at all.
       - uses: actions/checkout@v4
 
-      # `node-version` is the one thing NOT copied from the kit, which builds on
-      # 20: this app's `engines` field requires >=22.13.0, so 20 would install
-      # dependencies CI could not then run.
+      # Kept in step with `.nvmrc`, which pins the same major for local `nvm use`.
+      # The kit reaches 22 too, via `node-version-file: .nvmrc` on its foundation
+      # branch — so this is no longer a deliberate divergence, and the two should
+      # move together. `engines` here requires >=22.13.0.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
