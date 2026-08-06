@@ -6,7 +6,7 @@
   "description": "Task management dashboard for the RAVN frontend code challenge.",
   "license": "MIT",
   "engines": {
-    "node": ">=22.13.0"
+    "node": "^22.13.0"
   },
   "scripts": {
     "dev": "vite",
