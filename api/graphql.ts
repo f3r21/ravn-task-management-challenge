@@ -59,8 +59,24 @@ import {
 export const UPSTREAM_URL = 'https://syn-api-production-e95c.up.railway.app/graphql'
 
 /**
- * Long enough for a cold Railway dyno, short enough to fail before the platform
- * kills the function and returns its own opaque error page instead of ours.
+ * How long the proxy waits for RAVN's API before giving up on it.
+ *
+ * Two clocks run over an invocation and whichever expires first decides what
+ * the visitor sees: `AbortSignal.timeout` produces the `504` below, in the
+ * shape the app renders, while the platform killing the function produces its
+ * own opaque error page. This value is what keeps the first one winning, and
+ * the margin is far wider than the size of the number suggests — wide enough
+ * that the older wording here, "short enough to fail before the platform kills
+ * the function", read as a close-run thing it never was. Fluid compute is on
+ * for this project and no `maxDuration` is set, in `vercel.json` or on the
+ * project, so the platform's budget is its 300 s default, which is also Hobby's
+ * maximum.
+ *
+ * Ten seconds is therefore not a race against the platform at all. It is a
+ * judgement about how long a visitor should be asked to wait: long enough to
+ * let a cold Railway dyno wake up, short enough that a stalled API becomes a
+ * message on the board rather than a spinner nobody outlasts. Changing it
+ * spends a visitor's patience, not the function's budget.
  */
 const TIMEOUT_MS = 10_000
 
