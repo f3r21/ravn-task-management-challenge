@@ -14,7 +14,8 @@ Finish an issue and hand it off. Takes the issue number as an argument.
    both the issue and the PR. But **the reviewer closes app issues by hand on merge**, and until
    they do, an open issue is not evidence of unfinished work.
 
-3. Push to the lane's integration branch.
+3. Push the lane's branch — the one under review — then open or refresh its pull request into
+   `dev`. (`dev` itself is the integration branch and the ruleset rejects a direct push to it.)
 
    **Before waiting on any condition, name who can satisfy it, and confirm it is not you.** If the
    answer is "the party waiting on me", that is a deadlock rather than a dependency — push, and
@@ -52,18 +53,17 @@ Finish an issue and hand it off. Takes the issue number as an argument.
 
    **When two layers enforce the same rule, check them against each other with a case each is
    meant to judge differently.** A hook's careful regex is worth nothing if a permission glob
-   above it is coarser. List the commands one allows and the other denies; if that list is not
-   empty and not deliberate, one of them is wrong. `block-dangerous.sh` excludes
-   `--force-with-lease` deliberately and says why in a comment; a blunter `permissions.deny` glob
-   above it overrode that reasoning silently, and the cruder layer won because nobody had ever run
-   the two against the same command.
+   above it is coarser — that is the step 3 stall seen from the other side. List the commands one
+   allows and the other denies; if that list is not empty and not deliberate, one of them is
+   wrong. Which layers this repo has, and how they disagreed, is in `CLAUDE.md` under "Claude Code
+   setup in this repo".
 
 5. Post the handoff comment on the issue. **Use this shape exactly** — the next session reads the "Now true that wasn't" line and little else survives the boundary:
 
 ```markdown
 ### HANDOFF
 
-- **Merged as:** <sha>
+- **Pushed as:** <branch @ sha, PR #n — the reviewer records the merge, you cannot>
 - **Touched:** <files, one line>
 - **Decided:** <decision → reason, one line each. Omit if none.>
 - **Now true that wasn't:** <new export / new script / changed contract. The other lane reads this.>
@@ -83,7 +83,7 @@ That comment is also the only liveness signal a lane emits today, which is why i
 when the answer is "nothing beyond the diff". Replacing that with something not dependent on
 remembering is #54.
 
-6. If this PR changed **how anyone else builds, tests or merges** — CI, the gate, the `@ravn/ui-kit` dependency contract, branch protection, or this file — update `CLAUDE.md` **in the same PR**. Otherwise that knowledge lives only in an issue the other lanes will never read.
+6. If this PR changed **how anyone else builds, tests or merges** — CI, the gate, the `@ravn/ui-kit` dependency contract, branch protection, or either of the issue commands (`/start-issue`, `/finish-issue`) — update `CLAUDE.md` **in the same PR**. Otherwise that knowledge lives only in an issue the other lanes will never read.
 7. From the deploy onward, check the **Vercel preview URL**, not just localhost. Several defects in this repo's history were invisible against the mock.
 
 **Scope any subagent you dispatch to the codebase.** Capability questions about the harness are

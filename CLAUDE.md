@@ -360,9 +360,8 @@ Break the code, watch the test fail, restore. Two rules learned the hard way:
 - **Target the right function.** A sabotage applied to `handleCreate` will not fail a test about
   `handleEdit`, and the passing test looks like a toothless one.
 
-Both of those are about the local loop. **The CI counterpart is `/finish-issue` step 4**: a check
-that runs on a runner is proved on the runner, with the failing run URL recorded in the PR body,
-because "green locally" is the precise state that has misled here before.
+Both of those are about the local loop. **The CI counterpart is the sabotage-on-a-real-runner step
+of `/finish-issue`**, which is where that procedure lives.
 
 ## Branch layout
 
@@ -428,17 +427,15 @@ assuming.
 above and nothing in the build depends on it; `ui-kit.md` exists because the fix-it-in-the-kit rule
 was previously carried only in host-local agent memory, one machine away from being lost.
 
-`.claude/commands/` is two different kinds of file under one directory. `/gate`, `/schema-check`
-and `/rebase-stack` are thin wrappers over the npm scripts. **`/start-issue` and `/finish-issue`
-are not.** They carry the process rules Foundation paid for, and for most of those they are the
-only copy in the repository: confirm a gate can open before waiting on it, re-take a reading
-instead of recalling it, prove a new check has teeth by watching it fail on a real runner, name
-which of type / lint rule / component contract / timing guarantee crossed the lane boundary, and
-keep a dispatched subagent's scope off the harness itself. That is `ui-kit.md`'s failure mode one
-level up — a rule surviving only in a transcript is a rule already lost — and it is why editing
-either file is itself on the list of changes that require updating this document in the same PR.
-`ravn-ui-kit` keeps its own deliberately diverging copies, and each file now opens by naming its
-sibling and the differences that are real; port a rule across by hand, never the file.
+`.claude/commands/` is two different kinds of file under one directory. `/gate` and
+`/schema-check` are thin wrappers over the npm scripts; `/rebase-stack` is a procedure over the
+eight stacked branches "Branch layout" says were merged and deleted, so it describes a layout that
+no longer exists. **`/start-issue` and `/finish-issue` are neither.** They are where this project's
+process rules live, and for most of them the only copy in the repository — deadlocked gates, stale
+readings, checks never observed failing, the four couplings that cross a lane boundary invisibly,
+and the scope of a dispatched subagent. That is `ui-kit.md`'s failure mode one level up: a rule
+surviving only in a transcript is a rule already lost. `ravn-ui-kit` keeps its own deliberately
+diverging copies, and each file opens by naming its sibling and the differences that are real.
 
 `.claude/hooks/` the build _does_ depend on — `scripts/hooks.test.mjs` runs inside
 `npm run gate`, so deleting either script fails the build. `format-file.sh` (`PostToolUse`)
@@ -462,9 +459,18 @@ on `main` and `dev`. The middle layer is per-machine and **gitignored**, so it d
 agreement with the hook and nothing in the repository can see that it has. A `Bash(git push
 --force*)` glob there matched `--force-with-lease` — the glob does not stop at the word — and
 `deny` offers no prompt, so a lane that had rebased correctly could not push at all and simply
-stopped. Touch any one of the three and run the other two against a command they are meant to
-judge differently; the coarser layer wins silently, and its blast radius is every session on the
-machine rather than this repository.
+stopped. The coarser layer wins silently, and its blast radius is every session on the machine
+rather than this repository. `/finish-issue` carries the rule that follows from it; what belongs
+here is that these are the three, and that only one of them is visible to review.
+
+**The glob layer is weaker than it reads, and the hook has holes the glob cannot cover.** Claude
+Code matches Bash rules per _subcommand_, splitting on `&&`, `||`, `;`, `|`, `|&`, `&` and
+newlines, so a deny rule that itself contains a separator can never match one — which is why
+`Bash(curl * | sh*)` and its two siblings in `settings.local.json` are very likely inert, and why
+the hook is what actually stops a piped download. In the other direction the hook's
+`git … push` regex models a global option as one attached token, so `git -C <path> push --force`
+matches neither the hook nor any deny glob, while `Bash(git *)` positively allows it. Neither
+layer covers the other; see #63.
 
 `permissions.deny` in `settings.json` keeps `package-lock.json`, `coverage/`, `dist/` and
 `node_modules/` out of context. `.claudeignore`, which used to claim that job, is not a Claude
