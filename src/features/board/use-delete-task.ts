@@ -18,8 +18,11 @@ export function useDeleteTask(): UseMutationResult<{ id: string }, Error, string
       const data = await request(DeleteTaskDocument, { input: { id } })
       return data.deleteTask
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: taskKeys.all })
+    onSuccess: () => {
+      // Not awaited — see `use-create-task.ts` for why. The confirmation dialog
+      // would otherwise stay open, with its Delete button disabled, for a whole
+      // extra round trip after the task was already gone.
+      void queryClient.invalidateQueries({ queryKey: taskKeys.all })
     },
   })
 }

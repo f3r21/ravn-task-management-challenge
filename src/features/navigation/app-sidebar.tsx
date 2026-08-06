@@ -1,17 +1,46 @@
 import { NavLink } from 'react-router'
 import { cn } from '@/lib/cn'
-import { GridViewIcon, ListViewIcon, LogoMark } from '@/ui/icons/icons'
+import {
+  AssigneeIcon,
+  CalendarIcon,
+  CommentIcon,
+  GridViewIcon,
+  ListViewIcon,
+  LogoMark,
+} from '@/ui/icons/icons'
 
 interface NavItem {
   to: string
   label: string
   icon: typeof GridViewIcon
+  /**
+   * A destination §2 asks to exist without asking for anything behind it.
+   * `routes.tsx` builds these routes from this very list, so a nav item cannot
+   * end up pointing at a path with nothing there.
+   */
+  isPlaceholder?: boolean
 }
 
-/** The destinations, in the order the design lists them. */
+/**
+ * The destinations.
+ *
+ * The first two are the app; the rest are sample pages. §2 asks for "the list of
+ * menu navigation items (most of them can navigate to a placeholder/sample
+ * page)", which only makes sense with more items than the brief's six sections
+ * build — a two-item menu is not a list most of which goes anywhere sample.
+ *
+ * Five in total, and the count is a constraint rather than a preference: below
+ * the medium breakpoint this nav is a horizontal strip sharing one line with the
+ * logo, and at 375px it runs out of room shortly after this. Anything added here
+ * has to be checked at that width in a browser — jsdom evaluates no media
+ * queries, so no test in this repo can see the strip layout at all.
+ */
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Dashboard', icon: GridViewIcon },
   { to: '/settings', label: 'My task', icon: ListViewIcon },
+  { to: '/calendar', label: 'Calendar', icon: CalendarIcon, isPlaceholder: true },
+  { to: '/team', label: 'Team', icon: AssigneeIcon, isPlaceholder: true },
+  { to: '/messages', label: 'Messages', icon: CommentIcon, isPlaceholder: true },
 ]
 
 /**

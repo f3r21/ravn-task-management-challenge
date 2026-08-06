@@ -67,13 +67,13 @@ export function daysUntilDue(dueDate: Date, now: Date): number {
  *
  * The design draws two states — a neutral badge, and a red one for a date in the
  * past. The brief additionally asks for a middle tier as a bonus: a warning when
- * the deadline is close. `soon` is that tier, covering today and tomorrow.
+ * the deadline is close. `soon` is that tier, covering today and tomorrow, and
+ * `normal` is the brief's "on time".
  *
- * The brief describes the safe tier as green; this returns `normal`, which
- * renders as the design's neutral badge. Green is already the `iOS app` tag
- * colour, and a green badge directly above a green chip reads as a relationship
- * that is not there. "Nothing to worry about" is what the neutral badge already
- * says.
+ * The tiers are named for what the date *is*, not for what colour it takes. The
+ * mapping onto the palette lives with the badge in `due-date-badge.tsx`, so a
+ * repaint is a change to one component rather than to the thing the rest of the
+ * app reasons about.
  */
 export function dueDateTone(dueDate: Date, now: Date): DueDateTone {
   const daysLeft = daysUntilDue(dueDate, now)
