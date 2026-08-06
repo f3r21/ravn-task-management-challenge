@@ -41,10 +41,33 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
   }
 }
 
+/**
+ * A directory shaped like the live API's, dead avatar URLs included.
+ *
+ * Every one of these used to be `avatar: null`, which is exactly how a board of
+ * grey-and-red placeholders shipped with a green suite: the only avatar state the
+ * tests ever saw was the one the live API almost never returns. RAVN's seed data
+ * gives three of its four users a `https://avatars.dicebear.com/api/initials/*.svg`
+ * URL — a decommissioned host — and the fourth a genuine `null`, so this mirrors
+ * that ratio and the suite exercises the path production is actually on. See
+ * `src/lib/decommissioned-avatar.ts`; when RAVN fixes its seed data, these go back
+ * to `null` and that module is deleted.
+ */
 export const SEED_USERS: User[] = [
-  makeUser(),
-  makeUser({ id: 'user-2', fullName: 'Marcus Chen', email: 'marcus@ravn.co' }),
-  makeUser({ id: 'user-3', fullName: 'Priya Nair', email: 'priya@ravn.co' }),
+  makeUser({ avatar: 'https://avatars.dicebear.com/api/initials/ak.svg' }),
+  makeUser({
+    id: 'user-2',
+    fullName: 'Marcus Chen',
+    email: 'marcus@ravn.co',
+    avatar: 'https://avatars.dicebear.com/api/initials/mc.svg',
+  }),
+  makeUser({
+    id: 'user-3',
+    fullName: 'Priya Nair',
+    email: 'priya@ravn.co',
+    avatar: 'https://avatars.dicebear.com/api/initials/pn.svg',
+  }),
+  // The one user the live API leaves without an avatar at all.
   makeUser({ id: 'user-4', fullName: 'Tom Rivera', email: 'tom@ravn.co', type: 'ADMIN' }),
 ]
 

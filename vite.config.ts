@@ -20,9 +20,12 @@ export default defineConfig({
           // returning visitor.
           //
           // Named groups rather than a blanket `/node_modules/` rule on purpose:
-          // `@ravn/ui-kit` resolves into `node_modules` via a `file:` dependency
-          // but changes as often as the app does, so bundling it as "vendor"
-          // would defeat the caching this is for. It stays in the app chunk.
+          // `@ravn/ui-kit` is installed into `node_modules` like anything else,
+          // but a blanket rule would file it under "vendor" and that defeats the
+          // caching this is for. Its pin moves whenever this app needs a kit
+          // change, and this app is the kit's only consumer, so in practice it
+          // moves at app cadence rather than at framework cadence. It stays in
+          // the app chunk.
           groups: [
             { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
             {
@@ -34,38 +37,55 @@ export default defineConfig({
         },
       },
     },
-    // Raised from Rollup's 500 kB default to just above where the entry chunk
-    // actually lands, so the warning means "something grew" instead of firing on
-    // every single build and being ignored. Lower it when the number drops.
+    // Kept equal to the per-file budget in `.github/workflows/ci.yml`, so a chunk
+    // heavy enough to fail CI says so here first — learning it after a push costs
+    // a round trip to be told what the local build already knew. Move both
+    // together, downwards, as the numbers drop.
     //
-    // Deliberately does NOT cover `mocks/browser` (~426 kB of MSW runtime) — see
-    // the comment in `src/main.tsx` for why that chunk is shipped on purpose. It
-    // is excluded from the CI size budget by name for the same reason.
-    chunkSizeWarningLimit: 450,
+    // This does NOT stay clear of `mocks/browser` and no longer pretends to: that
+    // chunk is ~593 kB of MSW runtime and warns on every build. It is shipped on
+    // purpose (see the comment in `src/main.tsx`), Vite has no per-chunk
+    // exclusion for this warning, and a limit raised above it would stop saying
+    // anything about the chunks that matter. CI's budget skips it by name
+    // instead, which is where the enforcing check lives.
+    chunkSizeWarningLimit: 250,
   },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
-    // `@ravn/ui-kit` is a `file:` dependency pointing at a sibling checkout with its
-    // own `node_modules` — Node resolves `react`/`react-dom` from *that* copy before
-    // walking up to this project's, so any hook a kit component calls throws
-    // "Invalid hook call" (two React instances, two dispatchers). `dedupe` forces
-    // both import graphs onto this project's single copy of each.
+    // Guards the *other* way `@ravn/ui-kit` gets consumed. As committed, the
+    // dependency is `github:f3r21/ravn-ui-kit#v0.4.0` and this list is a no-op:
+    // npm packs only what the kit's `files: ["dist"]` names and installs only its
+    // `dependencies`, never its devDependencies, so `node_modules/@ravn/ui-kit`
+    // has no `node_modules` of its own. Every bare specifier the kit's build emits
+    // resolves up to this project's single install — verified, not assumed: there
+    // is exactly one copy of each of the four below on disk.
     //
-    // `react-aria`/`react-stately` need an entry here too, now that `@ravn/ui-kit`'s
-    // build imports them as bare specifiers instead of bundling their source (see
-    // `UI_KIT_MIGRATION_PLAN.md`'s Phase 1 retry writeup). The kit's own
-    // `package.json` lists both as peerDependencies *and* devDependencies — the
-    // devDependency copy is not a mistake to chase upstream, it's what the kit's own
-    // Storybook/vitest run against — so `node_modules/@ravn/ui-kit/node_modules/react-aria`
-    // genuinely exists and is a second, physically distinct installed copy at the
-    // same version as this project's own. Same shape of problem as `react`/`react-dom`
-    // above, one layer removed: a duplicate *installed* copy rather than duplicated
-    // bundled source. Without this entry, React Aria's `FocusScope` context
-    // (module-scoped) exists twice, and a `FocusScope` rendered by one of this app's
-    // own components (e.g. `Select`'s popover) can never be recognised as nested
-    // inside a `FocusScope` the kit's `Modal` renders.
+    // (The kit's *published* `package.json` does list `react-aria` and
+    // `react-stately` under devDependencies as well as peerDependencies, and a git
+    // install ships that manifest whole rather than a trimmed one. It changes
+    // nothing here: npm does not install a dependency's devDependencies.)
+    //
+    // Working on the kit means switching to `file:../ravn-ui-kit`, and the sibling
+    // checkout *does* have its own `node_modules`, populated from exactly those
+    // devDependencies. Then:
+    //
+    // - Node resolves `react`/`react-dom` from that copy before walking up to this
+    //   project's, so any hook a kit component calls throws "Invalid hook call" —
+    //   two React instances, two dispatchers.
+    // - `react-aria`/`react-stately` need entries for the same reason, one layer
+    //   removed. The kit's build imports them as bare specifiers rather than
+    //   bundling their source, and the devDependency copy is not a mistake to chase
+    //   upstream — it is what the kit's own Storybook and vitest run against. So a
+    //   second, physically distinct install exists at the same version, React Aria's
+    //   module-scoped `FocusScope` context exists twice, and a `FocusScope` rendered
+    //   by one of this app's own components (e.g. `Select`'s popover) can never be
+    //   recognised as nested inside one the kit's `Modal` renders.
+    //
+    // Kept rather than deleted because that switch is a one-line `package.json` edit
+    // a kit author makes routinely, and the failure it prevents reads as a bug in the
+    // component rather than in how it was installed.
     dedupe: ['react', 'react-dom', 'react-aria', 'react-stately'],
   },
   test: {
@@ -80,7 +100,14 @@ export default defineConfig({
     // `TaskCard`s, two `src/ui` trees, ~20 failures that belonged to neither
     // checkout. `.git/info/exclude` hides the directory from git but not from a
     // test runner, so it has to be named here.
-    exclude: [...configDefaults.exclude, '.worktrees/**'],
+    //
+    // `e2e/**` is here for a different reason. Vitest's default `include`
+    // matches `*.spec.ts` at any depth, so it collects the Playwright spec and
+    // fails the whole run at import with Playwright's own "Playwright Test did
+    // not expect test() to be called here" — a message that lists four causes,
+    // none of them "a second test runner picked up my file". Playwright reads
+    // `e2e/playwright.config.ts` and owns that directory; Vitest owns `src/`.
+    exclude: [...configDefaults.exclude, '.worktrees/**', 'e2e/**'],
     env: {
       // The suite runs 14 hours ahead of UTC on purpose. Due dates arrive from the
       // API as midnight-UTC instants and are read as calendar dates, so any code

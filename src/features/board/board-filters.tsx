@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { Item } from 'react-stately'
 import { MultiSelect, Select } from '@ravn/ui-kit'
 import { Button } from '@/ui/button/button'
@@ -20,6 +21,14 @@ interface BoardFiltersBarProps {
   clearAll: () => void
   isFiltered: boolean
   users: User[]
+  /**
+   * The `Users` query failed, so `users` is not "nobody" but "unknown".
+   *
+   * Required rather than defaulted: the page knows the answer, and a default would
+   * let a future caller render the picker in its silently-degraded state by
+   * forgetting a prop — which is the defect this was added to fix.
+   */
+  directoryUnavailable: boolean
 }
 
 /**
@@ -51,7 +60,10 @@ export function BoardFiltersBar({
   clearAll,
   isFiltered,
   users,
+  directoryUnavailable,
 }: BoardFiltersBarProps) {
+  const noticeId = useId()
+
   return (
     <div className="flex flex-wrap items-center gap-4" role="group" aria-label="Filter tasks">
       <Select<{ id: string }>
@@ -104,10 +116,23 @@ export function BoardFiltersBar({
         )}
       </Select>
 
+      {/* A failed directory says so on the control it broke, rather than leaving a
+          picker that offers only "Any owner" and looks like a team of nobody. The
+          message is the trigger's accessible description as well as visible text,
+          which is the two places someone could be looking for it.
+
+          Written out below rather than passed as the kit's `error` prop, which
+          looks like the obvious fit and is not. Its association is built on React
+          Aria's `useSlotId`, which resolves an id once against the DOM: an error
+          absent at mount that appears later — exactly this one, since the directory
+          can only fail after a request — never gets one, so the message renders
+          with no id and the trigger with no `aria-describedby`. Confirmed in jsdom
+          and in Chrome. An `aria-describedby` we own does not depend on that. */}
       <Select<{ id: string }>
         label="Filter by owner"
         placeholder="Owner"
         icon={<AssigneeIcon className="size-6 shrink-0" />}
+        aria-describedby={directoryUnavailable ? noticeId : undefined}
         items={[{ id: ANY }, ...users.map((user) => ({ id: user.id }))]}
         selectedKey={filters.ownerId ?? ANY}
         onSelectionChange={(key) => {
@@ -144,6 +169,19 @@ export function BoardFiltersBar({
         <Button variant="text" onPress={clearAll}>
           Clear filters
         </Button>
+      ) : null}
+
+      {directoryUnavailable ? (
+        // On its own line — `basis-full` in a wrapping row — so the chips keep
+        // their places instead of the whole bar rearranging around a paragraph
+        // that appeared mid-session.
+        //
+        // `text-danger-text` (danger-3), not `text-danger` (danger-5), which the
+        // kit documents as a border colour: danger-5 measures 2.55:1 on the
+        // darkest surface this can land on, against danger-3's 5.65:1.
+        <p id={noticeId} className="text-danger-text text-body-m basis-full">
+          Could not load the team directory, so filtering by owner is unavailable.
+        </p>
       ) : null}
     </div>
   )

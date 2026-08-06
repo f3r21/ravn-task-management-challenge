@@ -1,0 +1,32 @@
+{
+  // A third project alongside the root config and `api/`, for the same reason
+  // `api/` is one: this code runs in Node, not the browser. It needs `process`
+  // and Playwright's globals, and must not see the DOM lib — a spec that can
+  // reach `document` compiles fine and then fails at runtime, because the page
+  // is on the other side of a websocket, not in this process.
+  //
+  // Named `e2e/tsconfig.json` rather than `tsconfig.e2e.json` at the root so
+  // typescript-eslint's project service finds it by walking up from the file,
+  // the same way an editor does. `npm run typecheck` builds all three.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // `node` for `process` and the `URL` global. Playwright's own types arrive
+    // through the `@playwright/test` import rather than from here, so nothing
+    // in this project depends on a global that is not declared.
+    "types": ["node"]
+  },
+  "include": ["."]
+}

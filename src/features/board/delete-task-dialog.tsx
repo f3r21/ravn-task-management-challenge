@@ -21,13 +21,31 @@ interface DeleteTaskDialogProps {
  * interrupts for a consequential decision, and the message is announced on open
  * instead of only the title.
  *
- * Stays on the app's own `Dialog`, permanently, not as a TODO: `@ravn/ui-kit`'s
- * `Modal` has no `role` prop, so it cannot produce `alertdialog` naming and has
- * no substitute for it. `TaskFormDialog` used to stay on this same `Dialog` for
- * an unrelated reason (a cross-module `FocusScope` bug in the kit's `Modal`,
- * since fixed upstream) — see `UI_KIT_MIGRATION_PLAN.md`'s Phase 1 retry
- * writeup. It has since migrated; this dialog stays on the app's own `Dialog`
- * permanently, on the `role`/`alertdialog` grounds above.
+ * Stays on the app's own `Dialog` rather than `@ravn/ui-kit`'s `Modal` — but
+ * as a blocked migration, not a permanent decision. It used to be permanent,
+ * on the grounds that the kit's `Modal` had no `role` prop at all; that is no
+ * longer true, and the reason it is still blocked is narrower and fixable:
+ *
+ * The kit's `Modal` accepts `role="alertdialog"` and now runs on
+ * `useModalOverlay`, so it aria-hides the page and locks scroll like this one.
+ * What it does not do is keep `useDialog`'s third return value. For an
+ * `alertdialog`, `useDialog` generates an id, points `aria-describedby` at it,
+ * and then discards the id in a layout effect if nothing carries it
+ * (`useSlotId`). The kit destructures only `dialogProps` and `titleProps`, so
+ * nothing ever carries it — the role is announced without the body text that is
+ * the entire reason for choosing the role. This app's `Dialog` spreads
+ * `contentProps` and has a test asserting the description, which is exactly the
+ * assertion the kit would fail.
+ *
+ * Two smaller gaps ride along: the kit hardcodes `isDismissable: true`, so the
+ * `!isDeleting` guard below has nowhere to go, and its chrome is a visible
+ * title bar with a close button rather than this dialog's sr-only title over
+ * its own prompt.
+ *
+ * Per the standing rule (`.claude/rules/ui-kit.md`), those are kit fixes, not
+ * reasons to relax anything here. `TaskFormDialog` was blocked on this same
+ * `Dialog` once too — a cross-module `FocusScope` bug, since fixed upstream —
+ * and migrated the moment the kit caught up. This should follow the same way.
  */
 export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false)

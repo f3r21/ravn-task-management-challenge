@@ -1,0 +1,91 @@
+name: E2E against the deployment
+
+# Two triggers, because neither is sufficient on its own.
+#
+# `deployment_status` is the automatic half: Vercel reports a deployment as
+# `success` and this runs against the URL it just published. **It only fires
+# when this file is on the default branch.** That is GitHub's rule for this
+# event, not a setting, and it has a consequence worth stating plainly: while
+# this file exists only on `dev`, the automatic half does nothing at all. It
+# starts working the day `dev` is promoted to `main`. A workflow that silently
+# never runs is worse than no workflow, so:
+#
+# `workflow_dispatch` is the manual half, and it works from anywhere. It takes
+# the deployment URL as an input, which is how this gets exercised before it can
+# ever fire on its own — including from a pull request's own preview URL.
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: 'Deployment to test, e.g. https://<deployment>.vercel.app'
+        required: true
+        type: string
+
+# One at a time, and queued rather than cancelled. The spec writes to RAVN's
+# live board through the proxy; two runs overlapping would be two runs mutating
+# shared state. Cancelling instead would leave a half-finished run's task behind
+# with nothing left to clean it up.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: E2E against the deployment
+    # A successful deployment, or a human asking. Failed and in-progress
+    # deployment statuses fire this event too, and there is nothing to test yet.
+    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Chromium only, and only the browser — `--with-deps` pulls the system
+      # libraries a headless browser needs on a bare runner. Installing all three
+      # engines would triple the download to re-answer a rendering question the
+      # jsdom suite already answers.
+      - run: npx playwright install --with-deps chromium
+
+      - name: Resolve the deployment URL
+        id: target
+        # Read through the environment rather than interpolated into the script
+        # body. `${{ }}` substitution happens before the shell sees the line, so
+        # a value containing shell syntax would be executed rather than assigned
+        # — the standard Actions script-injection hole. Neither of these inputs
+        # is attacker-controlled today; the habit is what stops that mattering
+        # the day one is.
+        env:
+          DISPATCH_URL: ${{ inputs.deployment_url }}
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+        run: |
+          URL="${DISPATCH_URL:-$DEPLOYMENT_URL}"
+          # `environment_url` is the deployed application. `target_url` is the
+          # other field on this payload and is not it — GitHub deprecated it in
+          # favour of `log_url`, and Vercel fills it with the build log, so a run
+          # pointed at it would drive a browser around Vercel's dashboard and
+          # fail with selectors that look wrong.
+          if [ -z "$URL" ]; then
+            echo "::error::the deployment reported no environment_url, so there is nothing to test"
+            exit 1
+          fi
+          echo "Testing $URL"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      # Runs against preview and production alike, deliberately. Both proxy to
+      # the same upstream API, so the smoke test costs the same and is worth the
+      # same in both places — a promotion that breaks the proxy is the failure
+      # this is here to catch.
+      - run: npm run test:e2e
+        env:
+          E2E_BASE_URL: ${{ steps.target.outputs.url }}

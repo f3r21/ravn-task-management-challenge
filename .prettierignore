@@ -1,10 +1,11 @@
 dist
 coverage
+# Playwright writes traces and screenshots here on a failure.
+e2e/test-results
 node_modules
 src/graphql/generated
 public/mockServiceWorker.js
 package-lock.json
-vendor
 # A git worktree checked out inside the repo — Prettier reads .gitignore and this
 # file, but not .git/info/exclude, which is where `.worktrees/` is hidden from git.
 # Without this, `format:check` reformats another branch's checkout.

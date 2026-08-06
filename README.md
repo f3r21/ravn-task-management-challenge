@@ -8,8 +8,9 @@ signed-in user's profile.
 running against the real API. How it does that without publishing RAVN's token is under
 [Deployment](#deployment).
 
-Every checkbox in the brief's six sections is implemented, with two exceptions that are
-the API's shape rather than choices — both spelled out under
+Every checkbox in the brief's six sections is implemented, with two exceptions that are the
+API's shape rather than choices. Both are spelled out — alongside one place the brief and
+the schema simply use different names for the same working field — under
 [Things the brief asks for that the API cannot do](#things-the-brief-asks-for-that-the-api-cannot-do).
 
 ![The dashboard](docs/screenshots/dashboard.jpg)
@@ -40,15 +41,16 @@ switch on.
 
 ### Commands
 
-| Command                | What it does                                                   |
-| ---------------------- | -------------------------------------------------------------- |
-| `npm run dev`          | Dev server                                                     |
-| `npm run build`        | Typecheck, then production build                               |
-| `npm test`             | Test suite                                                     |
-| `npm run coverage`     | Tests with the 85% coverage gate                               |
-| `npm run gate`         | Typecheck, lint, format check, coverage — what CI runs         |
-| `npm run codegen`      | Regenerate GraphQL types from `schema.graphql`                 |
-| `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted |
+| Command                | What it does                                                    |
+| ---------------------- | --------------------------------------------------------------- |
+| `npm run dev`          | Dev server                                                      |
+| `npm run build`        | Typecheck, then production build                                |
+| `npm test`             | Test suite                                                      |
+| `npm run test:e2e`     | One Playwright spec against a deployment — needs `E2E_BASE_URL` |
+| `npm run coverage`     | Tests with the 85% coverage gate                                |
+| `npm run gate`         | Typecheck, lint, format check, coverage — what CI runs          |
+| `npm run codegen`      | Regenerate GraphQL types from `schema.graphql`                  |
+| `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted  |
 
 ## What it does
 
@@ -119,10 +121,12 @@ The Figma file for this challenge is not a set of screens — it is a component 
 a style guide, per-component specs and variant states. Building those components inline in
 `src/ui/` would have meant a design system that only existed as a side effect of one app.
 
-So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 36
-components built from the Figma export, each with Storybook stories, its own test suite and
-its own CI. **[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)** to see every
-component, its props and its states without cloning anything.
+So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 46
+components and 21 icons built from the Figma export, each with Storybook stories, its own
+test suite and its own CI. **[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)**
+to see every component, its props and its states without cloning anything. The count is
+`node_modules/@ravn/ui-kit/dist/index.d.ts`'s 72 capitalized exports less the 21 typed
+`IconProps` and 5 shared constants, so it can be re-derived rather than trusted.
 
 This app is its first consumer, and consuming it is what proves the package
 works: several real defects (a popover that could not escape an `overflow: hidden` ancestor,
@@ -132,19 +136,51 @@ than patched around here.
 
 The migration is deliberately incomplete and tracked as such. `Modal`, `Select`,
 `MultiSelect` and `Menu` come from the kit today; `Avatar`, `Button`, `Tag`, `Skeleton` and
-the board components are still app-owned and queued to move. `EmptyState`, `ErrorBoundary`,
-the toast system and the icon set stay here for now because the kit has no equivalent yet.
+the board components are still app-owned and queued to move.
 
-### Why there is a `vendor/` directory
+`EmptyState`, the toast system and the icon set are also still app-owned, and the reason is
+worth stating precisely because it is the opposite of the obvious one: the kit has all
+three, and it has them **because this app wrote them first**. Its `EmptyState` and
+`ToastProvider` are both marked "No Figma source" in the kit and were ported from here — the
+design file draws neither, and the accessibility lessons behind them (an empty state that
+must not be a live region, a toast region that has to be portalled _and_ exempted) were paid
+for in this repo. So they are duplicates awaiting deletion, not gaps: the kit's versions are
+supersets, and swapping to them is queued work with no user-visible change to show for it.
 
-`@ravn/ui-kit` has no npm registry to publish to, so this app depends on it by path. Locally
-that would be `file:../ravn-ui-kit` — but CI clones only _this_ repository, so that path can
-never resolve there and `npm ci` would fail on the first import.
+**`ErrorBoundary` is the only one of the four the original claim still holds for.** The kit
+genuinely has no equivalent, and arguably should not: it renders nothing designed, and its
+whole surface is an `onError` seam for wiring up crash reporting in a host application.
 
-The fix is to vendor a built copy: `vendor/ravn-ui-kit/` holds the package's `dist/` output
-and a trimmed `package.json`, and the dependency is `file:./vendor/ravn-ui-kit`. It is build
-output, never hand-edited — `vendor/ravn-ui-kit/README.md` documents the re-sync procedure,
-and every re-sync lands as its own commit so a kit change is never mixed into an app change.
+One migration is blocked rather than queued, which is a different thing. The delete
+confirmation stays on the app's own `Dialog` because the kit's `Modal` accepts
+`role="alertdialog"` but drops React Aria's `contentProps`, so the body text it exists to
+announce is never wired to `aria-describedby` — a test here asserts that description, and
+per the rule below the fix belongs in the kit rather than in the assertion.
+
+That rule is the whole point of the arrangement: **when a kit component fails an assertion
+in this app, the fix goes in the kit, not in the test.** Weakening a test to make a
+migration land would throw away the only signal a second consumer-shaped repo produces.
+
+### Why the dependency is a git tag
+
+`@ravn/ui-kit` has no npm registry to publish to, so the dependency is the repository
+itself, pinned: `"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#v0.4.0"`. The kit repo is public,
+so `npm ci` clones it anonymously — no cross-repo token, in CI or on Vercel. A git install
+runs no build; the kit commits its `dist/` and guards its freshness in its own CI, so what
+installs here is the tagged artifact rather than a rebuild.
+
+**A tag, not a branch, and that is the whole point.** A branch re-resolves on every `npm ci`
+behind an unchanged lockfile entry. A tag resolves once, and `package-lock.json` records the
+commit it resolved to — so the installed bytes are identified rather than described.
+
+This app used to hold a built copy at `vendor/ravn-ui-kit/` instead, because the kit repo was
+private and reaching it from CI would have needed a PAT secret. Two things that cost, both
+worth knowing if the idea ever comes back: minified output reflows on any change, so a kit
+contrast fix touching a handful of hex values produced a 1,300-line diff here — 50.8% of this
+repository's entire line churn was that directory. And the lockfile entry for a `file:` link
+is `{"resolved": "vendor/ravn-ui-kit", "link": true}`, carrying no version and no integrity
+hash, so `@ravn/ui-kit@0.3.0` named four mutually different `dist/` trees over this repo's
+history with nothing able to detect it.
 
 The alternative was a monorepo. It was not chosen because the kit is meant to outlive this
 app, and a package that can only be built from inside its one consumer is not really a
@@ -202,6 +238,33 @@ Node's `(req, res) => void` and ignores what it returns, so the first deploy ans
 nothing at all and hung until the platform timed it out. The export name doubles as the
 method restriction: anything that is not a POST is refused before the function runs.
 
+**Two response headers, and no Content-Security-Policy.** `vercel.json` sends
+`X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`.
+Neither can break this app — nothing here is served with a content type a browser would want
+to second-guess — and the referrer policy does something real: task cards load avatars from
+whatever host the API names, and without it every one of those requests carries the board's
+full URL, filters and search term included, to a third party.
+
+There is deliberately no CSP, and `frame-ancestors` is deliberately not set. A CSP would be
+about eight lines and it is the thing reviewers grep for, so the reasoning matters more than
+the answer. Two parts:
+
+- **It cannot be verified before it ships.** Header rules do not apply to `vite preview` or
+  `npm run dev`; the first time a policy is real is on a deployment, and a policy that is one
+  directive short takes the app down in a way no local check can see beforehand. Against
+  that, what a CSP defends is script injection, and this app has no `dangerouslySetInnerHTML`,
+  no `eval`, no user-supplied markup and no third-party scripts — React escapes every string
+  that reaches the DOM. The trade is a real outage risk against a hypothetical one.
+- **Framing buys an attacker nothing here.** `frame-ancestors` stops clickjacking, and the
+  action worth clickjacking is deleting a task. But `/api/graphql` is intentionally open —
+  the app has no users to authenticate, so anyone who wants to delete a task can simply post
+  the mutation. There is no privilege a framed click could borrow that a `curl` does not
+  already have.
+
+Both would change the moment this app grew a login. The e2e spec against the deployment (see
+[Testing](#testing)) is what would catch a CSP that broke the board, so the ordering is:
+users first, then the policy, with a check that can prove it.
+
 ## Decisions worth explaining
 
 **Design tokens are read out of Figma, not eyeballed.** They live in the kit
@@ -210,6 +273,42 @@ defines none of its own. Colours reach a component only through a semantic name 
 what the colour is _for_ (`text-main`, `bg-surface-panel`, `border-subtle`), so a component
 cannot quietly reach past the system for a raw hex. Icons are the design's own SVG exports
 with the baked `fill` swapped for `currentColor`, so colour still comes from the token layer.
+
+**The brand's own call-to-action fails WCAG AA, and it ships that way.** Three revisions of
+this paragraph each fixed the previous one's arithmetic and introduced a new error, so it now
+quotes the file the kit's CI enforces —
+[`.storybook/a11y-allowlist.ts`](https://github.com/f3r21/ravn-ui-kit/blob/v0.4.0/.storybook/a11y-allowlist.ts)
+— instead of re-summarising it. The link is pinned to `v0.4.0`, the tag this app installs, so
+the quote below stays checkable against the exact tree it was read from rather than against
+whatever the kit's `main` says later:
+
+> `color-contrast` on `TextButton variant="primary"` — 14 nodes across 12 stories.
+>
+> `text-main` (#FFFFFF) on `bg-primary-4` (#DA584B) measures **3.83:1**, and `isSelected`'s
+> `bg-primary-3` (#E27D73) **2.83:1**, against 1.4.3's 4.5:1.
+
+Two ratios, not one: `primitives-textbutton--selected` and one of `--state-matrix`'s two nodes
+are the `primary-3` pairing. And those 14 are `TextButton` alone — a further **2 nodes across
+2 stories** are allowlisted separately, where `floating-popover.stories.tsx` hand-rolls its
+trigger as a bare `<button className="bg-primary-4 text-main">` rather than using the
+component. Sixteen accepted nodes across fourteen stories, and the split is the useful part:
+fixing `TextButton` clears twelve entries at once, while the popover pair is fixable on its
+own by making that story use a passing variant.
+
+They are accepted rather than fixed because there is nowhere to move. No label colour clears
+it: the darkest value in the entire palette, `neutral-5` (`#222528`), reaches only 4.02:1.
+No fill clears it either, since `primary-4` is already the red ramp's darkest step. The only
+remedy is a darker red — continuing the ramp's own arithmetic lands on `#D13323` at 4.99:1 —
+and inventing a value the design file does not contain is precisely what the kit's
+contributing rules forbid first. Repainting `--color-primary-4` instead would move every
+brand surface in both repositories to satisfy one component.
+
+So it is left as drawn, asserted in the kit's `contrast.test.ts` so it can never be mistaken
+for passing, and recorded here so a reviewer running axe finds a decision rather than an
+oversight. Worth being exact about the scope: the **icon** `Button`'s `primary` variant uses
+the same fill and is unaffected, because an icon is non-text and 1.4.11's 3:1 threshold is
+cleared at 3.83:1. This is the one place the design has a definite opinion that fails AA —
+everywhere else it was silent, and the silence was resolved in favour of contrast.
 
 **The board shows five columns where the mockup shows three.** The brief lists five
 statuses; the mockup predates the schema. Five equal shares of a 1440px viewport leaves
@@ -262,11 +361,15 @@ anything else can be retried.
   field and it does exist.** `Task.position` is a `Float` and `UpdateTaskInput` accepts
   it, so the edit modal sets it. Only `User.position` is missing.
 
-- **§5 calls the points filter `EstimatedPoints`.** The field is `pointEstimate`. The
-  schema wins.
 - **`CreateTaskInput` has no `position`.** The server assigns it on create, so the field
   appears in the edit modal only — a control on create would collect a value with nowhere
   to send it.
+
+Those are the two. A third difference is listed here because it is the same kind of
+surprise, but it costs nothing:
+
+- **§5 calls the points filter `EstimatedPoints`.** The field is `pointEstimate`. The
+  schema wins, and the filter itself works exactly as asked — only the name differs.
 
 ## Bonus items
 
@@ -291,9 +394,17 @@ options menu, which exercises the same `updateTask` mutation a drop would.
 
 ## Testing
 
-247 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
-threshold on every metric; CI runs the same thing, plus a production build, on every pull
-request.
+287 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
+threshold on every metric; CI runs the same thing, plus a production build, a bundle-size
+budget and `npm audit --audit-level=high`, on every pull request.
+
+Dependencies get a second look on the way in. A separate `Dependency review` workflow fails
+a pull request that introduces a package carrying a high-severity advisory in GitHub's
+database — a different feed from npm's, read against the diff rather than the installed
+tree, so it names the dependency this change added. That matters here because Dependabot
+opens _grouped_ bumps, and a group is exactly where one bad package rides in behind fourteen
+harmless ones. The two checks share a severity threshold on purpose: two gates disagreeing
+about what counts as a problem is how a pipeline stops being read.
 
 The suite pins `VITE_API_URL`/`VITE_API_TOKEN` empty in `vite.config.ts`'s `test.env`, so it
 always runs against the MSW mock. That is not belt-and-braces — Vitest loads `.env` through
@@ -317,6 +428,30 @@ trusting jsdom — a multi-select that cleared previous selections on each pick,
 key that closed a dialog along with the dropdown inside it, and an unhandled promise
 rejection every test happily passed through. Each has a regression test now.
 
+**One end-to-end spec, against a deployment.** `e2e/deployed-proxy.spec.ts` creates a task,
+filters the board to it, edits it and deletes it, in a real browser, against a real Vercel
+URL. It is the only test in the repository that touches `api/graphql.ts` as it actually
+runs: nothing imports that file — the app posts to a URL — so no amount of unit testing
+reaches it. It has already failed in a way only this could catch, exported as a default
+handler that Vercel read as `(req, res) => void`, discarding the `Response` and hanging
+every request while the types, the unit test and the local build all stayed green.
+
+`E2E_BASE_URL` is required and has no default, localhost least of all: a fallback to
+`npm run dev` would make this a slow, flaky duplicate of the suite above, passing while
+proving nothing about a deployment. The last assertion checks that the run actually went
+through `/api/graphql`, which is what makes a local run fail on purpose — pointing it at a
+dev server is useful only for proving the selectors still match after a UI change.
+
+It is one spec, not a suite, and that is a decision rather than a stopping point. Every
+additional flow would re-test components jsdom already covers, at a hundred times the cost,
+and would write to a board RAVN can see — so the spec removes what it created even when it
+fails partway through.
+
+`.github/workflows/e2e.yml` runs it on every successful deployment, and can be dispatched by
+hand against any URL. The automatic half only fires once the workflow file is on `main`,
+because that is GitHub's rule for `deployment_status` events; the manual half is what makes
+it usable before then.
+
 The traffic goes both ways, which is the more useful lesson. jsdom does not reflect the
 `inert` property to an attribute and does not evaluate media queries, so it will call a
 hidden notification reachable and show two navigation landmarks where a browser shows one.
@@ -329,18 +464,25 @@ listens for. Anything about focus or the accessibility tree is checked in both.
 - **The schema is pinned, not fetched.** `schema.graphql` is committed and
   `npm run schema:check` re-introspects the API to prove it has not drifted. Codegen reads
   the file, so neither it nor CI needs network access or a credential.
-- **History** is one branch and one pull request per step: §1, §2, §3 read, §3 create, §4,
-  §5, §6, and the README. Eight for six sections, because §3 is large enough to split and
-  the README is a graded deliverable of its own. Each was revised after an adversarial
-  review; the fixes are in the commit messages.
+- **History** is one branch and one pull request per unit of work, throughout. The brief
+  itself shipped as eight stacked branches — §1, §2, §3 read, §3 create, §4, §5, §6, and
+  the README — eight for six sections, because §3 is large enough to split and the README
+  is a graded deliverable of its own. Each was revised after an adversarial review; the
+  fixes are in the commit messages. Everything since has arrived the same way and the
+  count keeps climbing, so `gh pr list --state all` is the answer rather than a number
+  written here: work now branches off `dev` and merges back by pull request with CI green,
+  which a repository ruleset enforces rather than trusting to habit.
 
 ## AI Tooling (Claude Code)
 
 This repository is heavily instrumented for AI development via [Claude Code](https://github.com/anthropics/claude-code). The configuration ensures AI agents adhere strictly to the project's quality standards without hallucinations or context bloat:
 
-- **`.claudeignore`**: Prevents Claude from reading massive autogenerated files (`package-lock.json`, `coverage/`) to save context tokens.
-- **Modular Rules (`.claude/rules/`)**: Context-aware instructions (`bonus-points.md`, `code-review.md`, `graphql-api.md`) loaded as plain project context, restating the conventions in `CLAUDE.md`.
-- **Automated Hooks (`.claude/settings.json`)**:
-  - `PostToolUse`: Instantly runs `npx eslint --fix` and `npx prettier --write` whenever Claude saves a file, silently correcting minor syntax issues in the background.
-  - `PreToolUse`: Blocks a handful of destructive bash patterns (`rm -rf /`, force push, `curl | sh`). Nothing enforces `gate` before a commit — running it is on you.
-  - **Permissions**: Playwright and Chrome DevTools are whitelisted to run headless tests silently without interrupting the agent.
+- **Modular Rules (`.claude/rules/`)**: Context-aware instructions (`bonus-points.md`, `code-review.md`, `graphql-api.md`, `ui-kit.md`) loaded as plain project context, restating the conventions in `CLAUDE.md`. `ui-kit.md` carries the one rule that governs the design-system boundary — a kit component that fails an assertion here is fixed in the kit, never in the test — which until now lived only in per-machine agent memory.
+- **Automated Hooks (`.claude/hooks/`, wired up in `.claude/settings.json`)**: both read their event payload as JSON on stdin, which is the only way a hook is given one.
+  - `PostToolUse` → `format-file.sh`: runs this repo's own ESLint and Prettier over the file Claude just saved, so a formatting slip never reaches `npm run gate`.
+  - `PreToolUse` → `block-dangerous.sh`: refuses a handful of irreversible bash commands — a recursive forced `rm` aimed at `/` or `$HOME`, a plain force push, a download piped into a shell — by returning a `deny` decision, not by exiting non-zero, which Claude Code treats as a non-blocking error and runs the command anyway. `scripts/hooks.test.mjs` drives both scripts the way Claude Code drives them, because a hook that does nothing exits 0 exactly like a hook that works. Nothing enforces `gate` before a commit — running it is on you. A repository ruleset does enforce it before a merge: `main` and `dev` take changes by pull request only, with CI green against an up-to-date branch, and no force-push or deletion.
+- **Permissions (`.claude/settings.json`)**: Playwright and Chrome DevTools are whitelisted to run headless tests silently without interrupting the agent, and `permissions.deny` keeps `package-lock.json`, `coverage/`, `dist/` and `node_modules/` out of context — through the Read, Edit, Glob and Grep tools and through the shell's own readers alike.
+
+## License
+
+[MIT](LICENSE).

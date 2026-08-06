@@ -25,12 +25,36 @@ jobs:
   verify:
     name: Typecheck, lint, format, test, build
     runs-on: ubuntu-latest
+    # A ceiling, not an estimate: the whole job runs in about four minutes, and
+    # without this a step that hangs — a watch-mode flag that slipped into a
+    # script, a prompt nothing answers — sits there until GitHub's six-hour
+    # default gives up. Same value as the sibling `ravn-ui-kit` workflow.
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      # What is locked across this repository and `ravn-ui-kit` is the **Node
+      # version**, not these action majors. Node decides the bytes `npm run build`
+      # produces, so the two pipelines have to agree on it or the kit's committed
+      # `dist/` and this app's bundle stop being comparable — that is what `.nvmrc`
+      # is for.
+      #
+      # These `actions/*` majors govern the runner-side JS runtime of the action
+      # wrapper, not the toolchain that builds the code. Holding them identical
+      # across the two repositories buys nothing the Node pin does not already buy,
+      # and it costs currency: an outdated major is the live risk, not a difference
+      # between the two. An earlier revision of this file said the opposite — bump
+      # in lockstep or not at all — which in practice meant aligning *downward* to
+      # whichever repository was staler, and left both on a runtime GitHub is
+      # retiring. Let them float to current via Dependabot's `github-actions`
+      # ecosystem instead (`.github/dependabot.yml`).
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v6
+      # Read from `.nvmrc` rather than repeated here, so CI and a local `nvm use`
+      # cannot disagree — this is the value the rule above says is locked across
+      # both repositories, and the kit reads it the same way. `engines` requires
+      # >=22.13.0.
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
 
       # `npm ci` rather than `npm install`: it installs exactly the lockfile and
@@ -50,26 +74,87 @@ jobs:
       # build fails nowhere else in this pipeline.
       - run: npm run build
 
-      # A budget, not a benchmark. The entry chunk was 760 kB before the vendor
-      # split in `vite.config.ts`; this fails the build if it climbs back.
+      # A budget, not a benchmark. Two numbers, because one of them alone can be
+      # satisfied without shipping a byte less:
       #
-      # `browser-*.js` is excluded by name: it is the MSW runtime, deliberately
-      # shipped so the app runs with no configuration — see the comment in
-      # `src/main.tsx`. Budgeting it would either fail permanently or pressure
-      # someone into removing it.
+      # - PER_FILE catches a single chunk growing without bound. On its own it is
+      #   gameable — splitting one 760 kB chunk into two 380 kB ones turns a
+      #   failing build green while a cold-cache visitor downloads exactly as
+      #   much. `vite.config.ts` splits chunks on purpose (for caching, and the
+      #   reasoning there holds), which is precisely why this cannot be the only
+      #   check.
+      # - FIRST_LOAD is the number a first-time visitor actually pays: the entry
+      #   script plus every chunk `index.html` preloads beside it. Read out of the
+      #   HTML rather than summed over `dist/assets`, so a chunk that only exists
+      #   behind a dynamic `import()` is not charged to a visitor who never opens
+      #   the thing that loads it — and so a future split of the entry chunk
+      #   changes where the bytes live without changing this total.
+      #
+      # Both count raw bytes while Vercel serves brotli, so the real transfer is
+      # roughly a third of these. Raw is the right thing to ratchet on anyway: it
+      # is what the browser parses and executes, and it does not move when a
+      # compressor is upgraded.
+      #
+      # `browser-*.js` is excluded from PER_FILE by name: it is the MSW runtime,
+      # deliberately shipped so the app runs with no configuration — see the
+      # comment in `src/main.tsx`. Budgeting it would either fail permanently or
+      # pressure someone into removing it. It is dynamically imported, so
+      # FIRST_LOAD never sees it in the first place.
+      #
+      # Lower both when the numbers drop. Raising either is a decision, not a fix.
       - name: Bundle size budget
         run: |
-          LIMIT=450000
+          PER_FILE=250000
+          FIRST_LOAD=620000
           FAILED=0
           for f in dist/assets/*.js; do
             case "$(basename "$f")" in browser-*) continue ;; esac
             SIZE=$(wc -c < "$f")
             printf '%8d B  %s\n' "$SIZE" "$(basename "$f")"
-            if [ "$SIZE" -gt "$LIMIT" ]; then
-              echo "::error file=$f::$(basename "$f") is ${SIZE}B, over the ${LIMIT}B budget"
+            if [ "$SIZE" -gt "$PER_FILE" ]; then
+              echo "::error file=$f::$(basename "$f") is ${SIZE}B, over the ${PER_FILE}B per-file budget"
               FAILED=1
             fi
           done
+          TOTAL=0
+          COUNTED=0
+          NAMED=$(grep -oE '/assets/[^"]+\.js' dist/index.html | sort -u | wc -l | tr -d ' ')
+          for f in $(grep -oE '/assets/[^"]+\.js' dist/index.html | sort -u); do
+            # Guarded rather than inlined into the arithmetic. `$((TOTAL + $(wc -c
+            # < missing)))` is an arithmetic syntax error, and under GitHub's
+            # default `bash -e` that aborts only the enclosing loop, not the step:
+            # every remaining asset is skipped, TOTAL keeps a partial sum, the
+            # zero-guard below does not fire because TOTAL != 0, and the budget
+            # passes on a number that measured half the bundle. The step still
+            # exits 0. The trigger is any `/assets/*.js` in the emitted HTML that
+            # is not a local build artifact — a third-party script URL, or a
+            # change in output layout.
+            SZ=$(wc -c < "dist$f" 2>/dev/null) || {
+              echo "::error::dist$f is named in index.html but is not on disk"
+              FAILED=1
+              continue
+            }
+            TOTAL=$((TOTAL + SZ))
+            COUNTED=$((COUNTED + 1))
+          done
+          # Counted against named, so a skipped asset is loud even if the sum it
+          # left behind happens to sit under the budget.
+          if [ "$COUNTED" -ne "$NAMED" ]; then
+            echo "::error::counted $COUNTED of $NAMED first-load scripts — the total is incomplete"
+            FAILED=1
+          fi
+          printf '%8d B  first-load JS (entry + modulepreload)\n' "$TOTAL"
+          # Zero means the HTML stopped naming its assets the way this expects,
+          # not that the bundle got small. Without this the check would quietly
+          # pass forever the day the build output changes shape.
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "::error::found no first-load scripts in dist/index.html — the budget is not measuring anything"
+            FAILED=1
+          fi
+          if [ "$TOTAL" -gt "$FIRST_LOAD" ]; then
+            echo "::error::first-load JS is ${TOTAL}B, over the ${FIRST_LOAD}B budget"
+            FAILED=1
+          fi
           exit $FAILED
 
       # The README argues react-router was pinned because "every 7.x release falls
