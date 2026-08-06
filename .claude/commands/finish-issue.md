@@ -5,6 +5,19 @@ Finish an issue and hand it off. Takes the issue number as an argument.
 > preview is Storybook on GitHub Pages, and it releases by tag — none of which is true here.
 > Port a rule across by hand; never copy the file.
 
+0. **Re-read the issue's comments before anything else.**
+
+   ```bash
+   gh issue view <n> --json comments \
+     --jq '.comments[] | "\n———— \(.author.login) · \(.createdAt) ————\n\(.body)"'
+   ```
+
+   You last read these when you claimed the issue, and this project amends issues by commenting.
+   An amendment posted while you worked lands here — before the gate, before the commits, before
+   a PR exists to argue with — rather than after review has started. That is what turns "this
+   has to reach the lane immediately" into "this has to reach the lane by its next checkpoint",
+   which is a far easier problem and removes most of the reason to interrupt a working lane.
+
 1. `npm run gate` — green, zero failures.
 2. Commit with conventional commits, one concern each, `Closes #<n>` in the final one.
 
