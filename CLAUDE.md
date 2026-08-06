@@ -377,16 +377,37 @@ assuming.
 
 ## Claude Code setup in this repo
 
-`.claude/` holds optional extras, none of which the code depends on: `commands/` (`/gate`,
-`/schema-check`, `/rebase-stack` — thin wrappers over the npm scripts), `agents/`, and
-`rules/` (`bonus-points`, `code-review`, `graphql-api`, `ui-kit`), which restate the
-conventions above — `ui-kit.md` exists because the fix-it-in-the-kit rule was previously
-carried only in host-local agent memory, one machine away from being lost. `settings.json` runs `eslint --fix` and
-`prettier --write` on every edit, and a `PreToolUse` hook that blocks a handful of destructive
-bash patterns (`rm -rf /`, force push, `curl | sh`). **Nothing enforces `gate` before a
-commit** — running it is on you. It _is_ enforced before a merge (see "Branch layout"), but
-finding out in CI costs a push and a five-minute round trip to learn what four minutes locally
-would have told you.
+`.claude/commands/` (`/gate`, `/schema-check`, `/rebase-stack`, `/start-issue`, `/finish-issue`
+— thin wrappers over the npm scripts and the issue workflow) and `.claude/rules/`
+(`bonus-points`, `code-review`, `graphql-api`, `ui-kit`) are optional extras the code does not
+depend on; the rules restate the conventions above, and `ui-kit.md` exists because the
+fix-it-in-the-kit rule was previously carried only in host-local agent memory, one machine away
+from being lost.
+
+`.claude/hooks/` is not optional in the same way — `scripts/hooks.test.mjs` runs inside
+`npm run gate`, so deleting either script fails the build. `format-file.sh` (`PostToolUse`)
+runs ESLint and Prettier over the file just edited; `block-dangerous.sh` (`PreToolUse`) refuses
+a recursive forced `rm` aimed at `/` or `$HOME`, a plain force push, and a download piped into
+a shell.
+
+**Both of those read their payload as JSON on stdin, and that is the whole point of the test.**
+The pair shipped in `7ff3376` did not: the formatters interpolated a `$FILE_PATH` that Claude
+Code never sets, and the safety hook read `$1` when a `PreToolUse` hook is passed no positional
+arguments. Installed, running, exiting 0, and completely inert — a state nothing in `gate`
+could distinguish from a working hook, which is why `hooks.test.mjs` now drives both the way
+Claude Code drives them. A denial is also a `permissionDecision` object on stdout, never a
+non-zero exit: any exit code other than 2 is a _non-blocking_ error, so the old `exit 1` would
+have printed its refusal and then run the command.
+
+`permissions.deny` in `settings.json` keeps `package-lock.json`, `coverage/`, `dist/` and
+`node_modules/` out of context. `.claudeignore`, which used to claim that job, is not a Claude
+Code feature and never excluded anything. Note the reach of a `Read()` rule: it also covers
+Edit, Write, Glob, Grep and the shell's own readers, so reading a dependency's source now takes
+a deliberate change here rather than a `cat`.
+
+**Nothing enforces `gate` before a commit** — running it is on you. It _is_ enforced before a
+merge (see "Branch layout"), but finding out in CI costs a push and a five-minute round trip to
+learn what four minutes locally would have told you.
 
 ## Not built
 
