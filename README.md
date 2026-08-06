@@ -264,12 +264,23 @@ what the colour is _for_ (`text-main`, `bg-surface-panel`, `border-subtle`), so 
 cannot quietly reach past the system for a raw hex. Icons are the design's own SVG exports
 with the baked `fill` swapped for `currentColor`, so colour still comes from the token layer.
 
-**The brand's own call-to-action fails WCAG AA, and it ships that way.** The kit's palette
-pass ended with 14 accepted `colour-contrast` violations from an axe sweep over the built
-Storybook — all of them the same pairing, `text-main` on the `primary-4` fill, at **3.83:1**
-against 1.4.3's 4.5:1 for normal text. Twelve are `TextButton variant="primary"` stories; the
-other two are a `FloatingPopover` story whose hand-rolled trigger reproduces the same fill
-rather than using the component, so they are the same defect counted where it was drawn.
+**The brand's own call-to-action fails WCAG AA, and it ships that way.** Three revisions of
+this paragraph each fixed the previous one's arithmetic and introduced a new error, so it now
+quotes the file CI enforces — `.storybook/a11y-allowlist.ts` in `@ravn/ui-kit` — instead of
+re-summarising it:
+
+> `color-contrast` on `TextButton variant="primary"` — 14 nodes across 12 stories.
+>
+> `text-main` (#FFFFFF) on `bg-primary-4` (#DA584B) measures **3.83:1**, and `isSelected`'s
+> `bg-primary-3` (#E27D73) **2.83:1**, against 1.4.3's 4.5:1.
+
+Two ratios, not one: `primitives-textbutton--selected` and one of `--state-matrix`'s two nodes
+are the `primary-3` pairing. And those 14 are `TextButton` alone — a further **2 nodes across
+2 stories** are allowlisted separately, where `floating-popover.stories.tsx` hand-rolls its
+trigger as a bare `<button className="bg-primary-4 text-main">` rather than using the
+component. Sixteen accepted nodes across fourteen stories, and the split is the useful part:
+fixing `TextButton` clears twelve entries at once, while the popover pair is fixable on its
+own by making that story use a passing variant.
 
 They are accepted rather than fixed because there is nowhere to move. No label colour clears
 it: the darkest value in the entire palette, `neutral-5` (`#222528`), reaches only 4.02:1.
