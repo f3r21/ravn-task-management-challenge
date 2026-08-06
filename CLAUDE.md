@@ -95,6 +95,49 @@ nothing surfaces the conflict _before_ that point, so if an MCP tool that should
 failing outright, check `claude mcp remove <name>` first: if it complains about multiple
 scopes, that's the bug.
 
+### The UI layer is somebody else's package
+
+The second load-bearing decision, and the one this document used to omit entirely.
+
+The Figma file for this challenge is a component library rather than a set of screens, so it
+was built as one: **`@ravn/ui-kit`** (https://github.com/f3r21/ravn-ui-kit), a separate repo
+with its own Storybook, tests and CI. This app is its first consumer. `Modal`, `Select`,
+`MultiSelect` and `Menu` come from it today; `Avatar`, `Button`, `Tag`, `Skeleton` and the
+board components are still app-owned and queued to move.
+
+**It arrives through `vendor/`, not npm.** There is no registry to publish to, so the
+dependency is `file:./vendor/ravn-ui-kit` — a committed copy of the kit's `dist/` plus a
+trimmed `package.json`. The obvious `file:../ravn-ui-kit` cannot work: CI clones only this
+repository, so that path never resolves there and `npm ci` fails on the first import.
+Consequences:
+
+- **`vendor/ravn-ui-kit/` is build output. Never hand-edit it.** A fix made there is
+  invisible to the kit's own tests and is destroyed by the next re-sync.
+  `vendor/ravn-ui-kit/README.md` has the re-sync procedure; it lands as its own commit so a
+  kit change is never mixed into an app change.
+- **The kit's source is not in this checkout**, so "what does this component actually do" is
+  answered by `vendor/ravn-ui-kit/dist/index.d.ts` — the doc comments survive the build and
+  are unusually detailed — or by the sibling repo, or the published Storybook.
+- **`vite.config.ts`'s `dedupe` list exists for this.** The `file:` dependency has its own
+  `node_modules`, so `react`, `react-dom`, `react-aria` and `react-stately` each resolve to a
+  second physical copy unless forced onto this project's. The comment there has the full
+  shape of it.
+
+**The standing rule: when a kit component fails an assertion here, the fix goes in the kit,
+not in the test.** This app is what proves the package works, and every defect found by
+wiring it into something real — a popover that could not escape an `overflow: hidden`
+ancestor, a focus ring that computed a colour and painted nothing, `onAction` firing twice
+per menu pick — was found exactly this way. Loosening an assertion to accommodate the kit
+throws away the only signal the arrangement generates, and leaves the defect in a package
+meant to outlive this app. Weakening a test to match a component is the one refactor that is
+never in scope here.
+
+The corollary is that a migration can be _blocked_ on the kit, and that is a legitimate
+place to stop — see `delete-task-dialog.tsx`, which stays on the app's own `Dialog` because
+the kit's `Modal` drops `useDialog`'s `contentProps` and so cannot describe an
+`alertdialog`. Record the gap and leave the app correct; do not migrate a component into a
+regression.
+
 ### The data path
 
 `useBoardFilters` (URL query params) → debounce → `FilterTaskInput` → React Query key →
@@ -145,11 +188,24 @@ not-found page inside chrome implying the app is fine.
 
 ### The token layer
 
-`src/styles/tokens.css` holds the raw Figma ramp in `:root` and only _semantic_ names in
-`@theme`. Tailwind v4 only generates utilities for what it finds in `@theme`, so `bg-neutral-4`
-is not a class that exists and a component physically cannot reach a colour except through a
-name that says what it is for. Add a `@theme` name rather than reaching for the ramp. Icons are
-the design's own SVG exports with `fill` swapped for `currentColor`.
+**The app defines no tokens.** `src/styles/base.css` is the only stylesheet here, and it
+imports `@ravn/ui-kit/theme.css` for the whole colour, radius and type vocabulary — the raw
+Figma ramp and the semantic `@theme` names both live in the kit now. A new token is a change
+to the kit, re-vendored, not a `:root` block added here.
+
+Two things in `base.css` are easy to delete as noise and are not. The kit ships tokens only,
+never compiled utilities, so this app's own `@tailwindcss/vite` build generates every class —
+including the ones baked into the kit's `dist/index.js` as string literals. Tailwind excludes
+`node_modules` from automatic scanning, so the `@source "../../node_modules/@ravn/ui-kit/dist"`
+line is what keeps kit components from rendering unstyled. And `color-scheme: dark` is set
+because the design is dark-only, so form controls, scrollbars and focus rings need telling.
+
+Colours still reach a component only through a semantic name that says what the colour is
+_for_ (`text-main`, `bg-surface-panel`, `border-subtle`): Tailwind v4 generates utilities only
+for what it finds in `@theme`, so `bg-neutral-4` is not a class that exists in the app's
+output. Icons in `src/ui/icons/` are the design's own SVG exports with `fill` swapped for
+`currentColor`, so their colour comes from the token layer too. The kit exports the same set
+and this one is a duplicate awaiting migration, not a deliberate fork.
 
 ### Two structures that look like tidiness and are not
 
@@ -323,7 +379,9 @@ assuming.
 
 `.claude/` holds optional extras, none of which the code depends on: `commands/` (`/gate`,
 `/schema-check`, `/rebase-stack` — thin wrappers over the npm scripts), `agents/`, and
-`rules/`, which restate the conventions above. `settings.json` runs `eslint --fix` and
+`rules/` (`bonus-points`, `code-review`, `graphql-api`, `ui-kit`), which restate the
+conventions above — `ui-kit.md` exists because the fix-it-in-the-kit rule was previously
+carried only in host-local agent memory, one machine away from being lost. `settings.json` runs `eslint --fix` and
 `prettier --write` on every edit, and a `PreToolUse` hook that blocks a handful of destructive
 bash patterns (`rm -rf /`, force push, `curl | sh`). **Nothing enforces `gate` before a
 commit** — running it is on you. It _is_ enforced before a merge (see "Branch layout"), but
