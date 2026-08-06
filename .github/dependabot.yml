@@ -65,10 +65,6 @@ updates:
       # entry that would otherwise be the reminder. Move the date forward when
       # the pin is re-examined, whatever the answer — including "still pinned".
       - dependency-name: react-router
-      # A `file:` dependency on the sibling design-system repo. Dependabot cannot
-      # resolve it and re-syncing it is a manual, documented procedure
-      # (`vendor/ravn-ui-kit/README.md`).
-      - dependency-name: '@ravn/ui-kit'
 
   # The action majors in `ci.yml` are deliberately not held in lockstep with
   # `ravn-ui-kit`'s — see the comment there. What is locked across the two
