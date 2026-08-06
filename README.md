@@ -120,10 +120,12 @@ The Figma file for this challenge is not a set of screens — it is a component 
 a style guide, per-component specs and variant states. Building those components inline in
 `src/ui/` would have meant a design system that only existed as a side effect of one app.
 
-So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 36
-components built from the Figma export, each with Storybook stories, its own test suite and
-its own CI. **[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)** to see every
-component, its props and its states without cloning anything.
+So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 46
+components and 21 icons built from the Figma export, each with Storybook stories, its own
+test suite and its own CI. **[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)**
+to see every component, its props and its states without cloning anything. The count is
+`vendor/ravn-ui-kit/dist/index.d.ts`'s 72 capitalized exports less the 21 typed `IconProps`
+and 5 shared constants, so it can be re-derived rather than trusted.
 
 This app is its first consumer, and consuming it is what proves the package
 works: several real defects (a popover that could not escape an `overflow: hidden` ancestor,
