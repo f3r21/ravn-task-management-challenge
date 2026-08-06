@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { server } from '@/mocks/server'
 import { taskStore } from '@/mocks/task-store'
 import { renderApp, userEvent } from '@/test/test-utils'
+import { FILTER_PARAMS } from './use-board-filters'
 
 async function renderBoard(path = '/') {
   const user = userEvent.setup()
@@ -317,6 +318,125 @@ describe('filters in the URL', () => {
   })
 })
 
+describe('the header search box and the board filters', () => {
+  it('use one URL key, so neither can be renamed out from under the other', async () => {
+    // The header used to hardcode `'name'` and write its own `URLSearchParams`,
+    // while `useBoardFilters` mapped and serialised the same key independently.
+    // Renaming it on either side disconnected the search box from the board with
+    // no type error. This asserts the round trip against the shared constant: what
+    // the header writes is what the board reads is what the API is sent.
+    const inputs = recordTaskQueries()
+    const { user, router } = await renderBoard()
+
+    await user.type(screen.getByRole('searchbox', { name: /search tasks/i }), 'Slack')
+
+    await waitFor(() => {
+      expect(inputs.at(-1)).toMatchObject({ name: 'Slack' })
+    })
+    expect(new URLSearchParams(router.state.location.search).get(FILTER_PARAMS.name)).toBe('Slack')
+  })
+
+  it('clears the parameter rather than leaving it empty when the box is emptied', async () => {
+    const { user, router } = await renderBoard(`/?${FILTER_PARAMS.name}=Slack`)
+
+    await user.clear(screen.getByRole('searchbox', { name: /search tasks/i }))
+
+    await waitFor(() => {
+      expect(router.state.location.search).not.toContain(FILTER_PARAMS.name)
+    })
+  })
+})
+
+describe('a directory that fails to load', () => {
+  /** The `Users` query down, with the board's own query left working. */
+  function failTheDirectory() {
+    server.use(
+      graphql.query('Users', () =>
+        HttpResponse.json({ errors: [{ message: 'Directory unavailable' }] }),
+      ),
+    )
+  }
+
+  it('says so on the owner filter instead of offering a team of nobody', async () => {
+    failTheDirectory()
+    await renderBoard()
+
+    // On screen, and — as the owner trigger's accessible description — said to
+    // anyone who reaches the control rather than only to anyone who can see it.
+    expect(await screen.findByText(/could not load the team directory/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /filter by owner/i })).toHaveAccessibleDescription(
+        /could not load the team directory/i,
+      )
+    })
+  })
+
+  it('is not mistaken for a directory that is still loading', async () => {
+    // The defect this pins: an errored `Users` query is permanently empty, which
+    // used to be indistinguishable from "still loading" — so `?owner=` entered
+    // pass-through and stayed there, sending an unvalidated id to the API for the
+    // rest of the session. `readDate` exists to stop exactly this class of thing.
+    failTheDirectory()
+    const inputs = recordTaskQueries()
+    const { user } = await renderBoard(`/?${FILTER_PARAMS.ownerId}=garbage`)
+
+    await waitFor(() => {
+      expect(inputs.at(-1)).toEqual({})
+    })
+
+    // And it stays dropped: the next filter change does not carry it back.
+    await user.click(screen.getByRole('button', { name: /filter by status/i }))
+    await user.click(await screen.findByRole('option', { name: 'Done' }))
+
+    await waitFor(() => {
+      expect(inputs.at(-1)).toEqual({ status: 'DONE' })
+    })
+  })
+
+  it('leaves the rest of the board working', async () => {
+    failTheDirectory()
+    const { user } = await renderBoard()
+
+    expect(screen.getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /filter by status/i }))
+    await user.click(await screen.findByRole('option', { name: 'Done' }))
+
+    expect(await screen.findByRole('heading', { name: 'Tesla' })).toBeInTheDocument()
+  })
+})
+
+describe('a directory that has not arrived yet', () => {
+  it('keeps an owner from the URL rather than fetching the board twice', async () => {
+    // The other side of the same distinction: while `Users` is genuinely in flight
+    // the id is kept, because dropping it would mean one request without the filter
+    // followed by another with it — a visible flicker in exchange for nothing.
+    const inputs = recordTaskQueries()
+    let release = () => {}
+    const held = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    server.use(
+      graphql.query('Users', async () => {
+        await held
+        return HttpResponse.json({ data: { users: taskStore.listUsers() } })
+      }),
+    )
+
+    renderApp(`/?${FILTER_PARAMS.ownerId}=user-3`)
+
+    await waitFor(() => {
+      expect(inputs.at(-1)).toMatchObject({ ownerId: 'user-3' })
+    })
+    const beforeArrival = inputs.length
+
+    release()
+    expect(await screen.findByRole('heading', { name: 'Maxxis Tyres' })).toBeInTheDocument()
+    // The directory arriving confirms the id rather than changing it, so nothing
+    // is refetched.
+    expect(inputs.length).toBe(beforeArrival)
+  })
+})
+
 describe('a failing filtered query', () => {
   it('reports the failure instead of looking like an empty result', async () => {
     const { user } = await renderBoard()
@@ -419,5 +539,18 @@ describe('the clear control', () => {
     await renderBoard('/?status=DONE')
 
     expect(await screen.findByRole('button', { name: /clear filters/i })).toBeInTheDocument()
+  })
+
+  it('appears as soon as the user types, without waiting out the search debounce', async () => {
+    // "Is there a filter to clear" is a question about what the user set, not about
+    // what has reached the API. Answered from the debounced query input, the control
+    // was missing for 300ms after the first keystroke — the window in which someone
+    // who has just mistyped is most likely to want it. Asserted synchronously, so a
+    // debounced answer cannot slip in under a `waitFor`.
+    const { user } = await renderBoard()
+
+    await user.type(screen.getByRole('searchbox', { name: /search tasks/i }), 'S')
+
+    expect(screen.getByRole('button', { name: /clear filters/i })).toBeInTheDocument()
   })
 })
