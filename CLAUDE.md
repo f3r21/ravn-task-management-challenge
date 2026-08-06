@@ -238,8 +238,11 @@ merges into `main` directly.
 `refs/heads/main` and `refs/heads/dev` with four rules: changes arrive by pull request, the
 `Typecheck, lint, format, test, build` check must be green, no force-push, no deletion.
 `bypass_actors` is empty on purpose, so the owner account is subject to it too — before this,
-CI was decorative: red runs never blocked the merge button, and `68cb754` reached `dev` as a
-direct push. Three consequences for anyone working here:
+CI was decorative: red runs never blocked the merge button, and PR #17 (`build(deps): bump
+graphql from 16.14.2 to 17.0.2`) merged straight into `main` unreviewed, leaving the two
+branches disagreeing about `package.json` until `chore/reunify-dev-with-main` cleaned it up.
+That is what an ungated merge button costs, and it is the failure `dependabot.yml`'s
+`target-branch: dev` comment already records. Three consequences for anyone working here:
 
 - **It is a _ruleset_, not classic branch protection.** `gh api repos/…/branches/main/protection`
   answers `404 Branch not protected` and that is not the answer to the question — read it back
