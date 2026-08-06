@@ -264,6 +264,27 @@ what the colour is _for_ (`text-main`, `bg-surface-panel`, `border-subtle`), so 
 cannot quietly reach past the system for a raw hex. Icons are the design's own SVG exports
 with the baked `fill` swapped for `currentColor`, so colour still comes from the token layer.
 
+**The brand's own call-to-action fails WCAG AA, and it ships that way.** The kit's palette
+pass ended with 16 accepted `colour-contrast` violations from an axe sweep over the built
+Storybook, every one of them `TextButton variant="primary"` — 14 on its `primary-4` fill at
+**3.83:1** against 1.4.3's 4.5:1 for normal text, and 2 more on the `primary-3` fill its
+selected state uses, at 2.83:1.
+
+They are accepted rather than fixed because there is nowhere to move. No label colour clears
+it: the darkest value in the entire palette, `neutral-5` (`#222528`), reaches only 4.02:1.
+No fill clears it either, since `primary-4` is already the red ramp's darkest step. The only
+remedy is a darker red — continuing the ramp's own arithmetic lands on `#D13323` at 4.99:1 —
+and inventing a value the design file does not contain is precisely what the kit's
+contributing rules forbid first. Repainting `--color-primary-4` instead would move every
+brand surface in both repositories to satisfy one component.
+
+So it is left as drawn, asserted in the kit's `contrast.test.ts` so it can never be mistaken
+for passing, and recorded here so a reviewer running axe finds a decision rather than an
+oversight. Worth being exact about the scope: the **icon** `Button`'s `primary` variant uses
+the same fill and is unaffected, because an icon is non-text and 1.4.11's 3:1 threshold is
+cleared at 3.83:1. This is the one place the design has a definite opinion that fails AA —
+everywhere else it was silent, and the silence was resolved in favour of contrast.
+
 **The board shows five columns where the mockup shows three.** The brief lists five
 statuses; the mockup predates the schema. Five equal shares of a 1440px viewport leaves
 each card around 200px, at which point the points label, date badge and tag row all wrap
