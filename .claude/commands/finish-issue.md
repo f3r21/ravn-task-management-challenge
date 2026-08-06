@@ -5,6 +5,19 @@ Finish an issue and hand it off. Takes the issue number as an argument.
 > preview is Storybook on GitHub Pages, and it releases by tag — none of which is true here.
 > Port a rule across by hand; never copy the file.
 
+0. **Re-read the issue's comments before anything else.**
+
+   ```bash
+   gh issue view <n> --json comments \
+     --jq '.comments[] | "\n———— \(.author.login) · \(.createdAt) ————\n\(.body)"'
+   ```
+
+   You last read these when you claimed the issue, and this project amends issues by commenting.
+   An amendment posted while you worked lands here — before the gate, before the commits, before
+   a PR exists to argue with — rather than after review has started. That is what turns "this
+   has to reach the lane immediately" into "this has to reach the lane by its next checkpoint",
+   which is a far easier problem and removes most of the reason to interrupt a working lane.
+
 1. `npm run gate` — green, zero failures.
 2. Commit with conventional commits, one concern each, `Closes #<n>` in the final one.
 
@@ -43,6 +56,32 @@ Finish an issue and hand it off. Takes the issue number as an argument.
    `CLAUDE.md`'s "When proving a test has teeth" covers the local version of this and its two
    traps, which still apply. This step is the CI one, and it is separate because local green is
    precisely what has lied before.
+
+   **A red check is not automatically your defect** — the same point inverted. That rule says a
+   _green_ check can be meaningless; this one says a _red_ one can be too. **Read which step
+   failed before you read your diff:**
+
+   ```bash
+   gh run view <id> --json jobs \
+     -q '.jobs[] | "\(.name): \(.conclusion)", (.steps[] | "  \(.number). \(.name) → \(.conclusion)")'
+   ```
+
+   If **no named workflow step executed**, it is infrastructure. Re-run once with
+   `gh run rerun <id> --failed` and investigate only if it fails the same way twice. A failure
+   _inside_ a step you can name is yours until proven otherwise.
+
+   Infrastructure has two shapes, and the second does not look like a finding:
+
+   - `Set up job → failure`, with nothing after it — GitHub could not resolve the actions
+     (`Failed to resolve action download info: Service Unavailable`).
+   - The **job line and no steps at all**, usually `cancelled`. A runner that was never acquired
+     logs nothing, so the command prints one line and stops. **That silence is the diagnosis, not
+     a broken command.**
+
+   Both happened here on 2026-08-06 during a seven-hour Actions outage: run `31117113338` is the
+   first shape, run `31120106399` the second. Take the URL _before_ re-running — `gh run view`
+   reports only the latest attempt, so a successful re-run makes the failure look like it never
+   happened. `gh run view <id> --attempt 1` is how you get it back.
 
    Then say in the PR body what that check **structurally cannot see** — the environment it runs
    in, the fixtures it reads, the buckets it sorts into. `npm run gate` went green over

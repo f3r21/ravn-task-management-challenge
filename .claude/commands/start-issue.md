@@ -19,7 +19,33 @@ npm run gate                               # prove the tree is green BEFORE you 
 
 That last step matters: if the gate is already red, the failure is not yours, and you need to know that before attributing it to your own change.
 
-Then `gh issue view <n>` and read the whole body. The issue is your complete briefing — it is written for someone with no prior context, which is what you are.
+Then read the issue — **one command**, because two can be half-followed:
+
+```bash
+gh issue view <n> --json body,comments \
+  --jq '.body, (.comments[] | "\n———— \(.author.login) · \(.createdAt) ————\n\(.body)")'
+```
+
+**Neither human-readable view shows you the whole issue.** `gh issue view <n>` prints the body and
+no comments; `--comments` prints the comments and suppresses the body. They are mutually exclusive,
+so either one alone leaves you reading half of it. Confirm it rather than believing it — on an
+issue with comments, the default view contains the body's opening marker and `--comments` contains
+it zero times:
+
+```bash
+gh issue view <n> | grep -c 'You are starting cold'              # 2 — body present
+gh issue view <n> --comments | grep -c 'You are starting cold'   # 0 — body GONE
+```
+
+The JSON form above returns both halves in one call. It omits title, labels and `blocked-by`, so
+run plain `gh issue view <n>` as well when you want those — just never rely on it alone.
+
+**The body is your briefing; the comments amend it.** This project's convention is to correct an
+issue by commenting rather than rewriting it — the rule is that being corrected twice on the same
+point is a specification defect, and the fix is posted below. So where a comment contradicts the
+body, **the comment is newer and wins**, and the correction you most need is more likely under the
+body than in it. The `--jq` render prints each comment's `createdAt`, so the ordering is explicit
+rather than inferred from position.
 
 **This ritual, not clearing context, is what fixes staleness.** Clearing a session does not update your worktree; rebasing does. Two lanes run concurrently in this repo, so something almost certainly landed while you were away — the diff above is how you find out which of your assumptions just expired.
 
