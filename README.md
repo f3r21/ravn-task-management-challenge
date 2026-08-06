@@ -16,7 +16,9 @@ the API's shape rather than choices — both spelled out under
 
 ## Setup
 
-Requires Node 22.13 or newer (see `engines` in `package.json`).
+Requires Node 22.13 or newer, and 22.x rather than "or newer indefinitely" — the range in
+`engines` is what Vercel builds with, so it is bounded on purpose. See
+[Deployment](#deployment).
 
 ```bash
 npm install
@@ -201,6 +203,14 @@ The proxy is exported as `POST`, not as a default handler. Vercel reads a defaul
 Node's `(req, res) => void` and ignores what it returns, so the first deploy answered
 nothing at all and hung until the platform timed it out. The export name doubles as the
 method restriction: anything that is not a POST is refused before the function runs.
+
+**The build pins a Node major, and `engines` is where.** Vercel resolves `engines.node` to
+the newest major that satisfies it, so the old `>=22.13.0` — meant only as a floor — built
+every deployment on Node 24 while CI tested on 22. The artefact that shipped was never the
+artefact that was verified. `^22.13.0` keeps the same floor and bounds the major, so Vercel
+takes the latest 22.x and the two agree. Setting it here rather than in the dashboard's
+Node.js Version dropdown is deliberate: `engines` overrides that setting, travels with the
+branch, and is reviewable.
 
 ## Decisions worth explaining
 
