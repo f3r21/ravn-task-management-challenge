@@ -433,9 +433,19 @@ was previously carried only in host-local agent memory, one machine away from be
 eight stacked branches "Branch layout" says were merged and deleted, so it describes a layout that
 no longer exists. **`/start-issue` and `/finish-issue` are neither.** They are where this project's
 process rules live, and for most of them the only copy in the repository — deadlocked gates, stale
-readings, checks never observed failing, the four couplings that cross a lane boundary invisibly,
-and the scope of a dispatched subagent. That is `ui-kit.md`'s failure mode one level up: a rule
-surviving only in a transcript is a rule already lost. `ravn-ui-kit` keeps its own deliberately
+readings, checks never observed failing, red checks that are somebody else's outage rather than
+your defect, the four couplings that cross a lane boundary invisibly, and the scope of a
+dispatched subagent. That is `ui-kit.md`'s failure mode one level up: a rule
+surviving only in a transcript is a rule already lost.
+
+**Issues are amended by commenting, so reading an issue means reading its comments.** Neither
+human-readable `gh` view shows both: `gh issue view <n>` prints the body without comments, and
+`--comments` prints the comments and suppresses the body. `/start-issue` and `/finish-issue`
+carry the `--json body,comments` form that returns both in one call, and it is one command
+precisely because two can be half-followed. Until this was fixed the correction channel this
+project relies on was write-only, and every amendment posted was invisible to every lane —
+including two of four "readiness gates" in `ravn-ui-kit#9` that had been corrected as wrong.
+Where a comment contradicts the body, the comment is newer and wins. `ravn-ui-kit` keeps its own deliberately
 diverging copies, and each file opens by naming its sibling and the differences that are real.
 
 `.claude/hooks/` the build _does_ depend on — `scripts/hooks.test.mjs` runs inside
