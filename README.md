@@ -69,6 +69,10 @@ switch on.
   applied to a loaded list. Filters live in the URL.
 - **My task** (`/settings`) — the signed-in user, from the `profile` query. The label is
   the design's; the route is the one §6 asks for.
+- **Calendar, Team, Messages** — sample pages. §2 asks the sidebar for a list of menu items
+  "most of them" leading to a placeholder, which needs more destinations than the brief's
+  six sections build. They are real routes inside the app shell rather than the not-found
+  page: a working menu item that lands on "this page does not exist" reads as a broken link.
 
 ## Stack, and why
 
