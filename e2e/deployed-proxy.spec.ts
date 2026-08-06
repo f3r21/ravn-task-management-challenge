@@ -32,9 +32,19 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
  * the same deployment (a preview and a promotion, say) cannot see each other's
  * task.
  */
-const RUN_ID = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-const TASK_NAME = `e2e smoke ${RUN_ID}`
-const EDITED_NAME = `e2e smoke ${RUN_ID} edited`
+const RUN_ID = `${new Date().toISOString().replace(/[:.]/g, '-')}-${Math.random().toString(36).slice(2, 8)}`
+const TASK_NAME = `e2e-smoke-${RUN_ID}`
+const EDITED_NAME = `e2e-smoke-${RUN_ID}-edited`
+
+/**
+ * The id the API assigned this run's task, captured from the create response.
+ *
+ * Written for the case where the run dies before its own delete step: the
+ * cleanup below can find the task by name, but a human reading CI output after
+ * a cleanup that *also* failed needs the id to remove it by hand, and a name
+ * containing a timestamp is not something you can paste into a mutation.
+ */
+let createdTaskId: string | null = null
 
 /** Where the proxy lives, relative to the deployment's own origin. */
 const PROXY_PATH = '/api/graphql'
@@ -54,7 +64,19 @@ const PROXY_PATH = '/api/graphql'
  *
  * Failures are reported, never thrown — see the hook at the bottom of the file.
  */
-async function deleteTasksFromThisRun(request: APIRequestContext): Promise<void> {
+interface E2ETask {
+  id: string
+  name: string
+}
+
+/**
+ * Every task on the board that carries this run's token.
+ *
+ * Split out from the delete so the same question can be asked again afterwards:
+ * "did the delete work" and "what is still there" are the same query, and
+ * running it twice is what turns a claim into a check.
+ */
+async function findTasksFromThisRun(request: APIRequestContext): Promise<E2ETask[]> {
   const list = await request.post(PROXY_PATH, {
     data: {
       query: 'query E2ETasks($input: FilterTaskInput!) { tasks(input: $input) { id name } }',
@@ -64,15 +86,17 @@ async function deleteTasksFromThisRun(request: APIRequestContext): Promise<void>
 
   if (!list.ok()) {
     console.warn(`e2e cleanup: could not list tasks (HTTP ${String(list.status())})`)
-    return
+    return []
   }
 
   // The one type assertion in this file, at the transport boundary, mirroring
   // `src/graphql/client.ts`. `APIResponse.json()` is untyped by construction.
-  const body = (await list.json()) as { data?: { tasks?: { id: string; name: string }[] } }
-  const leftovers = (body.data?.tasks ?? []).filter((task) => task.name.includes(RUN_ID))
+  const body = (await list.json()) as { data?: { tasks?: E2ETask[] } }
+  return (body.data?.tasks ?? []).filter((task) => task.name.includes(RUN_ID))
+}
 
-  for (const task of leftovers) {
+async function deleteTasksFromThisRun(request: APIRequestContext): Promise<void> {
+  for (const task of await findTasksFromThisRun(request)) {
     const deleted = await request.post(PROXY_PATH, {
       data: {
         query: 'mutation E2EDelete($input: DeleteTaskInput!) { deleteTask(input: $input) { id } }',
@@ -104,9 +128,25 @@ test('creates, filters, edits and deletes a task on the deployed proxy', async (
   // rewrite that swallowed `/api/` would answer with the app's HTML.
   const proxyStatuses: number[] = []
   page.on('response', (response) => {
-    if (new URL(response.url()).pathname === PROXY_PATH) {
-      proxyStatuses.push(response.status())
-    }
+    if (new URL(response.url()).pathname !== PROXY_PATH) return
+    proxyStatuses.push(response.status())
+
+    // Read out of the response the app already made, rather than issuing a
+    // lookup of our own: an extra round trip would be a second chance for the
+    // id to be something other than what the UI is now holding.
+    void response
+      .json()
+      .then((body: { data?: { createTask?: { id?: string } } }) => {
+        const id = body.data?.createTask?.id
+        if (id) {
+          createdTaskId = id
+          console.warn(`e2e: created task id ${id} ("${TASK_NAME}")`)
+        }
+      })
+      .catch(() => {
+        // A body that is not JSON is the deployment being broken, which the
+        // assertions below already say far more precisely than this would.
+      })
   })
 
   await page.goto('/')
@@ -175,6 +215,19 @@ test('creates, filters, edits and deletes a task on the deployed proxy', async (
 test.afterEach(async ({ request }) => {
   try {
     await deleteTasksFromThisRun(request)
+
+    // Say out loud whether the board is actually clean, rather than inferring it
+    // from the test having passed. The delete step asserts the *UI* stopped
+    // showing the card; this asks the API directly, after the fact, which is the
+    // question someone looking at RAVN's shared board actually has.
+    const remaining = await findTasksFromThisRun(request)
+    const label = createdTaskId ?? '(id never seen)'
+    console.warn(
+      remaining.length === 0
+        ? `e2e: board is clean — task ${label} is gone`
+        : `e2e: ${String(remaining.length)} task(s) REMAIN and must be removed by hand: ` +
+            remaining.map((task) => `${task.id} "${task.name}"`).join(', '),
+    )
   } catch (error) {
     // Logged, not thrown. The test's own result is already decided by the time
     // this runs, and a cleanup failure surfacing as a test failure would name
