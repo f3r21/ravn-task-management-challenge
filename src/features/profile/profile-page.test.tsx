@@ -79,6 +79,34 @@ describe('the settings page', () => {
     expect(term.nextElementSibling?.tagName).toBe('DD')
   })
 
+  it('shows initials instead of what the decommissioned avatar host serves', async () => {
+    server.use(
+      graphql.query('Profile', () =>
+        HttpResponse.json({
+          data: {
+            profile: makeUser({
+              fullName: 'Grace Stone',
+              // A real value from the live API. The host is gone but answers 410
+              // with a valid placeholder SVG, so the image loads and `onError`
+              // never fires — the URL has to be discarded before it reaches an
+              // `<img>`. Text inside the avatar is what proves it was.
+              avatar: 'https://avatars.dicebear.com/api/initials/gs.svg',
+            }),
+          },
+        }),
+      ),
+    )
+    await renderProfile()
+
+    // Scoped to the page's own section: the header renders an avatar for the same
+    // person, and this is about the one on the settings page.
+    const details = screen.getByRole('heading', { name: 'Grace Stone' }).closest('section')
+
+    expect(
+      within(details as HTMLElement).getByRole('img', { name: 'Grace Stone' }),
+    ).toHaveTextContent('GS')
+  })
+
   it('renders account timestamps in UTC and says so', async () => {
     server.use(
       graphql.query('Profile', () =>
@@ -172,5 +200,25 @@ describe('the header avatar', () => {
     // One query key, so the header and the settings page cannot disagree about
     // who is signed in — and the request is made once however many ask.
     expect(await screen.findByRole('img', { name: 'Priya Nair' })).toBeInTheDocument()
+  })
+
+  it("shows initials when the signed-in user's avatar is on the dead host", async () => {
+    server.use(
+      graphql.query('Profile', () =>
+        HttpResponse.json({
+          data: {
+            profile: makeUser({
+              fullName: 'Grace Stone',
+              avatar: 'https://avatars.dicebear.com/api/initials/gs.svg',
+            }),
+          },
+        }),
+      ),
+    )
+    // Nobody on the seeded board is called Grace Stone, so the only avatar with
+    // this name is the header's.
+    renderApp('/')
+
+    expect(await screen.findByRole('img', { name: 'Grace Stone' })).toHaveTextContent('GS')
   })
 })

@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import { useSearchParams } from 'react-router'
 import { useProfile } from '@/features/profile/use-profile'
+import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { Avatar } from '@/ui/avatar/avatar'
 import { BellIcon, SearchIcon } from '@/ui/icons/icons'
 
@@ -69,7 +70,11 @@ export function AppHeader() {
         >
           <BellIcon className="size-6" />
         </button>
-        <Avatar size={40} src={profile?.avatar} name={profile?.fullName} />
+        <Avatar
+          size={40}
+          src={avatarSrcUnlessDecommissioned(profile?.avatar)}
+          name={profile?.fullName}
+        />
       </div>
     </header>
   )

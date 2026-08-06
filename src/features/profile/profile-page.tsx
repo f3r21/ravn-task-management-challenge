@@ -1,5 +1,6 @@
 import { ApiError } from '@/graphql/client'
 import { formatUtcTimestamp } from '@/lib/due-date'
+import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { Avatar } from '@/ui/avatar/avatar'
 import { Skeleton } from '@/ui/skeleton/skeleton'
 import type { User } from '@/features/board/task-types'
@@ -106,7 +107,11 @@ export function ProfilePage() {
           className="bg-surface-panel rounded-md flex max-w-2xl flex-col gap-6 p-6"
         >
           <div className="flex items-center gap-4">
-            <Avatar src={profile.avatar} name={profile.fullName} size={40} />
+            <Avatar
+              src={avatarSrcUnlessDecommissioned(profile.avatar)}
+              name={profile.fullName}
+              size={40}
+            />
             <h2 id="profile-heading" className="text-body-l font-semibold">
               {profile.fullName}
             </h2>
