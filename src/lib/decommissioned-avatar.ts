@@ -48,9 +48,22 @@ export function avatarSrcUnlessDecommissioned(
     return undefined
   }
 
-  if (URL.canParse(avatar) && DECOMMISSIONED_AVATAR_HOSTS.has(new URL(avatar).hostname)) {
-    return undefined
+  // `try`/`catch` rather than `URL.canParse`, which is not a style preference.
+  // `canParse` shipped in Chrome 120 / Firefox 115 / Safari 17, and this build's
+  // floor is Vite's `baseline-widely-available` default — chrome111, edge111,
+  // firefox114, safari16.4, ios16.4 — every one of which predates it. A build
+  // target lowers *syntax* and never polyfills an *API*, so the call shipped
+  // verbatim into `dist/`. Reached unconditionally on three render paths, on a
+  // browser at that floor it threw `URL.canParse is not a function` and the error
+  // boundary replaced the whole board: an outage where the defect it fixes is a
+  // grey square. Nothing in `gate` could see it — jsdom runs on Node 22, and the
+  // preview and e2e both run current Chromium.
+  let hostname: string
+  try {
+    hostname = new URL(avatar).hostname
+  } catch {
+    return avatar
   }
 
-  return avatar
+  return DECOMMISSIONED_AVATAR_HOSTS.has(hostname) ? undefined : avatar
 }

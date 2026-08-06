@@ -46,4 +46,64 @@ describe('avatarSrcUnlessDecommissioned', () => {
   it('passes a URL it cannot parse straight through', () => {
     expect(avatarSrcUnlessDecommissioned('/avatars/alicia.png')).toBe('/avatars/alicia.png')
   })
+
+  it('returns the value unchanged when parsing throws, whatever the value is', () => {
+    // The relative path above is the realistic case; these are the ones that make
+    // `new URL()` throw for a different reason each time, so the `catch` is pinned
+    // as the contract rather than as a side effect of one input shape.
+    for (const unparseable of [
+      '',
+      '   ',
+      'not a url at all',
+      'https://',
+      '://no-scheme',
+      'http://[',
+    ]) {
+      expect(avatarSrcUnlessDecommissioned(unparseable)).toBe(unparseable)
+    }
+  })
+
+  it('still works where URL.canParse does not exist', () => {
+    // This is the regression, not a hypothetical. The first version reached for
+    // `URL.canParse`, which shipped in Chrome 120 / Firefox 115 / Safari 17 — above
+    // every floor in this build's target (chrome111, edge111, firefox114,
+    // safari16.4, ios16.4). A build target lowers syntax and never polyfills an
+    // API, so it shipped verbatim and threw on the first board render, replacing
+    // the page with the error boundary.
+    //
+    // The gate could not see it: jsdom runs on Node 22, where `canParse` exists.
+    // So the absence is simulated here, which is the only place in the suite that
+    // can.
+    //
+    // It is *shadowed*, not deleted, and that is not incidental. In this
+    // environment `canParse` is not an own property of the global `URL` —
+    // `Reflect.deleteProperty` returns `true` and leaves it reachable, so a test
+    // written that way passes against the broken implementation and pins nothing.
+    // Defining an own `undefined` over it is what actually hides it. Undone by
+    // removing that own property again, which uncovers the inherited one;
+    // restoring a saved descriptor cannot work, because there was none to save.
+    const hadOwn = Object.prototype.hasOwnProperty.call(URL, 'canParse')
+    const own = Object.getOwnPropertyDescriptor(URL, 'canParse')
+    Object.defineProperty(URL, 'canParse', { value: undefined, configurable: true, writable: true })
+
+    try {
+      expect(
+        avatarSrcUnlessDecommissioned('https://avatars.dicebear.com/api/initials/jd.svg'),
+      ).toBe(undefined)
+      expect(avatarSrcUnlessDecommissioned('https://cdn.ravn.co/avatars/alicia.png')).toBe(
+        'https://cdn.ravn.co/avatars/alicia.png',
+      )
+      expect(avatarSrcUnlessDecommissioned('/avatars/alicia.png')).toBe('/avatars/alicia.png')
+    } finally {
+      if (hadOwn && own) {
+        Object.defineProperty(URL, 'canParse', own)
+      } else {
+        Reflect.deleteProperty(URL, 'canParse')
+      }
+    }
+
+    // The restore is asserted, not assumed: leaving `URL.canParse` shadowed would
+    // silently weaken every later test in this worker.
+    expect(typeof URL.canParse).toBe('function')
+  })
 })
