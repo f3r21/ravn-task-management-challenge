@@ -45,7 +45,7 @@ fi
 # ESLint only for what the flat config actually has rules for; handed anything
 # else it reports "ignored because no matching configuration" and does nothing.
 # `--no-warn-ignored` covers the files eslint.config.js ignores on purpose
-# (generated GraphQL types, vendored kit output), which are edited rarely but
+# (generated GraphQL types, `msw init`'s worker), which are edited rarely but
 # would otherwise warn on every save.
 case "$file" in
 *.ts | *.tsx | *.js | *.jsx | *.mjs | *.cjs)
