@@ -135,8 +135,30 @@ than patched around here.
 
 The migration is deliberately incomplete and tracked as such. `Modal`, `Select`,
 `MultiSelect` and `Menu` come from the kit today; `Avatar`, `Button`, `Tag`, `Skeleton` and
-the board components are still app-owned and queued to move. `EmptyState`, `ErrorBoundary`,
-the toast system and the icon set stay here for now because the kit has no equivalent yet.
+the board components are still app-owned and queued to move.
+
+`EmptyState`, the toast system and the icon set are also still app-owned, and the reason is
+worth stating precisely because it is the opposite of the obvious one: the kit has all
+three, and it has them **because this app wrote them first**. Its `EmptyState` and
+`ToastProvider` are both marked "No Figma source" in the kit and were ported from here — the
+design file draws neither, and the accessibility lessons behind them (an empty state that
+must not be a live region, a toast region that has to be portalled _and_ exempted) were paid
+for in this repo. So they are duplicates awaiting deletion, not gaps: the kit's versions are
+supersets, and swapping to them is queued work with no user-visible change to show for it.
+
+**`ErrorBoundary` is the only one of the four the original claim still holds for.** The kit
+genuinely has no equivalent, and arguably should not: it renders nothing designed, and its
+whole surface is an `onError` seam for wiring up crash reporting in a host application.
+
+One migration is blocked rather than queued, which is a different thing. The delete
+confirmation stays on the app's own `Dialog` because the kit's `Modal` accepts
+`role="alertdialog"` but drops React Aria's `contentProps`, so the body text it exists to
+announce is never wired to `aria-describedby` — a test here asserts that description, and
+per the rule below the fix belongs in the kit rather than in the assertion.
+
+That rule is the whole point of the arrangement: **when a kit component fails an assertion
+in this app, the fix goes in the kit, not in the test.** Weakening a test to make a
+migration land would throw away the only signal a second consumer-shaped repo produces.
 
 ### Why there is a `vendor/` directory
 
