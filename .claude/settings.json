@@ -34,8 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/block-dangerous.sh",
-            "description": "Prevent execution of destructive bash commands (e.g. rm -rf /, force push, curl|sh)."
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-dangerous.sh"
           }
         ]
       }
