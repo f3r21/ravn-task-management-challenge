@@ -151,8 +151,20 @@ commits its `dist/` and checks its freshness in its own CI. Consequences:
 - **The Tailwind `@source` scan is the silent failure to watch.** `src/styles/base.css` names
   `../../node_modules/@ravn/ui-kit/dist`; if that scan ever breaks, kit-only utility classes
   vanish from the built CSS **with no build error**. `max-w-[120px]` and `tabular-nums` occur
-  in the kit's `dist` and nowhere in `src/`, so grepping `dist/assets/*.css` for both after a
-  build is the canary.
+  in the kit's `dist` and nowhere in `src/`, so grepping the built CSS for both is the canary:
+
+  ```bash
+  npm run build
+  grep -c 'tabular-nums' dist/assets/*.css        # expect >= 1
+  grep -c 'max-w-\\\[120px\\\]' dist/assets/*.css   # expect >= 1 — note the escaping
+  ```
+
+  **Grep the escaped form, not the literal one.** Tailwind escapes the brackets of an
+  arbitrary-value class, so it emits `.max-w-\[120px\]`, and `grep -F 'max-w-[120px]'`
+  therefore matches **nothing on a completely healthy build** — indistinguishable from the
+  failure this check exists to detect. That false alarm has been hit twice; what settled it
+  was running the same grep against the deployed production CSS, which "failed" too. If this
+  canary ever fires, run it against production before believing it.
 
 **The standing rule: when a kit component fails an assertion here, the fix goes in the kit,
 not in the test.** This app is what proves the package works, and every defect found by
