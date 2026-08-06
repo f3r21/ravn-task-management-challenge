@@ -8,6 +8,16 @@ on:
   # when a second opinion is worth most, because the diff is being reviewed
   # against a base that has not landed yet.
   pull_request:
+  # So a check can be proved to have teeth without opening a pull request for it.
+  # `/finish-issue` asks for a sabotage run on a real runner, and without this the
+  # only way to get one is to push a deliberately broken branch and raise a PR
+  # against it — which then exists, merge button and all, purely as scaffolding.
+  # `ravn-ui-kit` already works this way.
+  #
+  # Note it becomes usable only once this file reaches the **default** branch:
+  # GitHub reads `workflow_dispatch` from `main`, so `gh workflow run` on a topic
+  # branch does nothing until the next `dev` -> `main` promotion carries it over.
+  workflow_dispatch:
 
 # A new push to the same branch makes the in-flight run irrelevant, so cancel it
 # rather than paying for two runs and reading the stale one.
