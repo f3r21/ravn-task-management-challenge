@@ -30,6 +30,33 @@ export interface BoardFilters {
   dueDate?: string
 }
 
+/**
+ * The URL key each filter is stored under — the one place either side may name them.
+ *
+ * The header's search box writes the same `name` parameter the board reads, and for a
+ * while it did so with its own hardcoded string and its own `URLSearchParams` write.
+ * Renaming the key on either side would have silently disconnected the two: no type
+ * error, and every test still passing against whichever half it happened to exercise.
+ * The header now goes through `setFilter`, so there is one writer, and the read below
+ * comes from this record, so there is one spelling.
+ */
+export const FILTER_PARAMS = {
+  name: 'name',
+  status: 'status',
+  tags: 'tags',
+  pointEstimate: 'points',
+  ownerId: 'owner',
+  dueDate: 'due',
+} as const satisfies Record<keyof BoardFilters, string>
+
+/**
+ * Whether the people directory has arrived yet.
+ *
+ * `'pending'` is genuinely "not known yet"; `'ready'` is "this is the whole list",
+ * whether it came back full, empty, or not at all. See `readOwner`.
+ */
+export type DirectoryStatus = 'pending' | 'ready'
+
 /** Narrows a raw query-string value to a union member, or drops it. */
 function readMember<T extends string>(raw: string | null, allowed: readonly T[]): T | undefined {
   // A hand-edited URL is untrusted input. Without this check `?status=nonsense`
@@ -59,16 +86,26 @@ function readDate(raw: string | null): string | undefined {
 /**
  * Narrows a raw owner id to one the directory knows, or drops it.
  *
- * While the directory is still loading `knownIds` is empty and the id is kept: the
- * alternative is a first request without the filter followed by a second with it,
- * which is a visible flicker in exchange for nothing. Once the list has arrived an
- * id that is not in it is dropped, the same as a bad enum.
+ * While the directory is still loading the id is kept: the alternative is a first
+ * request without the filter followed by a second with it, which is a visible
+ * flicker in exchange for nothing. Once the list has arrived an id that is not in
+ * it is dropped, the same as a bad enum.
+ *
+ * "Still loading" is the caller's `directoryStatus`, not an inference from an empty
+ * `knownIds`. It used to be the latter, and a *failed* `Users` query is permanently
+ * empty too — indistinguishable from loading — so one failed request put this
+ * function into pass-through for the rest of the session and `?owner=<anything>`
+ * went to the API unchecked. That is precisely what `readDate` above exists to stop.
  */
-function readOwner(raw: string | null, knownIds: readonly string[]): string | undefined {
+function readOwner(
+  raw: string | null,
+  knownIds: readonly string[],
+  directoryStatus: DirectoryStatus,
+): string | undefined {
   if (raw === null || raw === '') {
     return undefined
   }
-  return knownIds.length === 0 || knownIds.includes(raw) ? raw : undefined
+  return directoryStatus === 'pending' || knownIds.includes(raw) ? raw : undefined
 }
 
 export const SEARCH_DEBOUNCE_MS = 300
@@ -80,37 +117,40 @@ interface UseBoardFilters {
   queryInput: FilterTaskInput
   setFilter: <K extends keyof BoardFilters>(key: K, value: BoardFilters[K]) => void
   clearAll: () => void
+  /** Whether the *user* has set a filter — see below for why not `queryInput`. */
   isFiltered: boolean
 }
 
-export function useBoardFilters(knownOwnerIds: readonly string[] = []): UseBoardFilters {
+/**
+ * @param knownOwnerIds the directory's ids, once it has arrived.
+ * @param directoryStatus whether it has. Defaults to `'ready'`, the strict reading:
+ *   a caller that does not know about the directory should not be the one letting an
+ *   unvalidated owner id through.
+ */
+export function useBoardFilters(
+  knownOwnerIds: readonly string[] = [],
+  directoryStatus: DirectoryStatus = 'ready',
+): UseBoardFilters {
   const [params, setParams] = useSearchParams()
 
   const filters: BoardFilters = useMemo(
     () => ({
-      name: params.get('name') ?? '',
-      status: readMember(params.get('status'), BOARD_STATUSES),
-      tags: (params.get('tags') ?? '')
+      name: params.get(FILTER_PARAMS.name) ?? '',
+      status: readMember(params.get(FILTER_PARAMS.status), BOARD_STATUSES),
+      tags: (params.get(FILTER_PARAMS.tags) ?? '')
         .split(',')
         .map((tag) => readMember(tag, ALL_TAGS))
         .filter((tag): tag is TaskTag => tag !== undefined),
-      pointEstimate: readMember(params.get('points'), ALL_POINT_ESTIMATES),
-      ownerId: readOwner(params.get('owner'), knownOwnerIds),
-      dueDate: readDate(params.get('due')),
+      pointEstimate: readMember(params.get(FILTER_PARAMS.pointEstimate), ALL_POINT_ESTIMATES),
+      ownerId: readOwner(params.get(FILTER_PARAMS.ownerId), knownOwnerIds, directoryStatus),
+      dueDate: readDate(params.get(FILTER_PARAMS.dueDate)),
     }),
-    [params, knownOwnerIds],
+    [params, knownOwnerIds, directoryStatus],
   )
 
   const setFilter = useCallback<UseBoardFilters['setFilter']>(
     (key, value) => {
-      const paramName = {
-        name: 'name',
-        status: 'status',
-        tags: 'tags',
-        pointEstimate: 'points',
-        ownerId: 'owner',
-        dueDate: 'due',
-      }[key]
+      const paramName = FILTER_PARAMS[key]
 
       setParams(
         (current) => {
@@ -167,11 +207,30 @@ export function useBoardFilters(knownOwnerIds: readonly string[] = []): UseBoard
     ],
   )
 
+  /**
+   * Whether anything is filtered, from what the user set rather than from what is
+   * currently in flight.
+   *
+   * Both consumers — the "Clear filters" button and the choice of empty state — are
+   * answering "has the user narrowed this board", not "is the request that is out
+   * right now narrowed". Derived from `queryInput`, as it was, they inherited the
+   * search debounce: for 300ms after the first keystroke the board had a filter the
+   * user could neither see acknowledged nor clear, and an empty result read as
+   * "no tasks yet".
+   */
+  const isFiltered =
+    filters.name.trim() !== '' ||
+    filters.status !== undefined ||
+    filters.tags.length > 0 ||
+    filters.pointEstimate !== undefined ||
+    filters.ownerId !== undefined ||
+    filters.dueDate !== undefined
+
   return {
     filters,
     queryInput,
     setFilter,
     clearAll,
-    isFiltered: Object.keys(queryInput).length > 0,
+    isFiltered,
   }
 }
