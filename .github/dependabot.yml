@@ -65,6 +65,27 @@ updates:
       # entry that would otherwise be the reminder. Move the date forward when
       # the pin is re-examined, whatever the answer — including "still pinned".
       - dependency-name: react-router
+      # Pinned to a git tag (`github:f3r21/ravn-ui-kit#v0.4.0`) precisely so this app
+      # controls when the design system moves under it. An automated bump defeats the
+      # pin, which is the entire mechanism.
+      #
+      # This is not dead config left over from vendoring, and it is not "Dependabot
+      # cannot resolve it" — it can, tag-pinned git dependencies resolve fine. It was
+      # deleted once on that reading and restored. The reason it has to stay:
+      #
+      # **The kit lands breaking changes on minor bumps**, deliberately, under SemVer's
+      # pre-1.0 carve-out. `v0.4.0` renamed `AddTaskModal`'s `initialTitle` /
+      # `initialDueDate` / `initialPoints` / `initialAssignee` / `initialLabel` to
+      # `default*` with — its own CHANGELOG's words — "no alias kept": the old names
+      # become a type error, and at runtime the seed values are silently ignored. None
+      # of that is legible from a Dependabot PR title reading "bump @ravn/ui-kit from
+      # 0.4.0 to 0.5.0".
+      #
+      # `src/test/ui-kit-smoke.test.tsx` would catch a resolution that is outright
+      # broken, but only once the PR exists, and it cannot catch a rename that
+      # typechecks against props this app does not pass yet. Move the pin by hand,
+      # after reading the kit's CHANGELOG.
+      - dependency-name: '@ravn/ui-kit'
 
   # The action majors in `ci.yml` are deliberately not held in lockstep with
   # `ravn-ui-kit`'s — see the comment there. What is locked across the two
