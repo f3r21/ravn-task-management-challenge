@@ -398,7 +398,7 @@ options menu, which exercises the same `updateTask` mutation a drop would.
 
 ## Testing
 
-287 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
+370 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
 threshold on every metric; CI runs the same thing, plus a production build, a bundle-size
 budget and `npm audit --audit-level=high`, on every pull request.
 

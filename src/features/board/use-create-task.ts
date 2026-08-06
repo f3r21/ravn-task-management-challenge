@@ -24,8 +24,13 @@ export function useCreateTask(): UseMutationResult<Task, Error, CreateTaskInput>
       const data = await request(CreateTaskDocument, { input })
       return data.createTask
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: taskKeys.all })
+    onSuccess: () => {
+      // Started, not awaited. `mutateAsync` does not resolve until `onSuccess`
+      // does, and `invalidateQueries` resolves only once the refetch has settled —
+      // so awaiting it put a second round trip between the Create press and the
+      // dialog closing, and the board sat under a disabled button for both. The
+      // refetch still happens and the new card still arrives; nothing waits on it.
+      void queryClient.invalidateQueries({ queryKey: taskKeys.all })
     },
   })
 }

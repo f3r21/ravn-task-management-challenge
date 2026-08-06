@@ -19,8 +19,11 @@ export function useUpdateTask(): UseMutationResult<Task, Error, UpdateTaskInput>
       const data = await request(UpdateTaskDocument, { input })
       return data.updateTask
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: taskKeys.all })
+    onSuccess: () => {
+      // Not awaited — see `use-create-task.ts` for why. The saved change reaches
+      // the board through the refetch either way; awaiting only delays the dialog
+      // closing behind it.
+      void queryClient.invalidateQueries({ queryKey: taskKeys.all })
     },
   })
 }
