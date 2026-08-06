@@ -380,10 +380,10 @@ surprise, but it costs nothing:
 Three of the five:
 
 - **Task count per column** — the design draws it (`In Progress (03)`), zero-padded.
-- **Due-date colour by urgency** — red when overdue, amber when due today or tomorrow. The
-  brief suggests green for on-time; this uses the design's neutral badge instead, because
-  green is already the `iOS app` tag colour and a green badge sitting above a green chip
-  reads as a relationship that is not there.
+- **Due-date colour by urgency** — all three tiers the brief lists: green while the deadline
+  is more than a day out, amber when it is today or tomorrow, red once it is past. Colour is
+  never the only signal — the badge spells the date out in every tier, and the overdue one
+  adds "(overdue)" for anyone who does not receive colour at all.
 - **A list layout as well as the board** — each status becomes a full-width section and
   each task a single row, rather than the same card stacked. Worth being precise about why
   that distinction matters: the board is _already_ one stacked column at narrow widths, so
