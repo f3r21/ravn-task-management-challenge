@@ -8,8 +8,9 @@ signed-in user's profile.
 running against the real API. How it does that without publishing RAVN's token is under
 [Deployment](#deployment).
 
-Every checkbox in the brief's six sections is implemented, with two exceptions that are
-the API's shape rather than choices — both spelled out under
+Every checkbox in the brief's six sections is implemented, with two exceptions that are the
+API's shape rather than choices. Both are spelled out — alongside one place the brief and
+the schema simply use different names for the same working field — under
 [Things the brief asks for that the API cannot do](#things-the-brief-asks-for-that-the-api-cannot-do).
 
 ![The dashboard](docs/screenshots/dashboard.jpg)
@@ -314,11 +315,15 @@ anything else can be retried.
   field and it does exist.** `Task.position` is a `Float` and `UpdateTaskInput` accepts
   it, so the edit modal sets it. Only `User.position` is missing.
 
-- **§5 calls the points filter `EstimatedPoints`.** The field is `pointEstimate`. The
-  schema wins.
 - **`CreateTaskInput` has no `position`.** The server assigns it on create, so the field
   appears in the edit modal only — a control on create would collect a value with nowhere
   to send it.
+
+Those are the two. A third difference is listed here because it is the same kind of
+surprise, but it costs nothing:
+
+- **§5 calls the points filter `EstimatedPoints`.** The field is `pointEstimate`. The
+  schema wins, and the filter itself works exactly as asked — only the name differs.
 
 ## Bonus items
 
