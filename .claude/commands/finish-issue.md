@@ -57,6 +57,32 @@ Finish an issue and hand it off. Takes the issue number as an argument.
    traps, which still apply. This step is the CI one, and it is separate because local green is
    precisely what has lied before.
 
+   **A red check is not automatically your defect** — the same point inverted. That rule says a
+   _green_ check can be meaningless; this one says a _red_ one can be too. **Read which step
+   failed before you read your diff:**
+
+   ```bash
+   gh run view <id> --json jobs \
+     -q '.jobs[] | "\(.name): \(.conclusion)", (.steps[] | "  \(.number). \(.name) → \(.conclusion)")'
+   ```
+
+   If **no named workflow step executed**, it is infrastructure. Re-run once with
+   `gh run rerun <id> --failed` and investigate only if it fails the same way twice. A failure
+   _inside_ a step you can name is yours until proven otherwise.
+
+   Infrastructure has two shapes, and the second does not look like a finding:
+
+   - `Set up job → failure`, with nothing after it — GitHub could not resolve the actions
+     (`Failed to resolve action download info: Service Unavailable`).
+   - The **job line and no steps at all**, usually `cancelled`. A runner that was never acquired
+     logs nothing, so the command prints one line and stops. **That silence is the diagnosis, not
+     a broken command.**
+
+   Both happened here on 2026-08-06 during a seven-hour Actions outage: run `31117113338` is the
+   first shape, run `31120106399` the second. Take the URL _before_ re-running — `gh run view`
+   reports only the latest attempt, so a successful re-run makes the failure look like it never
+   happened. `gh run view <id> --attempt 1` is how you get it back.
+
    Then say in the PR body what that check **structurally cannot see** — the environment it runs
    in, the fixtures it reads, the buckets it sorts into. `npm run gate` went green over
    `URL.canParse`, which is absent from every browser in the build's target floor, because jsdom

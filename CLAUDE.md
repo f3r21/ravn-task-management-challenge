@@ -432,8 +432,9 @@ was previously carried only in host-local agent memory, one machine away from be
 eight stacked branches "Branch layout" says were merged and deleted, so it describes a layout that
 no longer exists. **`/start-issue` and `/finish-issue` are neither.** They are where this project's
 process rules live, and for most of them the only copy in the repository — deadlocked gates, stale
-readings, checks never observed failing, the four couplings that cross a lane boundary invisibly,
-and the scope of a dispatched subagent. That is `ui-kit.md`'s failure mode one level up: a rule
+readings, checks never observed failing, red checks that are somebody else's outage rather than
+your defect, the four couplings that cross a lane boundary invisibly, and the scope of a
+dispatched subagent. That is `ui-kit.md`'s failure mode one level up: a rule
 surviving only in a transcript is a rule already lost.
 
 **Issues are amended by commenting, so reading an issue means reading its comments.** Neither
