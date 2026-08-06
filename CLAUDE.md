@@ -105,28 +105,66 @@ with its own Storybook, tests and CI. This app is its first consumer. `Modal`, `
 `MultiSelect` and `Menu` come from it today; `Avatar`, `Button`, `Tag`, `Skeleton` and the
 board components are still app-owned and queued to move.
 
-**It arrives through `vendor/`, not npm.** There is no registry to publish to, so the
-dependency is `file:./vendor/ravn-ui-kit` — a committed copy of the kit's `dist/` plus a
-trimmed `package.json`. The obvious `file:../ravn-ui-kit` cannot work: CI clones only this
-repository, so that path never resolves there and `npm ci` fails on the first import.
-Consequences:
+**It arrives as a git dependency pinned to a tag, not from npm.** There is no registry to
+publish to, so the dependency is the repository itself:
+`"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#v0.4.0"`. The kit repo is public, so `npm ci`
+clones it anonymously — no token, in CI or on Vercel. A git install runs no build; the kit
+commits its `dist/` and checks its freshness in its own CI. Consequences:
 
-- **`vendor/ravn-ui-kit/` is build output. Never hand-edit it.** A fix made there is
-  invisible to the kit's own tests and is destroyed by the next re-sync.
-  `vendor/ravn-ui-kit/README.md` has the re-sync procedure; it lands as its own commit so a
-  kit change is never mixed into an app change.
+- **A tag, never a branch.** A branch re-resolves on every `npm ci` behind an unchanged
+  lockfile entry. Bumping the kit means editing the tag in `package.json` and running
+  `npm install`, which rewrites the resolved commit SHA in `package-lock.json` — check that
+  SHA rather than the packed filename, which does not distinguish `v0.4.0` from
+  `v0.4.0-rc.1`.
+- **`src/test/ui-kit-smoke.test.tsx` is the only check that spans the two repos.** Nothing
+  else can see the seam: `gate` typechecks against whatever `dist/` is already installed, and
+  the kit's CI tests its source tree rather than the artifact a consumer installs — so a tag
+  whose `dist/` was never rebuilt, or a pin missing an export this app imports, ships green
+  and breaks on Vercel. It imports from the public barrel (never a deep
+  `@ravn/ui-kit/dist/...` path, which resolves past the `exports` map and would keep passing
+  after the package stopped exporting a name), renders one component and asserts its
+  accessible name, and compares the installed manifest version against the tag
+  `package.json` pins. That last assertion is why bumping the pin without running
+  `npm install` is now a failing test rather than a warm `node_modules` quietly serving the
+  old build to the whole suite. It names the components the app imports one by one — add to
+  the list when the app starts importing another.
+- **The kit lands breaking changes on minor bumps**, under SemVer's pre-1.0 carve-out (its
+  `CONTRIBUTING.md` requires calling them out; its `CHANGELOG.md` does). `v0.4.0` renamed
+  `AddTaskModal`'s `initial*` props to `default*` with no alias. Read the changelog before
+  moving the pin — including on a Dependabot PR, which is now a thing that can happen since
+  the `@ravn/ui-kit` ignore entry is gone.
 - **The kit's source is not in this checkout**, so "what does this component actually do" is
-  answered by `vendor/ravn-ui-kit/dist/index.d.ts` — the doc comments survive the build and
-  are unusually detailed — or by the sibling repo, or the published Storybook.
-- **`vite.config.ts`'s `dedupe` list is a no-op as committed, and kept anyway.** The vendored
-  `file:./vendor/ravn-ui-kit` is a built copy with **no `node_modules` of its own**, so every
-  bare specifier already resolves up to this project's single install — there is exactly one
-  copy of `react`, `react-dom`, `react-aria` and `react-stately` on disk. The list guards the
-  _other_ consumption mode: switching to the sibling `file:../ravn-ui-kit` to work on the kit
+  answered by `node_modules/@ravn/ui-kit/dist/index.d.ts` — the doc comments survive the
+  build and are unusually detailed — or by the repo, or the published Storybook.
+- **`vite.config.ts`'s `dedupe` list is a no-op as committed, and kept anyway.** npm packs
+  only what the kit's `files: ["dist"]` names and never installs a dependency's
+  devDependencies, so `node_modules/@ravn/ui-kit` has **no `node_modules` of its own** and
+  every bare specifier resolves up to this project's single install — exactly one copy of
+  `react`, `react-dom`, `react-aria` and `react-stately` on disk. (The installed manifest
+  _does_ list `react-aria`/`react-stately` under devDependencies now, since a git install
+  ships the kit's `package.json` whole. That is not a nested copy.) The list guards the
+  _other_ consumption mode: switching to a sibling `file:../ravn-ui-kit` to work on the kit
   brings a checkout that does have its own `node_modules`, and then two React instances mean
   "Invalid hook call". That switch is a one-line `package.json` edit, and the failure reads as
   a bug in the component rather than in how it was installed. The comment there has the full
   shape of it.
+- **The Tailwind `@source` scan is the silent failure to watch.** `src/styles/base.css` names
+  `../../node_modules/@ravn/ui-kit/dist`; if that scan ever breaks, kit-only utility classes
+  vanish from the built CSS **with no build error**. `max-w-[120px]` and `tabular-nums` occur
+  in the kit's `dist` and nowhere in `src/`, so grepping the built CSS for both is the canary:
+
+  ```bash
+  npm run build
+  grep -c 'tabular-nums' dist/assets/*.css        # expect >= 1
+  grep -c 'max-w-\\\[120px\\\]' dist/assets/*.css   # expect >= 1 — note the escaping
+  ```
+
+  **Grep the escaped form, not the literal one.** Tailwind escapes the brackets of an
+  arbitrary-value class, so it emits `.max-w-\[120px\]`, and `grep -F 'max-w-[120px]'`
+  therefore matches **nothing on a completely healthy build** — indistinguishable from the
+  failure this check exists to detect. That false alarm has been hit twice; what settled it
+  was running the same grep against the deployed production CSS, which "failed" too. If this
+  canary ever fires, run it against production before believing it.
 
 **The standing rule: when a kit component fails an assertion here, the fix goes in the kit,
 not in the test.** This app is what proves the package works, and every defect found by
@@ -196,7 +234,7 @@ not-found page inside chrome implying the app is fine.
 **The app defines no tokens.** `src/styles/base.css` is the only stylesheet here, and it
 imports `@ravn/ui-kit/theme.css` for the whole colour, radius and type vocabulary — the raw
 Figma ramp and the semantic `@theme` names both live in the kit now. A new token is a change
-to the kit, re-vendored, not a `:root` block added here.
+to the kit, released and re-pinned, not a `:root` block added here.
 
 Two things in `base.css` are easy to delete as noise and are not. The kit ships tokens only,
 never compiled utilities, so this app's own `@tailwindcss/vite` build generates every class —

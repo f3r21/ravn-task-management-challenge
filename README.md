@@ -125,8 +125,8 @@ So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-ki
 components and 21 icons built from the Figma export, each with Storybook stories, its own
 test suite and its own CI. **[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)**
 to see every component, its props and its states without cloning anything. The count is
-`vendor/ravn-ui-kit/dist/index.d.ts`'s 72 capitalized exports less the 21 typed `IconProps`
-and 5 shared constants, so it can be re-derived rather than trusted.
+`node_modules/@ravn/ui-kit/dist/index.d.ts`'s 72 capitalized exports less the 21 typed
+`IconProps` and 5 shared constants, so it can be re-derived rather than trusted.
 
 This app is its first consumer, and consuming it is what proves the package
 works: several real defects (a popover that could not escape an `overflow: hidden` ancestor,
@@ -161,16 +161,26 @@ That rule is the whole point of the arrangement: **when a kit component fails an
 in this app, the fix goes in the kit, not in the test.** Weakening a test to make a
 migration land would throw away the only signal a second consumer-shaped repo produces.
 
-### Why there is a `vendor/` directory
+### Why the dependency is a git tag
 
-`@ravn/ui-kit` has no npm registry to publish to, so this app depends on it by path. Locally
-that would be `file:../ravn-ui-kit` — but CI clones only _this_ repository, so that path can
-never resolve there and `npm ci` would fail on the first import.
+`@ravn/ui-kit` has no npm registry to publish to, so the dependency is the repository
+itself, pinned: `"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#v0.4.0"`. The kit repo is public,
+so `npm ci` clones it anonymously — no cross-repo token, in CI or on Vercel. A git install
+runs no build; the kit commits its `dist/` and guards its freshness in its own CI, so what
+installs here is the tagged artifact rather than a rebuild.
 
-The fix is to vendor a built copy: `vendor/ravn-ui-kit/` holds the package's `dist/` output
-and a trimmed `package.json`, and the dependency is `file:./vendor/ravn-ui-kit`. It is build
-output, never hand-edited — `vendor/ravn-ui-kit/README.md` documents the re-sync procedure,
-and every re-sync lands as its own commit so a kit change is never mixed into an app change.
+**A tag, not a branch, and that is the whole point.** A branch re-resolves on every `npm ci`
+behind an unchanged lockfile entry. A tag resolves once, and `package-lock.json` records the
+commit it resolved to — so the installed bytes are identified rather than described.
+
+This app used to hold a built copy at `vendor/ravn-ui-kit/` instead, because the kit repo was
+private and reaching it from CI would have needed a PAT secret. Two things that cost, both
+worth knowing if the idea ever comes back: minified output reflows on any change, so a kit
+contrast fix touching a handful of hex values produced a 1,300-line diff here — 50.8% of this
+repository's entire line churn was that directory. And the lockfile entry for a `file:` link
+is `{"resolved": "vendor/ravn-ui-kit", "link": true}`, carrying no version and no integrity
+hash, so `@ravn/ui-kit@0.3.0` named four mutually different `dist/` trees over this repo's
+history with nothing able to detect it.
 
 The alternative was a monorepo. It was not chosen because the kit is meant to outlive this
 app, and a package that can only be built from inside its one consumer is not really a
@@ -266,8 +276,11 @@ with the baked `fill` swapped for `currentColor`, so colour still comes from the
 
 **The brand's own call-to-action fails WCAG AA, and it ships that way.** Three revisions of
 this paragraph each fixed the previous one's arithmetic and introduced a new error, so it now
-quotes the file CI enforces — `.storybook/a11y-allowlist.ts` in `@ravn/ui-kit` — instead of
-re-summarising it:
+quotes the file the kit's CI enforces —
+[`.storybook/a11y-allowlist.ts`](https://github.com/f3r21/ravn-ui-kit/blob/v0.4.0/.storybook/a11y-allowlist.ts)
+— instead of re-summarising it. The link is pinned to `v0.4.0`, the tag this app installs, so
+the quote below stays checkable against the exact tree it was read from rather than against
+whatever the kit's `main` says later:
 
 > `color-contrast` on `TextButton variant="primary"` — 14 nodes across 12 stories.
 >

@@ -30,7 +30,8 @@
     ]
   },
   "dependencies": {
-    "@ravn/ui-kit": "file:./vendor/ravn-ui-kit",
+    "@internationalized/date": "^3.12.3",
+    "@ravn/ui-kit": "github:f3r21/ravn-ui-kit#v0.4.0",
     "@tanstack/react-query": "^5.101.4",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
