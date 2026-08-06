@@ -9,7 +9,6 @@
  */
 @import 'tailwindcss';
 @import '@ravn/ui-kit/theme.css';
-@source "../../node_modules/@ravn/ui-kit/dist";
 
 /*
  * This file defines no tokens of its own — see @ravn/ui-kit's theme.css for
