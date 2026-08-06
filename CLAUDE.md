@@ -473,14 +473,23 @@ stopped. The coarser layer wins silently, and its blast radius is every session 
 rather than this repository. `/finish-issue` carries the rule that follows from it; what belongs
 here is that these are the three, and that only one of them is visible to review.
 
-**The glob layer is weaker than it reads, and the hook has holes the glob cannot cover.** Claude
-Code matches Bash rules per _subcommand_, splitting on `&&`, `||`, `;`, `|`, `|&`, `&` and
-newlines, so a deny rule that itself contains a separator can never match one — which is why
-`Bash(curl * | sh*)` and its two siblings in `settings.local.json` are very likely inert, and why
-the hook is what actually stops a piped download. In the other direction the hook's
-`git … push` regex models a global option as one attached token, so `git -C <path> push --force`
-matches neither the hook nor any deny glob, while `Bash(git *)` positively allows it. Neither
-layer covers the other; see #63.
+**The glob layer is weaker than it reads, and only one of the two layers can be fixed from
+here.** Claude Code matches Bash rules per _subcommand_, splitting on `&&`, `||`, `;`, `|`,
+`|&`, `&` and newlines, so a deny rule that itself contains a separator can never match one —
+which is why `Bash(curl * | sh*)` and its two siblings in `settings.local.json` are very likely
+inert, and why the hook is what actually stops a piped download. Delete them on your own
+machine; they are three lines of reassurance with nothing behind them. The same reading cuts
+the other way for the force-push globs: all six hardcode the literal two-token prefix
+`git push`, so `-C <path>` between those two words defeats every one of them at once, and
+`Bash(git *)` then positively _allows_ the result. The hook missed it too until #63 — its
+`git … push` regex modelled a global option as one whitespace-free token — as it missed
+`git push --force;` and the parenthesised twin, which one character of shell punctuation was
+enough to slip past. That side is now closed and pinned in `scripts/hooks.test.mjs`. The glob
+side is not, and structurally cannot be: `settings.local.json` is gitignored, so no change to
+it lands in a PR and nothing in the repository can see it drift. **Treat `block-dangerous.sh`
+as the layer that has to be right** — the permissions documentation says outright that Bash
+patterns constraining arguments are fragile, and the hook is the only one of the three layers
+that review, `gate` and a test can all see.
 
 `permissions.deny` in `settings.json` keeps `package-lock.json`, `coverage/`, `dist/` and
 `node_modules/` out of context. `.claudeignore`, which used to claim that job, is not a Claude
