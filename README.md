@@ -344,3 +344,7 @@ This repository is heavily instrumented for AI development via [Claude Code](htt
   - `PostToolUse`: Instantly runs `npx eslint --fix` and `npx prettier --write` whenever Claude saves a file, silently correcting minor syntax issues in the background.
   - `PreToolUse`: Blocks a handful of destructive bash patterns (`rm -rf /`, force push, `curl | sh`). Nothing enforces `gate` before a commit — running it is on you.
   - **Permissions**: Playwright and Chrome DevTools are whitelisted to run headless tests silently without interrupting the agent.
+
+## License
+
+[MIT](LICENSE).
