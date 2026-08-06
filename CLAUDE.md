@@ -370,6 +370,17 @@ it. `main` only receives periodic promotions of a verified-stable `dev` (gate gr
 anything MCP-related, live-checked, not just "connected") via a `dev` → `main` PR. Nothing
 merges into `main` directly.
 
+**`/start-issue` cuts that branch for you, and refuses when it cannot do so safely.** It derives
+the base (`origin/dev` if the repo has one, else the repo's default — `dev` here, `main` in
+`ravn-ui-kit`), then **stops** if the branch you are standing on has an open PR, rather than
+extending work a reviewer is already looking at. Issue branches are named
+`<type>/<issue>-<slug>`, so branch → issue is `^[a-z]+/([0-9]+)-`; the number is optional
+because `int/` branches, `main` and `dev` answer to no issue, and branches cut before #70 do not
+have one. Branches are cut `--no-track`, so that an unpushed branch still reads as unpushed
+rather than inheriting `origin/dev` as an upstream it never earned. The reasoning, and the
+`switch -C` variant that looks idempotent and silently orphans commits, are in
+`.claude/commands/start-issue.md`.
+
 **That is now enforced on the server, not by habit.** A repository ruleset covers
 `refs/heads/main` and `refs/heads/dev` with four rules: changes arrive by pull request, the
 `Typecheck, lint, format, test, build` check must be green, no force-push, no deletion.
