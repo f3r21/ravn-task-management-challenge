@@ -74,6 +74,17 @@ jobs:
       # build fails nowhere else in this pipeline.
       - run: npm run build
 
+      # The one failure in this repository that produces no error anywhere else:
+      # if Tailwind's `@source` scan of the kit's `dist/` breaks, kit-only
+      # utilities stop being generated and its components render unstyled in
+      # production while every local check stays green. `gate` runs in jsdom and
+      # never sees a stylesheet, and `ui-kit-smoke.test.tsx` pins the module
+      # graph rather than the CSS — so this has to run here, after a real build,
+      # or not at all. The script explains the sentinel choice and the
+      # selector-escaping trap that made two hand-run versions of this check
+      # report a false alarm.
+      - run: npm run css:canary
+
       # A budget, not a benchmark. Two numbers, because one of them alone can be
       # satisfied without shipping a byte less:
       #
