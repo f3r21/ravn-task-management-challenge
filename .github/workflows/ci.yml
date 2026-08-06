@@ -25,10 +25,23 @@ jobs:
   verify:
     name: Typecheck, lint, format, test, build
     runs-on: ubuntu-latest
+    # A ceiling, not an estimate: the whole job runs in about four minutes, and
+    # without this a step that hangs — a watch-mode flag that slipped into a
+    # script, a prompt nothing answers — sits there until GitHub's six-hour
+    # default gives up. Same value as the sibling `ravn-ui-kit` workflow.
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      # Pinned to the same majors as `ravn-ui-kit`'s workflow, deliberately.
+      # The two repositories are built and reviewed together, and letting each
+      # drift to whatever was current the day someone touched it is how you end
+      # up debugging a difference between pipelines that are supposed to be the
+      # same. Bump them in lockstep, in both repositories, or not at all.
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v6
+      # `node-version` is the one thing NOT copied from the kit, which builds on
+      # 20: this app's `engines` field requires >=22.13.0, so 20 would install
+      # dependencies CI could not then run.
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
