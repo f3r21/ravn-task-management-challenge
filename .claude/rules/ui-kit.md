@@ -29,6 +29,12 @@ dependency. This app is its first and only consumer.
   `package.json` edit plus `npm install`; verify by the resolved commit SHA in
   `package-lock.json`, not by a version string. The kit ships breaking changes on minor
   bumps (pre-1.0), so read its `CHANGELOG.md` first.
+- **`src/test/ui-kit-smoke.test.tsx` guards the seam between the two repos** — the one
+  failure neither repository's CI can see. It asserts, from the public barrel rather than a
+  deep path, that the components the app imports exist, that one renders with its accessible
+  name intact, and that the installed manifest version matches the pinned tag. Forgetting
+  `npm install` after a pin bump fails it. Extend it when the app imports a new component;
+  never delete an assertion to make a bump land.
 
 ## Reading the kit without its source
 

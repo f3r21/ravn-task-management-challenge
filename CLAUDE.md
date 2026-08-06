@@ -116,6 +116,18 @@ commits its `dist/` and checks its freshness in its own CI. Consequences:
   `npm install`, which rewrites the resolved commit SHA in `package-lock.json` — check that
   SHA rather than the packed filename, which does not distinguish `v0.4.0` from
   `v0.4.0-rc.1`.
+- **`src/test/ui-kit-smoke.test.tsx` is the only check that spans the two repos.** Nothing
+  else can see the seam: `gate` typechecks against whatever `dist/` is already installed, and
+  the kit's CI tests its source tree rather than the artifact a consumer installs — so a tag
+  whose `dist/` was never rebuilt, or a pin missing an export this app imports, ships green
+  and breaks on Vercel. It imports from the public barrel (never a deep
+  `@ravn/ui-kit/dist/...` path, which resolves past the `exports` map and would keep passing
+  after the package stopped exporting a name), renders one component and asserts its
+  accessible name, and compares the installed manifest version against the tag
+  `package.json` pins. That last assertion is why bumping the pin without running
+  `npm install` is now a failing test rather than a warm `node_modules` quietly serving the
+  old build to the whole suite. It names the components the app imports one by one — add to
+  the list when the app starts importing another.
 - **The kit lands breaking changes on minor bumps**, under SemVer's pre-1.0 carve-out (its
   `CONTRIBUTING.md` requires calling them out; its `CHANGELOG.md` does). `v0.4.0` renamed
   `AddTaskModal`'s `initial*` props to `default*` with no alias. Read the changelog before
