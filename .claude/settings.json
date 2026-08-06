@@ -8,6 +8,12 @@
       "mcp__plugin_playwright_playwright__browser_fill",
       "mcp__plugin_chrome_devtools_mcp_chrome_devtools__evaluate",
       "mcp__plugin_chrome_devtools_mcp_chrome_devtools__navigate"
+    ],
+    "deny": [
+      "Read(./package-lock.json)",
+      "Read(./coverage/**)",
+      "Read(./dist/**)",
+      "Read(./node_modules/**)"
     ]
   },
   "hooks": {
