@@ -234,6 +234,34 @@ it. `main` only receives periodic promotions of a verified-stable `dev` (gate gr
 anything MCP-related, live-checked, not just "connected") via a `dev` → `main` PR. Nothing
 merges into `main` directly.
 
+**That is now enforced on the server, not by habit.** A repository ruleset covers
+`refs/heads/main` and `refs/heads/dev` with four rules: changes arrive by pull request, the
+`Typecheck, lint, format, test, build` check must be green, no force-push, no deletion.
+`bypass_actors` is empty on purpose, so the owner account is subject to it too — before this,
+CI was decorative: red runs never blocked the merge button, and `68cb754` reached `dev` as a
+direct push. Three consequences for anyone working here:
+
+- **It is a _ruleset_, not classic branch protection.** `gh api repos/…/branches/main/protection`
+  answers `404 Branch not protected` and that is not the answer to the question — read it back
+  with `gh api repos/f3r21/ravn-task-management-challenge/rulesets`.
+- **Approvals are deliberately _not_ required** (`required_approving_review_count: 0`). There is
+  one account here and GitHub forbids approving your own pull request, so requiring even one
+  approval deadlocks the repository outright. Review is a `gh pr review --comment` from a
+  separate session, and the PR template's `Second-session review:` line is the only record that
+  it happened.
+- **The check must be green _against current `dev`_, not against whatever `dev` was when the
+  branch was cut** (`strict_required_status_checks_policy: true`). Two lanes land into `dev`
+  concurrently, so without this a run goes green describing a merge base that no longer exists
+  — issues #27, #35 and #42 all edit `.github/workflows/ci.yml`, and git will catch the
+  textual conflict between them while saying nothing about the semantic one. The cost is real
+  and intended: **every merge into `dev` staleness-marks the other lane's open PR**, which then
+  has to update its branch and re-run the check before it can merge. Combined with zero
+  required approvals that serializes merges rather than deadlocking them. A PR sitting at
+  `mergeStateStatus: BEHIND` is this rule, not a broken build — update the branch, wait for CI.
+
+Merged branches now delete themselves (`deleteBranchOnMerge`), so a branch still on the remote
+means unmerged work, not litter.
+
 This wasn't always the layout. The six brief sections plus the README shipped as eight
 stacked branches, `feat/01-project-setup` → `feat/02-dashboard-ui` → `feat/03-connect-api` →
 `feat/04-create-task` → `feat/05-update-delete` → `feat/06-search-filter` → `feat/07-profile`
@@ -256,7 +284,9 @@ assuming.
 `rules/`, which restate the conventions above. `settings.json` runs `eslint --fix` and
 `prettier --write` on every edit, and a `PreToolUse` hook that blocks a handful of destructive
 bash patterns (`rm -rf /`, force push, `curl | sh`). **Nothing enforces `gate` before a
-commit** — running it is on you.
+commit** — running it is on you. It _is_ enforced before a merge (see "Branch layout"), but
+finding out in CI costs a push and a five-minute round trip to learn what four minutes locally
+would have told you.
 
 ## Not built
 

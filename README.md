@@ -342,7 +342,7 @@ This repository is heavily instrumented for AI development via [Claude Code](htt
 - **Modular Rules (`.claude/rules/`)**: Context-aware instructions (`bonus-points.md`, `code-review.md`, `graphql-api.md`) loaded as plain project context, restating the conventions in `CLAUDE.md`.
 - **Automated Hooks (`.claude/settings.json`)**:
   - `PostToolUse`: Instantly runs `npx eslint --fix` and `npx prettier --write` whenever Claude saves a file, silently correcting minor syntax issues in the background.
-  - `PreToolUse`: Blocks a handful of destructive bash patterns (`rm -rf /`, force push, `curl | sh`). Nothing enforces `gate` before a commit — running it is on you.
+  - `PreToolUse`: Blocks a handful of destructive bash patterns (`rm -rf /`, force push, `curl | sh`). Nothing enforces `gate` before a commit — running it is on you. A repository ruleset does enforce it before a merge: `main` and `dev` take changes by pull request only, with CI green against an up-to-date branch, and no force-push or deletion.
   - **Permissions**: Playwright and Chrome DevTools are whitelisted to run headless tests silently without interrupting the agent.
 
 ## License
