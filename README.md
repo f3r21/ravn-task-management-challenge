@@ -202,6 +202,33 @@ Node's `(req, res) => void` and ignores what it returns, so the first deploy ans
 nothing at all and hung until the platform timed it out. The export name doubles as the
 method restriction: anything that is not a POST is refused before the function runs.
 
+**Two response headers, and no Content-Security-Policy.** `vercel.json` sends
+`X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`.
+Neither can break this app — nothing here is served with a content type a browser would want
+to second-guess — and the referrer policy does something real: task cards load avatars from
+whatever host the API names, and without it every one of those requests carries the board's
+full URL, filters and search term included, to a third party.
+
+There is deliberately no CSP, and `frame-ancestors` is deliberately not set. A CSP would be
+about eight lines and it is the thing reviewers grep for, so the reasoning matters more than
+the answer. Two parts:
+
+- **It cannot be verified before it ships.** Header rules do not apply to `vite preview` or
+  `npm run dev`; the first time a policy is real is on a deployment, and a policy that is one
+  directive short takes the app down in a way no local check can see beforehand. Against
+  that, what a CSP defends is script injection, and this app has no `dangerouslySetInnerHTML`,
+  no `eval`, no user-supplied markup and no third-party scripts — React escapes every string
+  that reaches the DOM. The trade is a real outage risk against a hypothetical one.
+- **Framing buys an attacker nothing here.** `frame-ancestors` stops clickjacking, and the
+  action worth clickjacking is deleting a task. But `/api/graphql` is intentionally open —
+  the app has no users to authenticate, so anyone who wants to delete a task can simply post
+  the mutation. There is no privilege a framed click could borrow that a `curl` does not
+  already have.
+
+Both would change the moment this app grew a login. The e2e spec against the deployment (see
+[Testing](#testing)) is what would catch a CSP that broke the board, so the ordering is:
+users first, then the policy, with a check that can prove it.
+
 ## Decisions worth explaining
 
 **Design tokens are read out of Figma, not eyeballed.** They live in the kit
