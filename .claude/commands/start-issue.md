@@ -1,7 +1,7 @@
 Start work on a GitHub issue. Takes the issue number as an argument.
 
-Run these in order, in **this worktree only** — never in the primary checkout at
-`/Users/99/Developer/RAVN/ravn-task-management-challenge`, which is shared:
+Run these in order, in **this worktree only** — never in the primary checkout, which other
+sessions have open and which `git worktree list` will name for you:
 
 ```bash
 git fetch origin --prune
