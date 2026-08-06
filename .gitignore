@@ -7,6 +7,10 @@ dist-ssr
 !vendor/ravn-ui-kit/dist/
 !vendor/ravn-ui-kit/dist/**
 coverage
+# Playwright's per-failure artefacts — traces, screenshots, videos. The spec and
+# its config are tracked; what a run produces is not. Matching entries live in
+# `.prettierignore` and `eslint.config.js`.
+e2e/test-results
 *.local
 .DS_Store
 .env
@@ -22,7 +26,20 @@ UI_KIT_MIGRATION_PLAN.md
 UI_KIT_MIGRATION_NEXT_PROMPT.md
 
 # corvus — managed, do not edit this block
-.corvusrc
+#
+# One deliberate edit, which `corvus install` may undo: the `.corvusrc` line
+# this block ships with has been removed. The file is tracked, and a tracked
+# file ignores .gitignore entirely, so the entry was inert *and* contradicted
+# the tracking — read either way round, one of the two was wrong.
+#
+# It is resolved in favour of tracking. `.corvusrc` is the skill manifest, and
+# only because it is tracked does it reach every `git worktree`, which is the
+# only reason `corvus sync` can restore the 15 skills in a fresh worker
+# checkout. Untracking it would leave each new session with no skills and no
+# way to discover which ones this project expects.
+#
+# If a future `corvus install` rewrites this block and puts the line back, the
+# tracking still wins — delete the line again rather than untracking the file.
 .claude/skills/core-coding-standards/
 .claude/skills/lang-typescript/
 .claude/skills/platform-frontend/

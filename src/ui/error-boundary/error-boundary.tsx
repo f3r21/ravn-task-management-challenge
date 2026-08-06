@@ -4,6 +4,20 @@ interface ErrorBoundaryProps {
   children: ReactNode
   /** Rendered in place of `children` once an error is caught. */
   fallback?: ReactNode
+  /**
+   * Called with every error this boundary catches, before the fallback renders.
+   *
+   * This is the seam a crash reporter plugs into, and it is a prop rather than
+   * an import on purpose: nothing is wired to it, because a challenge submission
+   * with a Sentry DSN in it would be theatre. What it buys is that adding
+   * reporting later is a change at the call site in `app.tsx`, not surgery on a
+   * component every page renders through — and that the absence of reporting is
+   * visible here rather than being something a reader has to notice is missing.
+   *
+   * Until something is passed, a production crash is reported to
+   * `console.error` and nowhere else, which on a deployed build means nowhere.
+   */
+  onError?: (error: Error, info: ErrorInfo) => void
 }
 
 interface ErrorBoundaryState {
@@ -28,7 +42,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
+    // Logged first, and unconditionally. A reporter that throws — a misconfigured
+    // DSN, an offline transport — must not be able to take the only other record
+    // of the crash down with it.
     console.error('Unhandled error in render:', error, info.componentStack)
+    this.props.onError?.(error, info)
   }
 
   render(): ReactNode {

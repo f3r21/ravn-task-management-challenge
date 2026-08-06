@@ -1,6 +1,7 @@
 /* eslint-disable */
 import * as types from './graphql';
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+
+
 
 /**
  * Map of all GraphQL operations in the project.
@@ -22,25 +23,10 @@ const documents: Documents = {
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- *
- *
- * @example
- * ```ts
- * const query = graphql(`query GetUser($id: ID!) { user(id: $id) { name } }`);
- * ```
- *
- * The query argument is unknown!
- * Please regenerate the types.
  */
-export function graphql(source: string): unknown;
+export function graphql(source: "fragment TaskFields on Task {\n  id\n  name\n  status\n  tags\n  dueDate\n  pointEstimate\n  position\n  createdAt\n  assignee {\n    ...UserFields\n  }\n  creator {\n    ...UserFields\n  }\n}\n\nfragment UserFields on User {\n  id\n  fullName\n  email\n  avatar\n  type\n  createdAt\n  updatedAt\n}\n\nquery Tasks($input: FilterTaskInput!) {\n  tasks(input: $input) {\n    ...TaskFields\n  }\n}\n\nquery Users {\n  users {\n    ...UserFields\n  }\n}\n\nquery Profile {\n  profile {\n    ...UserFields\n  }\n}\n\nmutation CreateTask($input: CreateTaskInput!) {\n  createTask(input: $input) {\n    ...TaskFields\n  }\n}\n\nmutation UpdateTask($input: UpdateTaskInput!) {\n  updateTask(input: $input) {\n    ...TaskFields\n  }\n}\n\nmutation DeleteTask($input: DeleteTaskInput!) {\n  deleteTask(input: $input) {\n    id\n  }\n}"): typeof import('./graphql').TaskFieldsFragmentDoc;
 
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "fragment TaskFields on Task {\n  id\n  name\n  status\n  tags\n  dueDate\n  pointEstimate\n  position\n  createdAt\n  assignee {\n    ...UserFields\n  }\n  creator {\n    ...UserFields\n  }\n}\n\nfragment UserFields on User {\n  id\n  fullName\n  email\n  avatar\n  type\n  createdAt\n  updatedAt\n}\n\nquery Tasks($input: FilterTaskInput!) {\n  tasks(input: $input) {\n    ...TaskFields\n  }\n}\n\nquery Users {\n  users {\n    ...UserFields\n  }\n}\n\nquery Profile {\n  profile {\n    ...UserFields\n  }\n}\n\nmutation CreateTask($input: CreateTaskInput!) {\n  createTask(input: $input) {\n    ...TaskFields\n  }\n}\n\nmutation UpdateTask($input: UpdateTaskInput!) {\n  updateTask(input: $input) {\n    ...TaskFields\n  }\n}\n\nmutation DeleteTask($input: DeleteTaskInput!) {\n  deleteTask(input: $input) {\n    id\n  }\n}"): (typeof documents)["fragment TaskFields on Task {\n  id\n  name\n  status\n  tags\n  dueDate\n  pointEstimate\n  position\n  createdAt\n  assignee {\n    ...UserFields\n  }\n  creator {\n    ...UserFields\n  }\n}\n\nfragment UserFields on User {\n  id\n  fullName\n  email\n  avatar\n  type\n  createdAt\n  updatedAt\n}\n\nquery Tasks($input: FilterTaskInput!) {\n  tasks(input: $input) {\n    ...TaskFields\n  }\n}\n\nquery Users {\n  users {\n    ...UserFields\n  }\n}\n\nquery Profile {\n  profile {\n    ...UserFields\n  }\n}\n\nmutation CreateTask($input: CreateTaskInput!) {\n  createTask(input: $input) {\n    ...TaskFields\n  }\n}\n\nmutation UpdateTask($input: UpdateTaskInput!) {\n  updateTask(input: $input) {\n    ...TaskFields\n  }\n}\n\nmutation DeleteTask($input: DeleteTaskInput!) {\n  deleteTask(input: $input) {\n    id\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
 }
-
-export type DocumentType<TDocumentNode extends DocumentNode<any, any>> = TDocumentNode extends DocumentNode<  infer TType,  any>  ? TType  : never;

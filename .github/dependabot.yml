@@ -14,9 +14,24 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    # Grouped so a routine week is one PR to review rather than fifteen. Security
-    # updates are deliberately left ungrouped by Dependabot itself and still
-    # arrive as their own PRs.
+    # Grouped so a routine week is one PR to review rather than fifteen.
+    #
+    # Version updates only — this whole block is. `target-branch` above is what
+    # decides that: GitHub uses a configuration for security updates *only* if it
+    # does not name a target branch, because a security fix is meant to reach the
+    # default branch. So the trade `target-branch` buys (dependency PRs cannot
+    # bypass `dev`) is paid for in Dependabot security PRs, which do not arrive
+    # here at all — the two cannot both be had from one entry.
+    #
+    # That gap is covered on the way in rather than on a schedule:
+    # `npm audit --audit-level=high` in `ci.yml` fails any pull request whose
+    # installed tree carries a high advisory, whoever opened it, and
+    # `dependency-review.yml` fails one that introduces a package carrying an
+    # advisory in GitHub's database. Dependabot *alerts* are enabled on the
+    # repository, so the Security tab still lists what is vulnerable; only the
+    # automatic pull request is missing. Turning on Dependabot security updates
+    # would not close it either — those bypass this file and open against `main`,
+    # which is the exact route `graphql` 17 took.
     groups:
       react:
         patterns:
@@ -43,6 +58,12 @@ updates:
       # at least one advisory range, so the version here is a deliberate choice
       # rather than "whatever resolves". A Dependabot bump would silently undo
       # that — upgrade it by hand, after checking the advisories.
+      #
+      # re-check by 2026-11-05. A manual-upgrade pin with nothing scheduling the
+      # manual part is a pin that rots: the advisories that justified it are a
+      # snapshot of 2026, and the entry that suppresses the reminder is the same
+      # entry that would otherwise be the reminder. Move the date forward when
+      # the pin is re-examined, whatever the answer — including "still pinned".
       - dependency-name: react-router
       # A `file:` dependency on the sibling design-system repo. Dependabot cannot
       # resolve it and re-syncing it is a manual, documented procedure

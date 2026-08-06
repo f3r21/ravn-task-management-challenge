@@ -19,6 +19,9 @@ export default tseslint.config(
       'src/graphql/generated',
       // Shipped verbatim by `msw init`.
       'public/mockServiceWorker.js',
+      // Playwright's failure artefacts. The spec itself is linted; what a run
+      // leaves behind is not source.
+      'e2e/test-results',
       // A git worktree checked out inside the repo is a second, complete copy of
       // this source tree. `.git/info/exclude` hides it from git, but ESLint and
       // Prettier do not read that file — only `.gitignore` and their own ignore

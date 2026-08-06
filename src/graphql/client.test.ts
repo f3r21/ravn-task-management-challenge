@@ -60,6 +60,27 @@ describe('request', () => {
     await expect(request(TasksDocument, { input: {} })).rejects.toThrow(/no data/i)
   })
 
+  it('puts the operation on the wire as query text', async () => {
+    // The generated documents are the operation's own text, so the client sends
+    // it verbatim rather than printing an AST. Switching codegen back to
+    // `documentNode` without restoring a `print()` call would post a serialised
+    // AST object here and every request would fail identically — and the GraphQL
+    // handlers would never see it, because MSW matches by *parsing* this field.
+    // So it has to be read at the transport level to be asserted at all.
+    let sentQuery: unknown
+    server.use(
+      http.post(MOCK_API_URL, async ({ request: sent }) => {
+        sentQuery = ((await sent.json()) as { query: unknown }).query
+        return HttpResponse.json({ data: { tasks: [] } })
+      }),
+    )
+
+    await request(TasksDocument, { input: {} })
+
+    expect(typeof sentQuery).toBe('string')
+    expect(sentQuery).toContain('query Tasks($input: FilterTaskInput!)')
+  })
+
   it('raises an ApiError, so callers can narrow on it', async () => {
     server.use(graphql.query('Tasks', () => HttpResponse.json({ errors: [{ message: 'nope' }] })))
 
