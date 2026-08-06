@@ -360,6 +360,10 @@ Break the code, watch the test fail, restore. Two rules learned the hard way:
 - **Target the right function.** A sabotage applied to `handleCreate` will not fail a test about
   `handleEdit`, and the passing test looks like a toothless one.
 
+Both of those are about the local loop. **The CI counterpart is `/finish-issue` step 4**: a check
+that runs on a runner is proved on the runner, with the failing run URL recorded in the PR body,
+because "green locally" is the precise state that has misled here before.
+
 ## Branch layout
 
 `dev` is the standing integration branch — all new work branches off `dev` and PRs back into
@@ -420,14 +424,23 @@ assuming.
 
 ## Claude Code setup in this repo
 
-`.claude/commands/` (`/gate`, `/schema-check`, `/rebase-stack`, `/start-issue`, `/finish-issue`
-— thin wrappers over the npm scripts and the issue workflow) and `.claude/rules/`
-(`bonus-points`, `code-review`, `graphql-api`, `ui-kit`) are optional extras the code does not
-depend on; the rules restate the conventions above, and `ui-kit.md` exists because the
-fix-it-in-the-kit rule was previously carried only in host-local agent memory, one machine away
-from being lost.
+`.claude/rules/` (`bonus-points`, `code-review`, `graphql-api`, `ui-kit`) restates the conventions
+above and nothing in the build depends on it; `ui-kit.md` exists because the fix-it-in-the-kit rule
+was previously carried only in host-local agent memory, one machine away from being lost.
 
-`.claude/hooks/` is not optional in the same way — `scripts/hooks.test.mjs` runs inside
+`.claude/commands/` is two different kinds of file under one directory. `/gate`, `/schema-check`
+and `/rebase-stack` are thin wrappers over the npm scripts. **`/start-issue` and `/finish-issue`
+are not.** They carry the process rules Foundation paid for, and for most of those they are the
+only copy in the repository: confirm a gate can open before waiting on it, re-take a reading
+instead of recalling it, prove a new check has teeth by watching it fail on a real runner, name
+which of type / lint rule / component contract / timing guarantee crossed the lane boundary, and
+keep a dispatched subagent's scope off the harness itself. That is `ui-kit.md`'s failure mode one
+level up — a rule surviving only in a transcript is a rule already lost — and it is why editing
+either file is itself on the list of changes that require updating this document in the same PR.
+`ravn-ui-kit` keeps its own deliberately diverging copies, and each file now opens by naming its
+sibling and the differences that are real; port a rule across by hand, never the file.
+
+`.claude/hooks/` the build _does_ depend on — `scripts/hooks.test.mjs` runs inside
 `npm run gate`, so deleting either script fails the build. `format-file.sh` (`PostToolUse`)
 runs ESLint and Prettier over the file just edited; `block-dangerous.sh` (`PreToolUse`) refuses
 a recursive forced `rm` aimed at `/` or `$HOME`, a plain force push, and a download piped into
