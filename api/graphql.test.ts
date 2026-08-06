@@ -1,4 +1,4 @@
-import { type DocumentNode, Kind, type OperationDefinitionNode, print } from 'graphql'
+import { Kind, type OperationDefinitionNode, parse } from 'graphql'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as generated from '../src/graphql/generated/graphql'
 import { POST, UPSTREAM_URL } from './graphql'
@@ -12,7 +12,7 @@ import { POST, UPSTREAM_URL } from './graphql'
  */
 
 /** An operation the app really sends, printed exactly as `client.ts` prints it. */
-const ALLOWED_QUERY = print(generated.TasksDocument)
+const ALLOWED_QUERY = String(generated.TasksDocument)
 
 function post(
   body: unknown = { query: ALLOWED_QUERY, variables: { input: {} } },
@@ -50,9 +50,21 @@ function sentBody(fetchMock: ReturnType<typeof stubUpstream>): {
   return JSON.parse(body) as { query: string; variables: unknown }
 }
 
+/**
+ * Codegen emits each document as a `String` subclass carrying phantom types,
+ * not as an AST, so anything structural has to be parsed back out. Typed
+ * structurally rather than as `TypedDocumentString<…>` because the generated
+ * documents' type parameters differ per operation, and a common supertype of
+ * those is not one TypeScript will infer.
+ *
+ * `graphql` is still importable here: it stayed a devDependency, and it is only
+ * the shipped code that must not reach for it.
+ */
+type DocumentText = { toString(): string }
+
 /** Names a generated document by the one operation it defines. */
-function operationName(document: DocumentNode): string | undefined {
-  return document.definitions.find(
+function operationName(document: DocumentText): string | undefined {
+  return parse(String(document)).definitions.find(
     (definition): definition is OperationDefinitionNode =>
       definition.kind === Kind.OPERATION_DEFINITION,
   )?.name?.value
@@ -341,10 +353,17 @@ describe('what the proxy will forward', () => {
    * listed here, so an operation added to `src/graphql/operations/tasks.graphql`
    * arrives in this test whether or not anyone remembers to add it — and fails
    * until the proxy's allowlist has it too. The two fragment documents are
-   * filtered out: the client never sends a fragment on its own.
+   * filtered out: the client never sends a fragment on its own. So is the
+   * `TypedDocumentString` class, which the module exports alongside the
+   * documents and which `Object.values` therefore hands back too — hence the
+   * `instanceof` rather than a duck-type check.
    */
-  const clientDocuments = Object.values(generated).filter((document: DocumentNode) =>
-    document.definitions.some((definition) => definition.kind === Kind.OPERATION_DEFINITION),
+  const clientDocuments = Object.values(generated).filter(
+    (value) =>
+      value instanceof generated.TypedDocumentString &&
+      parse(String(value)).definitions.some(
+        (definition) => definition.kind === Kind.OPERATION_DEFINITION,
+      ),
   )
 
   it('finds every operation the brief lists, and no more', () => {
@@ -364,7 +383,7 @@ describe('what the proxy will forward', () => {
   for (const document of clientDocuments) {
     it(`forwards ${operationName(document)}, which the app really sends`, async () => {
       const fetchMock = stubUpstream(json({ data: {} }))
-      const query = print(document)
+      const query = String(document)
 
       const response = await POST(post({ query, variables: { input: {} } }))
 
