@@ -423,9 +423,15 @@ assuming.
 
 ## Claude Code setup in this repo
 
-`.claude/rules/` (`bonus-points`, `code-review`, `graphql-api`, `ui-kit`) restates the conventions
-above and nothing in the build depends on it; `ui-kit.md` exists because the fix-it-in-the-kit rule
-was previously carried only in host-local agent memory, one machine away from being lost.
+`.claude/rules/` (`bonus-points`, `code-review`, `figures`, `graphql-api`, `ui-kit`) restates the
+conventions above and nothing in the build depends on it; `ui-kit.md` exists because the
+fix-it-in-the-kit rule was previously carried only in host-local agent memory, one machine away
+from being lost. `figures.md` is the one rule here that governs this document too: a number
+written down anywhere, including in these pages, carries the command that re-derives it.
+`.github/ISSUE_TEMPLATE/lane-task.md` is where that obligation is collected for new work. It
+applies to figures written **from now on** rather than retroactively — the numbers already in
+this file were not swept, deliberately, because a bulk edit that re-derives a hundred figures at
+once is exactly the unverified pass the rule exists to prevent.
 
 `.claude/commands/` is two different kinds of file under one directory. `/gate` and
 `/schema-check` are thin wrappers over the npm scripts; `/rebase-stack` is a procedure over the
