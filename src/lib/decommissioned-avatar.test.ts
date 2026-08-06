@@ -66,14 +66,17 @@ describe('avatarSrcUnlessDecommissioned', () => {
   it('still works where URL.canParse does not exist', () => {
     // This is the regression, not a hypothetical. The first version reached for
     // `URL.canParse`, which shipped in Chrome 120 / Firefox 115 / Safari 17 — above
-    // every floor in this build's target (chrome111, edge111, firefox114,
-    // safari16.4, ios16.4). A build target lowers syntax and never polyfills an
-    // API, so it shipped verbatim and threw on the first board render, replacing
-    // the page with the error boundary.
+    // every browser in the floor declared in `package.json`'s `browserslist`
+    // (chrome 111, edge 111, firefox 128, safari 16.4, ios_saf 16.4). A build
+    // target lowers syntax and never polyfills an API, so it shipped verbatim and
+    // threw on the first board render, replacing the page with the error boundary.
     //
-    // The gate could not see it: jsdom runs on Node 22, where `canParse` exists.
-    // So the absence is simulated here, which is the only place in the suite that
-    // can.
+    // No test can catch this class of defect: jsdom runs on Node 22, where
+    // `canParse` exists. The absence is simulated here, which is the only place in
+    // the suite that can — and the check that *does* catch it is a lint rule
+    // generated from that same `browserslist`, in `eslint.config.js`. This file is
+    // exempt from it on purpose, because the line below is the assertion that the
+    // shadowing was undone and the rule would read it as the very call it forbids.
     //
     // It is *shadowed*, not deleted, and that is not incidental. In this
     // environment `canParse` is not an own property of the global `URL` —
