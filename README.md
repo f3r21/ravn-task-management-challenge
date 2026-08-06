@@ -276,8 +276,11 @@ with the baked `fill` swapped for `currentColor`, so colour still comes from the
 
 **The brand's own call-to-action fails WCAG AA, and it ships that way.** Three revisions of
 this paragraph each fixed the previous one's arithmetic and introduced a new error, so it now
-quotes the file CI enforces — `.storybook/a11y-allowlist.ts` in `@ravn/ui-kit` — instead of
-re-summarising it:
+quotes the file the kit's CI enforces —
+[`.storybook/a11y-allowlist.ts`](https://github.com/f3r21/ravn-ui-kit/blob/v0.4.0/.storybook/a11y-allowlist.ts)
+— instead of re-summarising it. The link is pinned to `v0.4.0`, the tag this app installs, so
+the quote below stays checkable against the exact tree it was read from rather than against
+whatever the kit's `main` says later:
 
 > `color-contrast` on `TextButton variant="primary"` — 14 nodes across 12 stories.
 >
