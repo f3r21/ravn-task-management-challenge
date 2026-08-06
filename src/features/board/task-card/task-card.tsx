@@ -1,6 +1,7 @@
 import { Item } from 'react-stately'
 import { Menu } from '@ravn/ui-kit'
 import { parseApiDate } from '@/lib/due-date'
+import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { cn } from '@/lib/cn'
 import { Avatar } from '@/ui/avatar/avatar'
 import { AttachmentIcon, CommentIcon, MenuDotsIcon, SubtaskIcon } from '@/ui/icons/icons'
@@ -79,7 +80,12 @@ export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskC
       </ul>
     ) : null
 
-  const assignee = <Avatar src={task.assignee?.avatar} name={task.assignee?.fullName} />
+  const assignee = (
+    <Avatar
+      src={avatarSrcUnlessDecommissioned(task.assignee?.avatar)}
+      name={task.assignee?.fullName}
+    />
+  )
 
   const options = (
     /* Every card carries one of these, so the accessible name has to say which task

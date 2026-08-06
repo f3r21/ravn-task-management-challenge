@@ -1,6 +1,7 @@
 import { useId } from 'react'
-import { useSearchParams } from 'react-router'
+import { useBoardFilters } from '@/features/board/use-board-filters'
 import { useProfile } from '@/features/profile/use-profile'
+import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { Avatar } from '@/ui/avatar/avatar'
 import { BellIcon, SearchIcon } from '@/ui/icons/icons'
 
@@ -8,10 +9,17 @@ import { BellIcon, SearchIcon } from '@/ui/icons/icons'
  * The top bar: search on the left, notifications and the current user on the
  * right.
  *
- * Search writes straight to the URL's `name` parameter, which is where the board
- * reads its filters from. That is what lets a control in the app shell drive a
- * query on the page without either side importing the other, or a context
- * existing purely to carry one string.
+ * Search writes to the URL, which is where the board reads its filters from. That
+ * is what lets a control in the app shell drive a query on the page without a
+ * context existing purely to carry one string.
+ *
+ * Through the board's own `setFilter` rather than a `useSearchParams` write of its
+ * own. The two used to be independent: this file hardcoded the string `'name'` and
+ * serialised the parameter itself, `useBoardFilters` mapped and serialised the same
+ * key again, and renaming it on either side would have disconnected the search box
+ * from the board with no type error and nothing failing. One writer now, so the
+ * spelling cannot diverge. The hook is called with no directory, which is correct
+ * here — the header reads only `filters.name`.
  *
  * Figma draws the whole bar as one `<button>` containing the word "Search". That
  * is a mockup convention, not an instruction — this is a search field, so it is
@@ -26,8 +34,7 @@ export function AppHeader() {
   // Same query key as the settings page, so the signed-in user is fetched once
   // and the two cannot disagree about who it is.
   const { data: profile } = useProfile()
-  const [params, setParams] = useSearchParams()
-  const value = params.get('name') ?? ''
+  const { filters, setFilter } = useBoardFilters()
 
   return (
     <header className="bg-surface-panel rounded-md flex items-center justify-between gap-6 px-6 py-3">
@@ -40,22 +47,12 @@ export function AppHeader() {
           id={searchId}
           type="search"
           placeholder="Search"
-          value={value}
+          value={filters.name}
           onChange={(event) => {
-            setParams(
-              (current) => {
-                const next = new URLSearchParams(current)
-                if (event.target.value === '') {
-                  next.delete('name')
-                } else {
-                  next.set('name', event.target.value)
-                }
-                return next
-              },
-              // Replace, so a back press leaves the board rather than retracing
-              // the search one character at a time.
-              { replace: true },
-            )
+            // `setFilter` drops the parameter when the value is empty and replaces
+            // rather than pushes, so a back press leaves the board instead of
+            // retracing the search one character at a time.
+            setFilter('name', event.target.value)
           }}
           className="text-body-m placeholder:text-muted w-full min-w-0 flex-1 bg-transparent outline-none"
         />
@@ -69,7 +66,11 @@ export function AppHeader() {
         >
           <BellIcon className="size-6" />
         </button>
-        <Avatar size={40} src={profile?.avatar} name={profile?.fullName} />
+        <Avatar
+          size={40}
+          src={avatarSrcUnlessDecommissioned(profile?.avatar)}
+          name={profile?.fullName}
+        />
       </div>
     </header>
   )
