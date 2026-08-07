@@ -4,10 +4,33 @@ import { Button } from '@/ui/button/button'
 import { Dialog } from '@/ui/dialog/dialog'
 import type { Task } from './task-types'
 
+/**
+ * What `onConfirm` reports back, and why it is a value rather than an exception.
+ *
+ * This used to be `Promise<void>`, where "the delete failed, stay open" was
+ * signalled by *rethrowing* after the handler had already reported the failure —
+ * and this component caught that rethrow in an empty block. Both halves were
+ * documented, and neither was visible in the type: nothing stopped a new caller
+ * from resolving normally after a failure and closing a dialog over an error the
+ * user never saw. The empty `catch` was itself added to fix an unhandled
+ * rejection, which is the shape of bug the arrangement invited.
+ *
+ * Saying it in the signature costs one union and removes both.
+ */
+export type ConfirmOutcome = 'close' | 'keep-open'
+
 interface DeleteTaskDialogProps {
   state: OverlayTriggerState
   task: Task
-  onConfirm: () => Promise<void>
+  /**
+   * Performs the delete and says what should happen to this dialog.
+   *
+   * It owns reporting the failure to the user — only it knows what went wrong —
+   * and is expected to resolve rather than reject. A rejection is a contract
+   * violation rather than a control-flow signal, and is deliberately not caught
+   * here so that it surfaces instead of closing the dialog silently.
+   */
+  onConfirm: () => Promise<ConfirmOutcome>
 }
 
 /**
@@ -53,17 +76,12 @@ export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogPro
   async function handleConfirm() {
     setIsDeleting(true)
     try {
-      await onConfirm()
-      state.close()
-    } catch {
-      // Swallowed on purpose. `onConfirm` rejects to say "do not close", and it
-      // has already reported the failure to the user — it owns the message,
-      // since only it knows what went wrong. Letting the rejection escape here
-      // would surface as an unhandled promise rejection instead, which is how
-      // this was caught: the tests passed while the process reported an error.
+      if ((await onConfirm()) === 'close') {
+        state.close()
+      }
     } finally {
-      // Reset even on failure: the dialog stays open so the user can retry, and
-      // a permanently disabled button would leave them stuck.
+      // Reset even when the dialog stays open: the user can retry, and a
+      // permanently disabled button would leave them stuck.
       setIsDeleting(false)
     }
   }
