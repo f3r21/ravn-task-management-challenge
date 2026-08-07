@@ -24,8 +24,8 @@ Finish an issue and hand it off. Takes the issue number as an argument.
    **That keyword will not close anything by itself here.** GitHub only auto-closes a linked
    issue when the pull request merges into the repository's _default_ branch — which is `main`,
    while every lane PR targets `dev`. The keyword still earns its place: it records the link on
-   both the issue and the PR. But **the reviewer closes app issues by hand on merge**, and until
-   they do, an open issue is not evidence of unfinished work.
+   both the issue and the PR. But it closes nothing, so the issue is closed by hand — **step 8**,
+   after the merge. Until someone does that, an open issue is not evidence of unfinished work.
 
 3. Push the lane's branch — the one under review — then open or refresh its pull request into
    `dev`. (`dev` itself is the integration branch and the ruleset rejects a direct push to it.)
@@ -133,3 +133,35 @@ what the harness offers" as licence to do exactly that. If one returns a finding
 establish.
 
 Then stop. Do not merge; the reviewer does that.
+
+8. **After the merge, close the issue by hand.** This is the one step that happens on the far side
+   of the stop above, and it belongs to whoever merged the PR.
+
+   ```bash
+   gh issue close <n> -R f3r21/ravn-task-management-challenge \
+     --comment "Closed by <merge-commit-sha>, PR #<pr>."
+   ```
+
+   **Why this is not redundant with `Closes #<n>` in step 2.** The keyword fires only on a merge
+   into the repository's _default_ branch. This repository's default is `main` and every lane PR
+   targets `dev`, so the keyword has never closed anything here and never will while that is true.
+   It is a link, not a mechanism.
+
+   `ravn-ui-kit` is the control that proves the cause rather than merely asserting it: its PRs
+   target `main`, so the identical keyword closes its issues automatically. **Do not port this step
+   there** — it would double-close, and teach a rule that is false in that repository.
+
+   ```bash
+   gh repo view f3r21/ravn-task-management-challenge --json defaultBranchRef -q .defaultBranchRef.name   # main
+   gh pr list -R f3r21/ravn-task-management-challenge --state merged --limit 20 \
+     --json baseRefName -q '[.[] | select(.baseRefName == "dev")] | length'                              # 17 of 20
+   ```
+
+   **The comment is the point, not politeness.** An issue closed with no evidence cannot be told
+   apart from one closed by mistake, and this project has already had a complete issue sit open
+   because nobody could tell. On 2026-08-06 six issues stayed open after their PRs merged and were
+   swept closed by hand within twelve seconds of each other — the batch is what identifies it as a
+   person noticing, rather than six merges working.
+
+   Changing the default branch to `dev` would also make the keyword fire, and is the wrong fix:
+   `main` is what a reviewer of this submission clones, and GitHub shows the default branch first.

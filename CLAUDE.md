@@ -371,6 +371,16 @@ it. `main` only receives periodic promotions of a verified-stable `dev` (gate gr
 anything MCP-related, live-checked, not just "connected") via a `dev` → `main` PR. Nothing
 merges into `main` directly.
 
+**One consequence is easy to miss and cost six issues a day of staying open: `Closes #<n>` is
+inert here.** GitHub fires the keyword only on a merge into the repository's _default_ branch,
+which is `main`, and every lane PR targets `dev` — so the keyword records the link and closes
+nothing. Issues are closed by hand, with the merge commit in the closing comment, as
+`/finish-issue` step 8 describes. `ravn-ui-kit` is the control that makes this a cause rather
+than a theory: its PRs target `main`, so the identical keyword closes its issues automatically,
+and its ritual therefore must **not** carry the by-hand step. Making `dev` the default branch
+would also fix the keyword and is the wrong trade — `main` is what a reviewer of this submission
+clones, and GitHub shows the default branch first.
+
 **`/start-issue` cuts that branch for you, and refuses when it cannot do so safely.** It derives
 the base (`origin/dev` if the repo has one, else the repo's default — `dev` here, `main` in
 `ravn-ui-kit`), then **stops** if the branch you are standing on has an open PR, rather than
