@@ -24,6 +24,12 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
+Browsers: **Chrome 111, Edge 111, Firefox 128, Safari 16.4, iOS Safari 16.4**, declared in
+`package.json`'s `browserslist`. That one list is converted into the Vite build target and
+into a lint over `src/`, so the floor the build compiles for and the floor the code is
+checked against cannot disagree. Firefox is 128 rather than Vite's default 114 because that
+is what Tailwind v4 requires — the lower number was a claim the stylesheet could not honour.
+
 **It runs with no configuration.** With no API token present the app serves its own mocked
 data and says so on screen, so you can clone this and see a working board immediately.
 
@@ -467,6 +473,15 @@ hidden notification reachable and show two navigation landmarks where a browser 
 A browser, in turn, will report focus dropped on `<body>` if the interaction is driven with
 `element.click()` instead of real input, because that is not the press sequence React Aria
 listens for. Anything about focus or the accessibility tree is checked in both.
+
+Neither of those can see an _old_ browser, and a defect went out through the gap: a
+`URL.canParse` call — Chrome 120, above the floor — passed the whole suite, because jsdom
+runs on Node where that method exists, and passed the end-to-end spec, because that drives
+current Chromium. It threw on every browser this app claims to support, and the error
+boundary turned the board into the error screen. `npm run lint` now reads the declared
+`browserslist` and fails on API usage the floor does not have, which is the one check in
+`gate` that neither runtime could stand in for. It works from syntax, so what it cannot see
+is anything reached through a value rather than through a name.
 
 ## Notes
 
