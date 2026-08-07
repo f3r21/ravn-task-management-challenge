@@ -24,10 +24,16 @@ it gets. Delete the guidance comments as you fill each section in.
      only localhost.
 
      Every figure in this body carries the command that re-derives it, here or
-     inline — `284 tests, 97.63% statements — npm run gate 2>&1 | tail -6`.
+     inline — `284 tests, 97.63% statements —
+     npm run gate 2>&1 | tail -6 ; echo "exit=$pipestatus[1]"` (zsh; on bash
+     that last part is `echo "exit=${PIPESTATUS[0]}"`).
      Run it before pasting it: a command that returns something other than the
      figure is worse than no command, because the number then looks checked.
-     See `.claude/rules/figures.md`. -->
+
+     The `exit=` matters and is not padding. A pipe reports `tail`'s status, so
+     the bare form cannot tell a passing gate from a failing one — and the
+     coverage table prints the same percentages either way, so there is nothing
+     to notice. See `.claude/rules/figures.md`. -->
 
 - [ ] `npm run gate` is green
 - [ ] Behaviour change is covered by a test that fails without the change
