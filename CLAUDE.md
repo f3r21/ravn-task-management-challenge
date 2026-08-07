@@ -415,15 +415,31 @@ a `Float!` is a request to unset it.
 
 ## When proving a test has teeth
 
-Break the code, watch the test fail, restore. Two rules learned the hard way:
+Break the code, watch the test fail, restore. Three rules learned the hard way:
 
 - **Commit the fix first**, then sabotage. `git checkout <file>` to undo a sabotage takes any
-  uncommitted fix with it. Use `git stash` to restore.
+  uncommitted fix with it — committing first is what removes that hazard.
+- **Restore with `git checkout -- <the file you sabotaged>`**, naming the file rather than `.`.
+  Once the fix is committed this is precise, local, and touches nothing another lane can see.
+  **Do not reach for `git stash` here.** This bullet used to end "use `git stash` to restore",
+  which was advice for the uncommitted case the rule above has already ruled out — leaving stash
+  as strictly the riskier tool for the only case that remains.
+
+  **`refs/stash` lives in the common `.git`, so the stash stack is shared by every worktree**, and
+  this repo runs several lanes in parallel worktrees. Two lanes following this procedure at once
+  push onto one stack, and a bare `git stash pop` in one worktree restores the other's work into
+  it. A _sabotage_ is the worst possible thing to restore by accident: it is designed to break
+  something, and it arrives looking like your own uncommitted edit. Found when one lane's cleanup
+  turned up another lane's stash sitting beside its own.
+
+  If you genuinely have uncommitted work to park, `git stash push -m "<branch>: <what>"` and pop
+  it by matching that branch name in `git stash list` — never by index, and never bare.
+
 - **Target the right function.** A sabotage applied to `handleCreate` will not fail a test about
   `handleEdit`, and the passing test looks like a toothless one.
 
-Both of those are about the local loop. **The CI counterpart is the sabotage-on-a-real-runner step
-of `/finish-issue`**, which is where that procedure lives.
+All three are about the local loop. **The CI counterpart is the sabotage-on-a-real-runner step of
+`/finish-issue`**, which is where that procedure lives.
 
 ## Branch layout
 
