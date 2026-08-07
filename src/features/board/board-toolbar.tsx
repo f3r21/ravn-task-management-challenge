@@ -1,9 +1,8 @@
 import { useRef } from 'react'
 import { useRadio, useRadioGroup, VisuallyHidden } from 'react-aria'
 import { useRadioGroupState, type RadioGroupState } from 'react-stately'
-import { Button } from '@ravn/ui-kit'
+import { Button, GridViewIcon, ListViewIcon, PlusIcon } from '@ravn/ui-kit'
 import { cn } from '@/lib/cn'
-import { GridViewIcon, ListViewIcon, PlusIcon } from '@/ui/icons/icons'
 
 export type BoardView = 'list' | 'grid'
 

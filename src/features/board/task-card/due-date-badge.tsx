@@ -1,5 +1,5 @@
 import { dueDateTone, formatDueDate, type DueDateTone } from '@/lib/due-date'
-import { AlarmIcon } from '@/ui/icons/icons'
+import { AlarmIcon } from '@ravn/ui-kit'
 import { Tag, type TagTone } from '@/ui/tag/tag'
 
 interface DueDateBadgeProps {

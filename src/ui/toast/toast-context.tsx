@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useButton, useToast as useAriaToast, useToastRegion } from 'react-aria'
 import { useToastState, type QueuedToast, type ToastState } from 'react-stately'
 import { cn } from '@/lib/cn'
-import { CloseIcon } from '@/ui/icons/icons'
+import { CloseIcon } from '@ravn/ui-kit'
 
 export type ToastTone = 'success' | 'error'
 

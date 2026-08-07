@@ -1,6 +1,6 @@
 import { useId, useMemo } from 'react'
 import { Button } from '@/ui/button/button'
-import { AssigneeIcon, CalendarIcon, PointsIcon } from '@/ui/icons/icons'
+import { AssigneeIcon, CalendarIcon, PointsIcon } from '@ravn/ui-kit'
 import { pointsLabel, statusLabel } from './task-display'
 import { IconField } from './icon-field'
 import { OptionalSelect, TagMultiSelect } from './option-select'
