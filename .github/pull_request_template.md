@@ -21,7 +21,13 @@ it gets. Delete the guidance comments as you fill each section in.
      floor, not the answer. Anything about focus or the accessibility tree gets
      checked in a real browser too; jsdom disagrees with one in both
      directions. From the Vercel deploy onward, check the preview URL, not
-     only localhost. -->
+     only localhost.
+
+     Every figure in this body carries the command that re-derives it, here or
+     inline — `284 tests, 97.63% statements — npm run gate 2>&1 | tail -6`.
+     Run it before pasting it: a command that returns something other than the
+     figure is worse than no command, because the number then looks checked.
+     See `.claude/rules/figures.md`. -->
 
 - [ ] `npm run gate` is green
 - [ ] Behaviour change is covered by a test that fails without the change
