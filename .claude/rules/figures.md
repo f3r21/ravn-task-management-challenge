@@ -123,6 +123,40 @@ This is the same error as stopping at the first sabotage that confirms what you 
 threshold sabotage above agreed with the claim; only the failing-test sabotage could have
 contradicted it, and it did.
 
+### Run the probe where it should succeed, too
+
+Both of those are one case of a general rule, and the general one is a **procedure**: for every
+check you run, run the one that could contradict it.
+
+**Breaking something and watching it break confirms what you expected. The half that finds
+surprises is the positive control — running the probe where it _should_ succeed.**
+
+| You ran                             | The control, and what it catches                                                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| a sabotage that turns the check red | the suite **unsabotaged** — catches a check that was already red for an unrelated reason         |
+| a sabotage of the thing under test  | a sabotage of something the check should **not** notice — catches a check that fails on anything |
+| a grep that found nothing           | a grep for a token you know is present — catches a pattern that could never have matched         |
+| a rule that refused an action       | the same action where the rule should **allow** it — catches a rule that refuses everything      |
+| an input that fails at step 7       | an input that reaches the last step — catches steps 8 onward never being exercised at all        |
+
+Four instances, all from one day:
+
+- **The two sabotages above.** The threshold one agreed with the claim; only the failing-test one
+  could contradict it.
+- **The grep re-run as corroboration, above.** Same question asked the same way twice.
+- **`ravn-ui-kit#59`** proposes confirming that a push _succeeds_ for a tag name outside the
+  protected pattern. A ruleset that blocks everything satisfies "the hand path is blocked" and is
+  indistinguishable from a correct one until someone needs a non-release tag.
+- **`ravn-ui-kit#58`**'s plan for the first real dispatch of its release workflow: run it against a
+  version that does not match, so the refusal is proved. That is the confirming half — it says
+  nothing whatever about the steps after the one that refuses.
+
+**It is a procedure and not a disposition, and that difference is the whole point.** The control
+is one extra command, chosen _before_ the first one runs, because afterwards you already believe
+the answer. If a proposed fix reads as "we will be more careful about X", the real fix has not
+been found yet: being careful cannot fail, and a check that cannot fail is the thing this file
+exists to reject.
+
 ### A real seam, named as a seam
 
 `.d.ts` is generated separately from the JS bundle in `@ravn/ui-kit`, so the types can advertise a
