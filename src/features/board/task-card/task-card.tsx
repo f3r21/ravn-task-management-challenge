@@ -1,12 +1,11 @@
 import { memo } from 'react'
 import { Item } from 'react-stately'
-import { AttachmentIcon, CommentIcon, Menu, MenuDotsIcon, SubtaskIcon } from '@ravn/ui-kit'
+import { AttachmentIcon, CommentIcon, Menu, MenuDotsIcon, SubtaskIcon, Tag } from '@ravn/ui-kit'
 import { parseApiDate } from '@/lib/due-date'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { cn } from '@/lib/cn'
 import { Avatar } from '@/ui/avatar/avatar'
-import { Tag } from '@/ui/tag/tag'
-import { pointsLabel, tagAccent, tagLabel } from '../task-display'
+import { pointsLabel, TAG_TEXT, tagAccent, tagLabel } from '../task-display'
 import type { Task } from '../task-types'
 import { DueDateBadge } from './due-date-badge'
 
@@ -74,7 +73,9 @@ function TaskCardImpl({ task, now, layout = 'card', onEdit, onDelete }: TaskCard
       <ul className="flex flex-wrap gap-2">
         {task.tags.map((tag) => (
           <li key={tag}>
-            <Tag tone={tagAccent(tag)}>{tagLabel(tag)}</Tag>
+            <Tag variant={tagAccent(tag)} className={TAG_TEXT}>
+              {tagLabel(tag)}
+            </Tag>
           </li>
         ))}
       </ul>
