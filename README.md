@@ -450,7 +450,9 @@ through the real route table and asserts that a keystroke in the search box re-r
 cards — so the board's memoisation is held by the suite rather than by a profiler someone
 remembers to open. It counts card avatars separately from the header's on purpose: a single
 combined total would also be satisfied by the header alone, and would go green on a board that
-had stopped rendering cards entirely.
+had stopped rendering cards entirely. It also pins the count at mount before measuring the
+keystroke, which is the other half of the same guard — if the instrument ever stops seeing the
+cards, that assertion fails rather than the measurement quietly reporting zero of nothing.
 
 Dependencies get a second look on the way in. A separate `Dependency review` workflow fails
 a pull request that introduces a package carrying a high-severity advisory in GitHub's

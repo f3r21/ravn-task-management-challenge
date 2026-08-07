@@ -425,19 +425,35 @@ Break the code, watch the test fail, restore. Three rules learned the hard way:
   which was advice for the uncommitted case the rule above has already ruled out — leaving stash
   as strictly the riskier tool for the only case that remains.
 
-  **`refs/stash` lives in the common `.git`, so the stash stack is shared by every worktree**, and
-  this repo runs several lanes in parallel worktrees. Two lanes following this procedure at once
-  push onto one stack, and a bare `git stash pop` in one worktree restores the other's work into
-  it. A _sabotage_ is the worst possible thing to restore by accident: it is designed to break
-  something, and it arrives looking like your own uncommitted edit. Found when one lane's cleanup
-  turned up another lane's stash sitting beside its own.
+  **`refs/stash` lives in the common git dir, so the stash stack is shared by every worktree** —
+  and this repo runs several lanes in parallel worktrees. The ref itself is the proof, next to one
+  that _is_ per-worktree:
 
-  If you genuinely have uncommitted work to park, `git stash push -m "<branch>: <what>"`, and
-  resolve the entry by matching that branch name in `git stash list` — never by index, and never
-  bare. **That applies to `drop` as much as to `pop`**: the incident that produced this rule was a
-  lane cleaning up its own stashes, where an index-based `drop` would have destroyed another
-  lane's work rather than merely restoring it into the wrong tree. `pop` is the loud failure;
-  `drop` is the silent one.
+  ```bash
+  git rev-parse --git-path refs/stash   # …/ravn-task-management-challenge/.git/refs/stash
+  git rev-parse --git-path HEAD         # …/.git/worktrees/<lane>/HEAD
+  ```
+
+  So two lanes following this procedure at once push onto one stack, and a bare `git stash pop` in
+  one worktree restores the other's work into it. A _sabotage_ is the worst possible thing to
+  restore by accident: it is designed to break something, and it arrives looking like your own
+  uncommitted edit.
+
+  **For uncommitted single-file work, copy the file — do not stash it.** `cp <file> /tmp/<file>.bak`
+  and copy it back. That has no shared namespace and no ordering, so the hazard is removed rather
+  than managed. Keep `git stash` for the genuinely multi-file case.
+
+  When you must use the stack, **resolve entries by matching the branch name in `git stash list`,
+  never by index** — and that applies to `drop` as much as `pop`. `pop` is the loud failure;
+  `drop` is the silent one, and the incident behind this rule was a lane dropping _its own_
+  stashes. Its three were `stash@{0}`–`{2}` and another lane's was `stash@{3}`, so index-based
+  drops happened to be safe; the other interleaving destroys the foreign entry with nothing
+  reporting it.
+
+  **Match on the branch git records, not on a convention you adopted.** Git puts it in the subject
+  either way — `WIP on <branch>: …` for a bare stash, `On <branch>: …` with `-m` — which matters
+  because the entry you must not clobber belongs to a lane that may never have read this file.
+  `-m "<what>"` is still worth passing, for the description rather than the discriminator.
 
 - **Target the right function.** A sabotage applied to `handleCreate` will not fail a test about
   `handleEdit`, and the passing test looks like a toothless one.
