@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Item } from 'react-stately'
 import { Menu } from '@ravn/ui-kit'
 import { parseApiDate } from '@/lib/due-date'
@@ -48,7 +49,7 @@ function TaskCardMeta() {
   )
 }
 
-export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskCardProps) {
+function TaskCardImpl({ task, now, layout = 'card', onEdit, onDelete }: TaskCardProps) {
   const dueDate = parseApiDate(task.dueDate)
   const isRow = layout === 'row'
 
@@ -182,3 +183,34 @@ export function TaskCard({ task, now, layout = 'card', onEdit, onDelete }: TaskC
     </article>
   )
 }
+
+/**
+ * Memoised, because the board re-renders far more often than any card changes.
+ *
+ * The header's search box writes to the URL on every keystroke, which re-renders
+ * the whole matched route. Each card is a name, a points label, a date badge, a
+ * tag list, an avatar, three meta counters and a menu trigger — around twenty
+ * elements to rebuild and reconcile — so a board of 150 tasks did all of it 150
+ * times per character typed, for a search that does not reach the API until
+ * typing pauses.
+ *
+ * It is *not* the options menu that costs this, which is worth stating because
+ * the obvious guess is wrong and would send the next reader to optimise the
+ * `<Item>` children above for nothing: the kit renders its popover as
+ * `isOpen ? … : null` and calls `useTreeState` inside that branch, so a closed
+ * menu builds no react-stately collection at all.
+ *
+ * The memo only holds while every prop stays referentially stable across a
+ * parent render: `onEdit`/`onDelete` are stabilised in `board-page.tsx`, and the
+ * `task` objects keep their identity through React Query's structural sharing.
+ * Hand this an inline arrow and the memo silently becomes a pure cost — nothing
+ * fails, the board stays correct, it just stops being faster.
+ * `board-render-cost.test.tsx` is what notices, and that is why it is committed
+ * rather than run once.
+ *
+ * Bounded, too: structural sharing has nothing to share against once the search
+ * debounce settles and React Query opens a *new* cache entry, so every task
+ * object is new and the whole board re-renders once per typing pause. What this
+ * buys is the window in between, which is where the keystrokes are.
+ */
+export const TaskCard = memo(TaskCardImpl)

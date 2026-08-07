@@ -110,6 +110,18 @@ function readOwner(
 
 export const SEARCH_DEBOUNCE_MS = 300
 
+/**
+ * The default directory: empty, and the *same* empty every time.
+ *
+ * A module constant rather than a `= []` literal in the signature below, because
+ * a default parameter is evaluated afresh on every call — so an inline `[]` is a
+ * new array identity per render, and `filters` depends on it, so that memo could
+ * never hit. `AppHeader` calls this hook with no directory at all, which made it
+ * every render of the app shell: one wasted recompute per keystroke typed into
+ * the very search box this hook exists to serve.
+ */
+const NO_KNOWN_OWNERS: readonly string[] = []
+
 interface UseBoardFilters {
   /** What the controls display — updates immediately as the user types. */
   filters: BoardFilters
@@ -128,7 +140,7 @@ interface UseBoardFilters {
  *   unvalidated owner id through.
  */
 export function useBoardFilters(
-  knownOwnerIds: readonly string[] = [],
+  knownOwnerIds: readonly string[] = NO_KNOWN_OWNERS,
   directoryStatus: DirectoryStatus = 'ready',
 ): UseBoardFilters {
   const [params, setParams] = useSearchParams()

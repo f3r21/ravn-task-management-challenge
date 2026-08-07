@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOverlayTriggerState } from 'react-stately'
 import { ApiError } from '@/graphql/client'
 import { parseApiDate, toDateInputValue } from '@/lib/due-date'
@@ -13,13 +13,27 @@ import { BoardToolbar, type BoardView } from './board-toolbar'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { TaskFormDialog } from './task-form-dialog'
 import type { TaskFormFields } from './task-form-state'
-import type { Task } from './task-types'
+import type { Task, User } from './task-types'
 import { useBoardFilters } from './use-board-filters'
 import { useCreateTask } from './use-create-task'
 import { useDeleteTask } from './use-delete-task'
 import { useTasks } from './use-tasks'
 import { useUpdateTask } from './use-update-task'
 import { useUsers } from './use-users'
+
+/**
+ * The directory when there isn't one: empty, and the *same* empty every time.
+ *
+ * `useUsers()` reports `undefined` while it is loading and after it has failed, so
+ * the obvious `users ?? []` at each call site below mints a fresh array on every
+ * render — and both `BoardFiltersBar` and `TaskFormDialog` memoise their option
+ * lists on exactly that value, so those memos could never hit. The failed case is
+ * not a transient either: it is the permanent `directoryUnavailable` state the
+ * filter bar renders a notice for, so the memoisation would have been dead in the
+ * one state it most needed to work. Same reasoning as `NO_KNOWN_OWNERS` in
+ * `use-board-filters.ts`.
+ */
+const NO_USERS: User[] = []
 
 /**
  * A failure the user can act on.
@@ -83,7 +97,7 @@ export function BoardPage() {
   const { data: users, status: usersStatus } = useUsers()
   // The owner ids are handed to the filters so an `?owner=` that nobody matches is
   // dropped rather than sent on, the same as a bad status or tag.
-  const ownerIds = useMemo(() => (users ?? []).map((user) => user.id), [users])
+  const ownerIds = useMemo(() => (users ?? NO_USERS).map((user) => user.id), [users])
   const { filters, queryInput, setFilter, clearAll, isFiltered } = useBoardFilters(
     ownerIds,
     usersStatus === 'pending' ? 'pending' : 'ready',
@@ -103,6 +117,48 @@ export function BoardPage() {
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
+
+  // Stable identities, and that is the entire point of the two `useCallback`s.
+  //
+  // These reach every `TaskCard` on the board as `onEdit`/`onDelete`. Written
+  // inline at the call site they were a fresh closure on every render of this
+  // page — and this page re-renders on every keystroke in the header's search
+  // box, because that writes to the URL. `memo()` compares props shallowly, so an
+  // inline arrow here makes `memo(TaskCard)` a pure cost with no benefit: every
+  // card fails the comparison and rebuilds its twenty-odd elements. That failure
+  // is silent — the tests still pass and the board is still correct, it just
+  // never gets faster — which is why `board-render-cost.test.tsx` measures it
+  // rather than trusting it.
+  //
+  // Read through refs because `useOverlayTriggerState` **rebuilds its state
+  // object on every render**, so `[editDialog]` as a dependency would re-create
+  // these callbacks every time and change nothing. That is not a guess: depending
+  // on the object was the first attempt and left the measurement pinned at its
+  // unmemoised 151. The `open`/`close` functions on the state *are* stable, but
+  // naming one in a dependency array trips `@typescript-eslint/unbound-method` —
+  // the state's type declares them as methods.
+  //
+  // This is the same problem `ToastProvider` has with `useToastState`, solved the
+  // same way, including syncing in an effect rather than assigning during render,
+  // which is not safe under concurrent rendering. Nothing can observe the gap:
+  // both are only ever called from a card menu's `onAction`, long after the first
+  // effect has flushed.
+  const editDialogRef = useRef(editDialog)
+  const deleteDialogRef = useRef(deleteDialog)
+  useEffect(() => {
+    editDialogRef.current = editDialog
+    deleteDialogRef.current = deleteDialog
+  }, [editDialog, deleteDialog])
+
+  const openEditDialog = useCallback((task: Task) => {
+    setTaskUnderAction(task)
+    editDialogRef.current.open()
+  }, [])
+
+  const openDeleteDialog = useCallback((task: Task) => {
+    setTaskUnderAction(task)
+    deleteDialogRef.current.open()
+  }, [])
 
   /** The API wants a DateTime; the date input gives `yyyy-MM-dd`. Midnight UTC
    *  is the instant `due-date.ts` reads back as that same calendar day. */
@@ -205,7 +261,7 @@ export function BoardPage() {
         setFilter={setFilter}
         clearAll={clearAll}
         isFiltered={isFiltered}
-        users={users ?? []}
+        users={users ?? NO_USERS}
         directoryUnavailable={usersStatus === 'error'}
       />
 
@@ -215,7 +271,7 @@ export function BoardPage() {
       {createDialog.isOpen ? (
         <TaskFormDialog
           state={createDialog}
-          users={users ?? []}
+          users={users ?? NO_USERS}
           onSubmit={handleCreate}
           title="Create task"
           submitLabel="Create"
@@ -225,7 +281,7 @@ export function BoardPage() {
       {editDialog.isOpen && taskUnderAction ? (
         <TaskFormDialog
           state={editDialog}
-          users={users ?? []}
+          users={users ?? NO_USERS}
           onSubmit={handleEdit}
           mode="edit"
           title={`Edit ${taskUnderAction.name}`}
@@ -285,14 +341,8 @@ export function BoardPage() {
           <Board
             tasks={tasks}
             view={view}
-            onEditTask={(task) => {
-              setTaskUnderAction(task)
-              editDialog.open()
-            }}
-            onDeleteTask={(task) => {
-              setTaskUnderAction(task)
-              deleteDialog.open()
-            }}
+            onEditTask={openEditDialog}
+            onDeleteTask={openDeleteDialog}
           />
         )
       ) : null}
