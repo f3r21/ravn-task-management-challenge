@@ -33,8 +33,9 @@ the build compiles for and the floor the code is checked against cannot disagree
 rather than Vite's default 114 because that is what Tailwind v4 requires — the lower number was a
 claim the stylesheet could not honour.
 
-**It runs with no configuration.** With no `VITE_API_URL` configured the app serves its own
-mocked data and says so on screen, so you can clone this and see a working board immediately.
+**It runs with no configuration.** Until the API is configured — which is the state a fresh
+clone is in, and the one a half-filled `.env` is still in — the app serves its own mocked data
+and says so on screen, so you can clone this and see a working board immediately.
 
 To point it at the real API instead:
 
