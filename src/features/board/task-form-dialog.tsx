@@ -1,9 +1,10 @@
-import { useId, useReducer, useRef, useState } from 'react'
-import { Item, type OverlayTriggerState } from 'react-stately'
+import { useId, useMemo, useReducer, useRef, useState } from 'react'
+import { type OverlayTriggerState } from 'react-stately'
 import { Modal, MultiSelect, Select } from '@ravn/ui-kit'
 import { toDateInputValue } from '@/lib/due-date'
 import { Button } from '@/ui/button/button'
 import { AssigneeIcon, CalendarIcon, LabelIcon, PointsIcon } from '@/ui/icons/icons'
+import { renderSelectOption, type SelectOption } from './select-option'
 import { pointsLabel, statusLabel, tagLabel } from './task-display'
 import { taskFormReducer, validateTaskForm, type TaskFormFields } from './task-form-state'
 import {
@@ -40,6 +41,20 @@ interface TaskFormDialogProps {
  * string. Prefixed so it cannot collide with a real user id.
  */
 const UNASSIGNED = '__unassigned__'
+
+// Built once at import rather than on every render of the form. This dialog
+// re-renders on every keystroke in the task title, and each of these arrays
+// reaching a picker with a new identity rebuilds that picker's whole
+// react-stately collection. See `renderSelectOption` for why the label is baked
+// into the item instead of computed by the render function.
+const POINT_ITEMS: SelectOption[] = ALL_POINT_ESTIMATES.map((id) => ({
+  id,
+  label: pointsLabel(id),
+}))
+
+const TAG_ITEMS: SelectOption[] = ALL_TAGS.map((id) => ({ id, label: tagLabel(id) }))
+
+const STATUS_ITEMS: SelectOption[] = BOARD_STATUSES.map((id) => ({ id, label: statusLabel(id) }))
 
 function initialState(overrides: Partial<TaskFormFields> = {}): TaskFormFields {
   return {
@@ -82,6 +97,17 @@ export function TaskFormDialog({
   const positionId = useId()
   const errorId = useId()
   const nameRef = useRef<HTMLInputElement>(null)
+
+  // The one picker whose options are not known at import. Memoised on `users` so
+  // each item object — which is the collection cache's key — changes exactly when
+  // a name could have changed, and not on every keystroke in the title field.
+  const assigneeItems = useMemo<SelectOption[]>(
+    () => [
+      { id: UNASSIGNED, label: 'Unassigned' },
+      ...users.map((user) => ({ id: user.id, label: user.fullName })),
+    ],
+    [users],
+  )
 
   const validationError = validateTaskForm(fields)
   const shownError = submitState.status === 'error' ? submitState.message : undefined
@@ -143,17 +169,17 @@ export function TaskFormDialog({
         </div>
 
         <div className="flex flex-wrap items-start gap-4">
-          <Select<{ id: string }>
+          <Select<SelectOption>
             label="Estimated points"
             placeholder="Estimate"
             icon={<PointsIcon className="size-6 shrink-0" />}
-            items={ALL_POINT_ESTIMATES.map((id) => ({ id }))}
+            items={POINT_ITEMS}
             selectedKey={fields.pointEstimate}
             onSelectionChange={(key) => {
               dispatch({ type: 'set-point-estimate', pointEstimate: String(key) as PointEstimate })
             }}
           >
-            {(item) => <Item key={item.id}>{pointsLabel(item.id as PointEstimate)}</Item>}
+            {renderSelectOption}
           </Select>
 
           {/* "Unassigned" is an option rather than a way of clearing the control,
@@ -161,31 +187,25 @@ export function TaskFormDialog({
               absence of one — and a single-select has no gesture for "undo my
               pick". `assigneeId` is nullable on the API, so this maps onto a real
               value the mutation can carry. */}
-          <Select<{ id: string }>
+          <Select<SelectOption>
             label="Assignee"
             placeholder="Assignee"
             icon={<AssigneeIcon className="size-6 shrink-0" />}
-            items={[{ id: UNASSIGNED }, ...users.map((user) => ({ id: user.id }))]}
+            items={assigneeItems}
             selectedKey={fields.assigneeId ?? UNASSIGNED}
             onSelectionChange={(key) => {
               const id = String(key)
               dispatch({ type: 'set-assignee', assigneeId: id === UNASSIGNED ? null : id })
             }}
           >
-            {(item) => (
-              <Item key={item.id}>
-                {item.id === UNASSIGNED
-                  ? 'Unassigned'
-                  : (users.find((user) => user.id === item.id)?.fullName ?? item.id)}
-              </Item>
-            )}
+            {renderSelectOption}
           </Select>
 
-          <MultiSelect<{ id: TaskTag }>
+          <MultiSelect<SelectOption>
             label="Tags"
             placeholder="Label"
             icon={<LabelIcon className="size-6 shrink-0" />}
-            items={ALL_TAGS.map((id) => ({ id }))}
+            items={TAG_ITEMS}
             selectedKeys={fields.tags}
             onSelectionChange={(keys) => {
               const tags: TaskTag[] =
@@ -193,19 +213,19 @@ export function TaskFormDialog({
               dispatch({ type: 'set-tags', tags })
             }}
           >
-            {(item) => <Item key={item.id}>{tagLabel(item.id)}</Item>}
+            {renderSelectOption}
           </MultiSelect>
 
-          <Select<{ id: string }>
+          <Select<SelectOption>
             label="Status"
             placeholder="Status"
-            items={BOARD_STATUSES.map((id) => ({ id }))}
+            items={STATUS_ITEMS}
             selectedKey={fields.status}
             onSelectionChange={(key) => {
               dispatch({ type: 'set-status', status: String(key) as Status })
             }}
           >
-            {(item) => <Item key={item.id}>{statusLabel(item.id as Status)}</Item>}
+            {renderSelectOption}
           </Select>
 
           <div className="rounded-4 bg-muted/10 flex items-center gap-2 px-4 py-1">
