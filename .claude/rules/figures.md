@@ -38,6 +38,11 @@ set -o pipefail; … | tail -6         # either shell — the pipeline itself ca
 
 Ship both shell spellings whenever you write a piped command down for someone else to run.
 
+One caveat on the third form, so it does not surprise you: `ravn-ui-kit`'s `figure-audit.mjs`
+still scores `set -o pipefail` as a blind command, so a figure written that way is flagged there
+while being correct here. That is `ravn-ui-kit#78`, filed; prefer one of the first two forms in a
+figure destined for the kit until it closes.
+
 ## Why
 
 A lane meeting a bare number has to decide whether to trust it. A lane meeting a number **and its

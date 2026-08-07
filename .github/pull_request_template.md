@@ -41,9 +41,18 @@ it gets. Delete the guidance comments as you fill each section in.
 
 Closes #
 
-## Second-session review:
+<!-- Paste the link to the `gh pr review --comment` from the reviewing session
+     UNDER the heading below. There is one account here and GitHub forbids
+     approving your own pull request, so a comment review is what a second
+     opinion looks like — leaving it blank means nobody read this but its author.
 
-<!-- Paste the link to the `gh pr review --comment` from the reviewing session.
-     There is one account here and GitHub forbids approving your own pull
-     request, so a comment review is what a second opinion looks like — leaving
-     this blank means nobody read this but its author. -->
+     This comment sits *above* that heading rather than under it, breaking the
+     pattern every other section here follows, and the exception is deliberate:
+     the review section is the only one whose *emptiness* carries meaning. With
+     anything beneath the heading — a `Closes #`, or this comment — a tool asking
+     "has this been reviewed" reads content and says yes. That is not
+     hypothetical: it passed an unreviewed PR once already. Keeping the heading
+     last makes the section structurally empty until a human writes in it,
+     instead of relying on every author remembering to delete a comment. -->
+
+## Second-session review:
