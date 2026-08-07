@@ -50,9 +50,15 @@ command; observed once on <where>" instead of leaving it bare.
 Delete the example row.
 -->
 
-| Figure                       | Command that re-derives it     |
-| ---------------------------- | ------------------------------ |
-| _example — delete this row._ | `npm run gate 2>&1 \| tail -6` |
+| Figure                       | Command that re-derives it                                        |
+| ---------------------------- | ----------------------------------------------------------------- |
+| _example — delete this row._ | `npm run gate 2>&1 \| tail -6 ; echo "exit=$pipestatus[1]"` (zsh) |
+
+<!--
+The `exit=` is load-bearing. A pipe reports `tail`'s status, so the bare form cannot tell a
+passing gate from a failing one, and the coverage table prints the same percentages either way.
+On bash the tail of that command is `echo "exit=${PIPESTATUS[0]}"`. See `.claude/rules/figures.md`.
+-->
 
 ## What to build
 
