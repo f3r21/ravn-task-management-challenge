@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOverlayTriggerState } from 'react-stately'
 import { ApiError } from '@/graphql/client'
 import { parseApiDate, toDateInputValue } from '@/lib/due-date'
@@ -103,6 +103,48 @@ export function BoardPage() {
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
+
+  // Stable identities, and that is the entire point of the two `useCallback`s.
+  //
+  // These reach every `TaskCard` on the board as `onEdit`/`onDelete`. Written
+  // inline at the call site they were a fresh closure on every render of this
+  // page — and this page re-renders on every keystroke in the header's search
+  // box, because that writes to the URL. `memo()` compares props shallowly, so an
+  // inline arrow here makes `memo(TaskCard)` a pure cost with no benefit: every
+  // card fails the comparison, re-renders, and rebuilds the react-stately
+  // collection behind its options menu. That failure is silent — the tests still
+  // pass and the board is still correct, it just never gets faster — which is why
+  // `board-render-cost.test.tsx` measures it rather than trusting it.
+  //
+  // Read through refs because `useOverlayTriggerState` **rebuilds its state
+  // object on every render**, so `[editDialog]` as a dependency would re-create
+  // these callbacks every time and change nothing. That is not a guess: depending
+  // on the object was the first attempt and left the measurement pinned at its
+  // unmemoised 151. The `open`/`close` functions on the state *are* stable, but
+  // naming one in a dependency array trips `@typescript-eslint/unbound-method` —
+  // the state's type declares them as methods.
+  //
+  // This is the same problem `ToastProvider` has with `useToastState`, solved the
+  // same way, including syncing in an effect rather than assigning during render,
+  // which is not safe under concurrent rendering. Nothing can observe the gap:
+  // both are only ever called from a card menu's `onAction`, long after the first
+  // effect has flushed.
+  const editDialogRef = useRef(editDialog)
+  const deleteDialogRef = useRef(deleteDialog)
+  useEffect(() => {
+    editDialogRef.current = editDialog
+    deleteDialogRef.current = deleteDialog
+  }, [editDialog, deleteDialog])
+
+  const openEditDialog = useCallback((task: Task) => {
+    setTaskUnderAction(task)
+    editDialogRef.current.open()
+  }, [])
+
+  const openDeleteDialog = useCallback((task: Task) => {
+    setTaskUnderAction(task)
+    deleteDialogRef.current.open()
+  }, [])
 
   /** The API wants a DateTime; the date input gives `yyyy-MM-dd`. Midnight UTC
    *  is the instant `due-date.ts` reads back as that same calendar day. */
@@ -285,14 +327,8 @@ export function BoardPage() {
           <Board
             tasks={tasks}
             view={view}
-            onEditTask={(task) => {
-              setTaskUnderAction(task)
-              editDialog.open()
-            }}
-            onDeleteTask={(task) => {
-              setTaskUnderAction(task)
-              deleteDialog.open()
-            }}
+            onEditTask={openEditDialog}
+            onDeleteTask={openDeleteDialog}
           />
         )
       ) : null}

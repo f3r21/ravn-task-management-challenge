@@ -1,9 +1,9 @@
-import { useId } from 'react'
-import { Item } from 'react-stately'
+import { useId, useMemo } from 'react'
 import { MultiSelect, Select } from '@ravn/ui-kit'
 import { Button } from '@/ui/button/button'
 import { AssigneeIcon, CalendarIcon, LabelIcon, PointsIcon } from '@/ui/icons/icons'
 import { pointsLabel, statusLabel, tagLabel } from './task-display'
+import { renderSelectOption, type SelectOption } from './select-option'
 import type { BoardFilters } from './use-board-filters'
 import {
   ALL_POINT_ESTIMATES,
@@ -43,6 +43,20 @@ interface BoardFiltersBarProps {
  */
 const ANY = '__any__'
 
+// Derived from module constants, so these are built once at import rather than
+// on every render of the bar.
+const STATUS_ITEMS: SelectOption[] = [
+  { id: ANY, label: 'Any status' },
+  ...BOARD_STATUSES.map((id) => ({ id, label: statusLabel(id) })),
+]
+
+const TAG_ITEMS: SelectOption[] = ALL_TAGS.map((id) => ({ id, label: tagLabel(id) }))
+
+const POINT_ITEMS: SelectOption[] = [
+  { id: ANY, label: 'Any estimate' },
+  ...ALL_POINT_ESTIMATES.map((id) => ({ id, label: pointsLabel(id) })),
+]
+
 /**
  * The filter row above the board.
  *
@@ -64,30 +78,37 @@ export function BoardFiltersBar({
 }: BoardFiltersBarProps) {
   const noticeId = useId()
 
+  // The one picker whose options are not known at import. Memoised on `users` so
+  // the array — and so each item object, which is the collection cache's key —
+  // changes exactly when a name could have changed, and not on every render.
+  const ownerItems = useMemo<SelectOption[]>(
+    () => [
+      { id: ANY, label: 'Any owner' },
+      ...users.map((user) => ({ id: user.id, label: user.fullName })),
+    ],
+    [users],
+  )
+
   return (
     <div className="flex flex-wrap items-center gap-4" role="group" aria-label="Filter tasks">
-      <Select<{ id: string }>
+      <Select<SelectOption>
         label="Filter by status"
         placeholder="Status"
-        items={[{ id: ANY }, ...BOARD_STATUSES.map((id) => ({ id }))]}
+        items={STATUS_ITEMS}
         selectedKey={filters.status ?? ANY}
         onSelectionChange={(key) => {
           const id = String(key)
           setFilter('status', id === ANY ? undefined : (id as Status))
         }}
       >
-        {(item) => (
-          <Item key={item.id}>
-            {item.id === ANY ? 'Any status' : statusLabel(item.id as Status)}
-          </Item>
-        )}
+        {renderSelectOption}
       </Select>
 
-      <MultiSelect<{ id: TaskTag }>
+      <MultiSelect<SelectOption>
         label="Filter by tags"
         placeholder="Tags"
         icon={<LabelIcon className="size-6 shrink-0" />}
-        items={ALL_TAGS.map((id) => ({ id }))}
+        items={TAG_ITEMS}
         selectedKeys={filters.tags}
         onSelectionChange={(keys) => {
           const next: TaskTag[] =
@@ -95,25 +116,21 @@ export function BoardFiltersBar({
           setFilter('tags', next)
         }}
       >
-        {(item) => <Item key={item.id}>{tagLabel(item.id)}</Item>}
+        {renderSelectOption}
       </MultiSelect>
 
-      <Select<{ id: string }>
+      <Select<SelectOption>
         label="Filter by estimated points"
         placeholder="Estimate"
         icon={<PointsIcon className="size-6 shrink-0" />}
-        items={[{ id: ANY }, ...ALL_POINT_ESTIMATES.map((id) => ({ id }))]}
+        items={POINT_ITEMS}
         selectedKey={filters.pointEstimate ?? ANY}
         onSelectionChange={(key) => {
           const id = String(key)
           setFilter('pointEstimate', id === ANY ? undefined : (id as PointEstimate))
         }}
       >
-        {(item) => (
-          <Item key={item.id}>
-            {item.id === ANY ? 'Any estimate' : pointsLabel(item.id as PointEstimate)}
-          </Item>
-        )}
+        {renderSelectOption}
       </Select>
 
       {/* A failed directory says so on the control it broke, rather than leaving a
@@ -128,25 +145,19 @@ export function BoardFiltersBar({
           can only fail after a request — never gets one, so the message renders
           with no id and the trigger with no `aria-describedby`. Confirmed in jsdom
           and in Chrome. An `aria-describedby` we own does not depend on that. */}
-      <Select<{ id: string }>
+      <Select<SelectOption>
         label="Filter by owner"
         placeholder="Owner"
         icon={<AssigneeIcon className="size-6 shrink-0" />}
         aria-describedby={directoryUnavailable ? noticeId : undefined}
-        items={[{ id: ANY }, ...users.map((user) => ({ id: user.id }))]}
+        items={ownerItems}
         selectedKey={filters.ownerId ?? ANY}
         onSelectionChange={(key) => {
           const id = String(key)
           setFilter('ownerId', id === ANY ? undefined : id)
         }}
       >
-        {(item) => (
-          <Item key={item.id}>
-            {item.id === ANY
-              ? 'Any owner'
-              : (users.find((user) => user.id === item.id)?.fullName ?? item.id)}
-          </Item>
-        )}
+        {renderSelectOption}
       </Select>
 
       <div className="rounded-4 bg-muted/10 flex items-center gap-2 px-4 py-1">
