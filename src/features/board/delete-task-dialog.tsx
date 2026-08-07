@@ -43,31 +43,24 @@ interface DeleteTaskDialogProps {
  * interrupts for a consequential decision, and the message is announced on open
  * instead of only the title.
  *
- * Stays on the app's own `Dialog` rather than `@ravn/ui-kit`'s `Modal` — but
- * as a blocked migration, not a permanent decision. It used to be permanent,
- * on the grounds that the kit's `Modal` had no `role` prop at all; that is no
- * longer true, and the reason it is still blocked is narrower and fixable:
+ * Renders through `@ravn/ui-kit`'s `Modal`. It did not for a long time, and the
+ * reasons are worth keeping because they are what a reviewer will otherwise
+ * rediscover: the kit's `Modal` had no `role` prop, then had one but destructured
+ * only `dialogProps` and `titleProps` from `useDialog`, dropping `contentProps`.
+ * For an `alertdialog` that is not cosmetic — `useDialog` generates an id, points
+ * `aria-describedby` at it, and discards it in a layout effect if nothing carries
+ * it (`useSlotId`), so the role was announced without the body text that is the
+ * whole reason for choosing the role.
  *
- * The kit's `Modal` accepts `role="alertdialog"` and now runs on
- * `useModalOverlay`, so it aria-hides the page and locks scroll like this one.
- * What it does not do is keep `useDialog`'s third return value. For an
- * `alertdialog`, `useDialog` generates an id, points `aria-describedby` at it,
- * and then discards the id in a layout effect if nothing carries it
- * (`useSlotId`). The kit destructures only `dialogProps` and `titleProps`, so
- * nothing ever carries it — the role is announced without the body text that is
- * the entire reason for choosing the role. This app's `Dialog` spreads
- * `contentProps` and has a test asserting the description, which is exactly the
- * assertion the kit would fail.
+ * Both were fixed in the kit rather than worked around here, which is the standing
+ * rule in `.claude/rules/ui-kit.md`: ravn-ui-kit#64 wired `contentProps`, and #66
+ * made `isDismissable` a real prop driving both the backdrop and — through
+ * `isKeyboardDismissDisabled` — Escape. Shipped in `v0.5.2`, adopted in app#30.
  *
- * Two smaller gaps ride along: the kit hardcodes `isDismissable: true`, so the
- * `!isDeleting` guard below has nowhere to go, and its chrome is a visible
- * title bar with a close button rather than this dialog's sr-only title over
- * its own prompt.
- *
- * Per the standing rule (`.claude/rules/ui-kit.md`), those are kit fixes, not
- * reasons to relax anything here. `TaskFormDialog` was blocked on this same
- * `Dialog` once too — a cross-module `FocusScope` bug, since fixed upstream —
- * and migrated the moment the kit caught up. This should follow the same way.
+ * What the kit still does not gate is its own close button, which calls `onClose`
+ * unconditionally. That is why `onClose` is gated on `isDeleting` below as well as
+ * `isDismissable` being passed: the two cover different dismissal routes and
+ * neither is redundant.
  */
 export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false)
