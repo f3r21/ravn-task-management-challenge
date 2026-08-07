@@ -49,15 +49,19 @@ export function avatarSrcUnlessDecommissioned(
   }
 
   // `try`/`catch` rather than `URL.canParse`, which is not a style preference.
-  // `canParse` shipped in Chrome 120 / Firefox 115 / Safari 17, and this build's
-  // floor is Vite's `baseline-widely-available` default — chrome111, edge111,
-  // firefox114, safari16.4, ios16.4 — every one of which predates it. A build
-  // target lowers *syntax* and never polyfills an *API*, so the call shipped
-  // verbatim into `dist/`. Reached unconditionally on three render paths, on a
-  // browser at that floor it threw `URL.canParse is not a function` and the error
-  // boundary replaced the whole board: an outage where the defect it fixes is a
-  // grey square. Nothing in `gate` could see it — jsdom runs on Node 22, and the
-  // preview and e2e both run current Chromium.
+  // `canParse` shipped in Chrome 120 / Firefox 115 / Safari 17, above the browser
+  // floor declared in `package.json`'s `browserslist` (chrome 111, edge 111,
+  // firefox 128, safari 16.4, ios_saf 16.4). A build target lowers *syntax* and
+  // never polyfills an *API*, so the call shipped verbatim into `dist/`. Reached
+  // unconditionally on three render paths, on a browser at that floor it threw
+  // `URL.canParse is not a function` and the error boundary replaced the whole
+  // board: an outage where the defect it fixes is a grey square.
+  //
+  // Nothing in `gate` could see it at the time — jsdom runs on Node 22, and the
+  // preview and e2e both run current Chromium. Something can now: `eslint.config.js`
+  // reads that same `browserslist` and fails on any static Web API member the floor
+  // lacks, so rewriting this back to `URL.canParse` is a lint error rather than an
+  // outage.
   let hostname: string
   try {
     hostname = new URL(avatar).hostname
