@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { ApiError } from '@/graphql/client'
 import { isUsingMockApi } from '@/lib/env'
+import { AsyncSection } from '@/ui/async-section/async-section'
 import { Button } from '@/ui/button/button'
 import { EmptyState } from '@/ui/empty-state/empty-state'
 import { Board } from './board'
@@ -10,7 +10,7 @@ import { BoardToolbar, type BoardView } from './board-toolbar'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { TaskFormDialog } from './task-form-dialog'
 import { toFormFields } from './task-mapping'
-import type { User } from './task-types'
+import type { Task, User } from './task-types'
 import { useBoardActions } from './use-board-actions'
 import { useBoardDialogs } from './use-board-dialogs'
 import { useBoardFilters } from './use-board-filters'
@@ -32,55 +32,13 @@ import { useUsers } from './use-users'
 const NO_USERS: User[] = []
 
 /**
- * A failure the user can act on.
+ * The board before it has loaded, for the same reason as `NO_USERS`.
  *
- * A rejected token and an unreachable server need different words: one is
- * something they can fix in `.env`, the other is worth retrying. Showing
- * "something went wrong" for both would leave them retrying a request that will
- * never succeed.
+ * `AsyncSection` renders its children only on success, but JSX evaluates them
+ * eagerly, so the tree below has to be writable while `tasks` is still undefined.
+ * A module constant keeps that from being a fresh array on every render.
  */
-function BoardError({ error, onRetry }: { error: unknown; onRetry: () => void }) {
-  const isAuth = error instanceof ApiError && error.isUnauthenticated
-  const message =
-    error instanceof ApiError ? error.message : 'Could not load tasks. Please try again.'
-
-  return (
-    <div role="alert" className="flex flex-col items-center gap-4 py-16 text-center">
-      <p className="text-body-l font-semibold">Could not load the board</p>
-      <p className="text-muted text-body-m max-w-md">{message}</p>
-      {isAuth ? null : (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="rounded-sm bg-interactive text-body-m px-4 py-2 font-semibold"
-        >
-          Try again
-        </button>
-      )}
-    </div>
-  )
-}
-
-/**
- * What the board is currently doing, for assistive tech.
- *
- * One region, mounted for the life of the page, whose *text* changes — not a
- * message rendered inside whichever state component happens to be on screen. A
- * live region announces changes to its contents, so a fresh `role="status"` that
- * arrives with its text already in it announces nothing at all; that is the usual
- * reason a loading message is silent.
- */
-function boardStatusMessage(status: 'pending' | 'error' | 'success', count: number): string {
-  if (status === 'pending') {
-    return 'Loading tasks'
-  }
-  if (status === 'error') {
-    // The failure itself is announced by the `role="alert"` in `BoardError`;
-    // repeating it here would say it twice.
-    return ''
-  }
-  return count === 0 ? 'No tasks to show' : `${String(count)} tasks loaded`
-}
+const NO_TASKS: Task[] = []
 
 export function BoardPage() {
   const [view, setView] = useState<BoardView>('grid')
@@ -99,6 +57,7 @@ export function BoardPage() {
     usersStatus === 'pending' ? 'pending' : 'ready',
   )
   const { data: tasks, status, error, refetch } = useTasks(queryInput)
+  const loaded = tasks ?? NO_TASKS
 
   // One state machine for all three dialogs, rather than three booleans and a
   // nullable task. `openEdit`/`openDelete` are stable across renders, which
@@ -116,10 +75,6 @@ export function BoardPage() {
   return (
     <main className="flex flex-col gap-6">
       <h1 className="sr-only">Dashboard</h1>
-
-      <p role="status" className="sr-only">
-        {boardStatusMessage(status, tasks?.length ?? 0)}
-      </p>
 
       {isUsingMockApi ? (
         // Stated rather than hidden: a reviewer running this without a token
@@ -179,19 +134,26 @@ export function BoardPage() {
         />
       ) : null}
 
-      {status === 'pending' ? <BoardSkeleton /> : null}
-
-      {status === 'error' ? (
-        <BoardError
-          error={error}
-          onRetry={() => {
-            void refetch()
-          }}
-        />
-      ) : null}
-
-      {status === 'success' ? (
-        tasks.length === 0 ? (
+      <AsyncSection
+        status={status}
+        error={error}
+        loadingLabel="Loading tasks"
+        readyLabel={
+          loaded.length === 0 ? 'No tasks to show' : `${String(loaded.length)} tasks loaded`
+        }
+        errorTitle="Could not load the board"
+        // A rejected token and an unreachable server need different words: one is
+        // something the reader can fix in `.env`, the other is worth retrying.
+        // `AsyncSection` uses the `ApiError` message when there is one, so this
+        // only covers a failure that carries nothing a user could act on.
+        errorFallback="Could not load tasks. Please try again."
+        skeleton={<BoardSkeleton />}
+        onRetry={() => {
+          void refetch()
+        }}
+        errorClassName="items-center py-16 text-center"
+      >
+        {loaded.length === 0 ? (
           // Two different empty states, because they mean different things and
           // need different ways out. "Nothing matched" with a "create your
           // first task" prompt would be actively misleading on a board that is
@@ -213,9 +175,9 @@ export function BoardPage() {
             />
           )
         ) : (
-          <Board tasks={tasks} view={view} onEditTask={openEdit} onDeleteTask={openDelete} />
-        )
-      ) : null}
+          <Board tasks={loaded} view={view} onEditTask={openEdit} onDeleteTask={openDelete} />
+        )}
+      </AsyncSection>
     </main>
   )
 }

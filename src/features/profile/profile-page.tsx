@@ -1,6 +1,6 @@
-import { ApiError } from '@/graphql/client'
 import { formatUtcTimestamp } from '@/lib/due-date'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
+import { AsyncSection } from '@/ui/async-section/async-section'
 import { Avatar } from '@/ui/avatar/avatar'
 import { Skeleton } from '@/ui/skeleton/skeleton'
 import type { User } from '@/features/board/task-types'
@@ -58,16 +58,6 @@ function ProfileSkeleton() {
  * nothing else. Inventing a value would be worse than saying so, and this is
  * noted in the README rather than silently dropped.
  */
-/** What the page is currently doing, for assistive tech. */
-function profileStatusMessage(status: 'pending' | 'error' | 'success'): string {
-  if (status === 'pending') {
-    return 'Loading your profile'
-  }
-  // The failure is announced by the `role="alert"` below; saying it here too would
-  // say it twice.
-  return status === 'error' ? '' : 'Profile loaded'
-}
-
 export function ProfilePage() {
   const { data: profile, status, error, refetch } = useProfile()
 
@@ -75,57 +65,49 @@ export function ProfilePage() {
     <main className="flex flex-col gap-6">
       <h1 className="text-body-xl font-semibold">My task</h1>
 
-      <p role="status" className="sr-only">
-        {profileStatusMessage(status)}
-      </p>
+      <AsyncSection
+        status={status}
+        error={error}
+        loadingLabel="Loading your profile"
+        readyLabel="Profile loaded"
+        errorTitle="Could not load your profile"
+        errorFallback="Please try again."
+        skeleton={<ProfileSkeleton />}
+        onRetry={() => {
+          void refetch()
+        }}
+        errorClassName="items-start"
+      >
+        {/* Guarded rather than asserted. `AsyncSection` renders children only on
+            success, where `profile` is defined — but JSX evaluates them eagerly,
+            so this branch is genuinely taken on every pending and error render
+            rather than being unreachable defensive code. */}
+        {profile ? (
+          <section
+            aria-labelledby="profile-heading"
+            className="bg-surface-panel rounded-md flex max-w-2xl flex-col gap-6 p-6"
+          >
+            <div className="flex items-center gap-4">
+              <Avatar
+                src={avatarSrcUnlessDecommissioned(profile.avatar)}
+                name={profile.fullName}
+                size={40}
+              />
+              <h2 id="profile-heading" className="text-body-l font-semibold">
+                {profile.fullName}
+              </h2>
+            </div>
 
-      {status === 'pending' ? <ProfileSkeleton /> : null}
-
-      {status === 'error' ? (
-        <div role="alert" className="flex flex-col items-start gap-4">
-          <p className="text-body-l font-semibold">Could not load your profile</p>
-          <p className="text-muted text-body-m">
-            {error instanceof ApiError ? error.message : 'Please try again.'}
-          </p>
-          {error instanceof ApiError && error.isUnauthenticated ? null : (
-            <button
-              type="button"
-              onClick={() => {
-                void refetch()
-              }}
-              className="rounded-sm bg-interactive text-body-m px-4 py-2 font-semibold"
-            >
-              Try again
-            </button>
-          )}
-        </div>
-      ) : null}
-
-      {status === 'success' ? (
-        <section
-          aria-labelledby="profile-heading"
-          className="bg-surface-panel rounded-md flex max-w-2xl flex-col gap-6 p-6"
-        >
-          <div className="flex items-center gap-4">
-            <Avatar
-              src={avatarSrcUnlessDecommissioned(profile.avatar)}
-              name={profile.fullName}
-              size={40}
-            />
-            <h2 id="profile-heading" className="text-body-l font-semibold">
-              {profile.fullName}
-            </h2>
-          </div>
-
-          <dl className="flex flex-col">
-            <Detail label="Full name" value={profile.fullName} />
-            <Detail label="Email" value={profile.email} />
-            <Detail label="Type" value={userTypeLabel(profile.type)} />
-            <Detail label="Created at" value={formatUtcTimestamp(profile.createdAt)} />
-            <Detail label="Updated at" value={formatUtcTimestamp(profile.updatedAt)} />
-          </dl>
-        </section>
-      ) : null}
+            <dl className="flex flex-col">
+              <Detail label="Full name" value={profile.fullName} />
+              <Detail label="Email" value={profile.email} />
+              <Detail label="Type" value={userTypeLabel(profile.type)} />
+              <Detail label="Created at" value={formatUtcTimestamp(profile.createdAt)} />
+              <Detail label="Updated at" value={formatUtcTimestamp(profile.updatedAt)} />
+            </dl>
+          </section>
+        ) : null}
+      </AsyncSection>
     </main>
   )
 }
