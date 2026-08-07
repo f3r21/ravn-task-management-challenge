@@ -148,23 +148,24 @@ commits its `dist/` and checks its freshness in its own CI. Consequences:
   "Invalid hook call". That switch is a one-line `package.json` edit, and the failure reads as
   a bug in the component rather than in how it was installed. The comment there has the full
   shape of it.
-- **The Tailwind `@source` scan is the silent failure to watch.** `src/styles/base.css` names
-  `../../node_modules/@ravn/ui-kit/dist`; if that scan ever breaks, kit-only utility classes
-  vanish from the built CSS **with no build error**. `max-w-[120px]` and `tabular-nums` occur
-  in the kit's `dist` and nowhere in `src/`, so grepping the built CSS for both is the canary:
+- **The Tailwind `@source` scan is the silent failure to watch, and it is now checked in CI.**
+  `src/styles/base.css` names `../../node_modules/@ravn/ui-kit/dist`; if that scan ever breaks,
+  kit-only utility classes vanish from the built CSS **with no build error and no test
+  failure**. `npm run css:canary` reads a production build and fails if too few kit-only
+  classes reached it; CI runs it after `npm run build`.
 
-  ```bash
-  npm run build
-  grep -c 'tabular-nums' dist/assets/*.css        # expect >= 1
-  grep -c 'max-w-\\\[120px\\\]' dist/assets/*.css   # expect >= 1 — note the escaping
-  ```
+  **The hand-written version of this canary could not fail, and this file is why.** It named
+  two specific classes to grep for — and Tailwind scans the whole project, Markdown included,
+  so naming them here generated them from _this document_. Both survived `@source` being
+  deleted outright. A canary is not allowed to name the classes it looks for; `css:canary`
+  derives them at run time instead, and its header explains the derivation. **Do not add an
+  example class name back to this bullet.**
 
-  **Grep the escaped form, not the literal one.** Tailwind escapes the brackets of an
-  arbitrary-value class, so it emits `.max-w-\[120px\]`, and `grep -F 'max-w-[120px]'`
-  therefore matches **nothing on a completely healthy build** — indistinguishable from the
-  failure this check exists to detect. That false alarm has been hit twice; what settled it
-  was running the same grep against the deployed production CSS, which "failed" too. If this
-  canary ever fires, run it against production before believing it.
+  The old spelling also had an escaping trap worth remembering if you ever grep the CSS by
+  hand: Tailwind escapes the brackets of an arbitrary-value class, so a literal
+  `grep -F 'max-w-[…]'` matches nothing on a completely healthy build — indistinguishable
+  from the failure. That false alarm was hit twice. `css:canary` unescapes selectors itself,
+  so it cannot recur there.
 
 **The standing rule: when a kit component fails an assertion here, the fix goes in the kit,
 not in the test.** This app is what proves the package works, and every defect found by
