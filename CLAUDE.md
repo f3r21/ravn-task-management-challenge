@@ -419,6 +419,15 @@ Break the code, watch the test fail, restore. Three rules learned the hard way:
 
 - **Commit the fix first**, then sabotage. `git checkout <file>` to undo a sabotage takes any
   uncommitted fix with it — committing first is what removes that hazard.
+
+  **"First" is not the whole of it: the restore discards whatever is uncommitted in that file at
+  the moment you run it, including anything you added _after_ the sabotage.** A lane lost a
+  `title` line it had written five minutes into a sabotage, because the line lived in the file it
+  then restored. So the rule is stronger than its name: before restoring, everything in that file
+  you intend to keep must already be committed, not just the fix you started with. If you find
+  yourself improving the code mid-sabotage — which is common, because you are staring at it —
+  commit that before you restore, or you are choosing between the improvement and the proof.
+
 - **Restore with `git checkout -- <the file you sabotaged>`**, naming the file rather than `.`.
   Once the fix is committed this is precise, local, and touches nothing another lane can see.
   **Do not reach for `git stash` here.** This bullet used to end "use `git stash` to restore",
