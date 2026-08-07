@@ -490,4 +490,51 @@ describe('deleting a task', () => {
     expect(screen.getByRole('alertdialog', { name: /delete slack/i })).toBeInTheDocument()
     expect(isInaccessible(notification)).toBe(false)
   })
+
+  it('puts the card back when the delete fails, without waiting for a refetch', async () => {
+    // The delete is optimistic, so the card leaves the board before the server has
+    // answered and something has to put it back when the answer is "no". That is
+    // `onError` in `use-delete-task.ts`, and this is the test that can tell whether
+    // it ran.
+    //
+    // The gate below is what gives it teeth. `onSettled` invalidates on failure
+    // too, and the refetch it starts would restore the board by itself — so
+    // against an instant handler the assertion passes whether or not the rollback
+    // exists, and would go on passing if `onError` were deleted outright. Holding
+    // the *second* `Tasks` request open leaves the rollback as the only thing that
+    // can bring the card back. The first request still answers, or the board never
+    // loads at all.
+    let tasksRequests = 0
+    server.use(
+      graphql.query('Tasks', async () => {
+        tasksRequests += 1
+        if (tasksRequests === 1) {
+          return HttpResponse.json({ data: { tasks: taskStore.listTasks({}) } })
+        }
+        // Never settles. React Query holds the previous data on screen through a
+        // pending refetch (`keepPreviousData`), so what stays visible is whatever
+        // the rollback left in the cache.
+        await new Promise(() => {
+          // Deliberately empty: this promise is the gate.
+        })
+        return HttpResponse.json({ data: { tasks: [] } })
+      }),
+      graphql.mutation('DeleteTask', () =>
+        HttpResponse.json({ errors: [{ message: 'Not permitted' }] }),
+      ),
+    )
+
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Delete')
+    const dialog = await screen.findByRole('alertdialog')
+
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+
+    // The failure is reported first, which is also the signal that the mutation
+    // has settled and the rollback has had its chance to run.
+    await screen.findByText(/not permitted/i)
+    // `hidden: true` because the confirmation dialog is still open, and a modal
+    // takes the page behind it out of the accessibility tree.
+    expect(screen.getByRole('heading', { name: 'Slack', hidden: true })).toBeInTheDocument()
+  })
 })
