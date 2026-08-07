@@ -13,13 +13,27 @@ import { BoardToolbar, type BoardView } from './board-toolbar'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { TaskFormDialog } from './task-form-dialog'
 import type { TaskFormFields } from './task-form-state'
-import type { Task } from './task-types'
+import type { Task, User } from './task-types'
 import { useBoardFilters } from './use-board-filters'
 import { useCreateTask } from './use-create-task'
 import { useDeleteTask } from './use-delete-task'
 import { useTasks } from './use-tasks'
 import { useUpdateTask } from './use-update-task'
 import { useUsers } from './use-users'
+
+/**
+ * The directory when there isn't one: empty, and the *same* empty every time.
+ *
+ * `useUsers()` reports `undefined` while it is loading and after it has failed, so
+ * the obvious `users ?? []` at each call site below mints a fresh array on every
+ * render — and both `BoardFiltersBar` and `TaskFormDialog` memoise their option
+ * lists on exactly that value, so those memos could never hit. The failed case is
+ * not a transient either: it is the permanent `directoryUnavailable` state the
+ * filter bar renders a notice for, so the memoisation would have been dead in the
+ * one state it most needed to work. Same reasoning as `NO_KNOWN_OWNERS` in
+ * `use-board-filters.ts`.
+ */
+const NO_USERS: User[] = []
 
 /**
  * A failure the user can act on.
@@ -83,7 +97,7 @@ export function BoardPage() {
   const { data: users, status: usersStatus } = useUsers()
   // The owner ids are handed to the filters so an `?owner=` that nobody matches is
   // dropped rather than sent on, the same as a bad status or tag.
-  const ownerIds = useMemo(() => (users ?? []).map((user) => user.id), [users])
+  const ownerIds = useMemo(() => (users ?? NO_USERS).map((user) => user.id), [users])
   const { filters, queryInput, setFilter, clearAll, isFiltered } = useBoardFilters(
     ownerIds,
     usersStatus === 'pending' ? 'pending' : 'ready',
@@ -111,10 +125,10 @@ export function BoardPage() {
   // page — and this page re-renders on every keystroke in the header's search
   // box, because that writes to the URL. `memo()` compares props shallowly, so an
   // inline arrow here makes `memo(TaskCard)` a pure cost with no benefit: every
-  // card fails the comparison, re-renders, and rebuilds the react-stately
-  // collection behind its options menu. That failure is silent — the tests still
-  // pass and the board is still correct, it just never gets faster — which is why
-  // `board-render-cost.test.tsx` measures it rather than trusting it.
+  // card fails the comparison and rebuilds its twenty-odd elements. That failure
+  // is silent — the tests still pass and the board is still correct, it just
+  // never gets faster — which is why `board-render-cost.test.tsx` measures it
+  // rather than trusting it.
   //
   // Read through refs because `useOverlayTriggerState` **rebuilds its state
   // object on every render**, so `[editDialog]` as a dependency would re-create
@@ -247,7 +261,7 @@ export function BoardPage() {
         setFilter={setFilter}
         clearAll={clearAll}
         isFiltered={isFiltered}
-        users={users ?? []}
+        users={users ?? NO_USERS}
         directoryUnavailable={usersStatus === 'error'}
       />
 
@@ -257,7 +271,7 @@ export function BoardPage() {
       {createDialog.isOpen ? (
         <TaskFormDialog
           state={createDialog}
-          users={users ?? []}
+          users={users ?? NO_USERS}
           onSubmit={handleCreate}
           title="Create task"
           submitLabel="Create"
@@ -267,7 +281,7 @@ export function BoardPage() {
       {editDialog.isOpen && taskUnderAction ? (
         <TaskFormDialog
           state={editDialog}
-          users={users ?? []}
+          users={users ?? NO_USERS}
           onSubmit={handleEdit}
           mode="edit"
           title={`Edit ${taskUnderAction.name}`}
