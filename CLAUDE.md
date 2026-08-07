@@ -415,15 +415,60 @@ a `Float!` is a request to unset it.
 
 ## When proving a test has teeth
 
-Break the code, watch the test fail, restore. Two rules learned the hard way:
+Break the code, watch the test fail, restore. Three rules learned the hard way:
 
 - **Commit the fix first**, then sabotage. `git checkout <file>` to undo a sabotage takes any
-  uncommitted fix with it. Use `git stash` to restore.
+  uncommitted fix with it — committing first is what removes that hazard.
+
+  **"First" is not the whole of it: the restore discards whatever is uncommitted in that file at
+  the moment you run it, including anything you added _after_ the sabotage.** A lane lost a
+  `title` line it had written five minutes into a sabotage, because the line lived in the file it
+  then restored. So the rule is stronger than its name: before restoring, everything in that file
+  you intend to keep must already be committed, not just the fix you started with. If you find
+  yourself improving the code mid-sabotage — which is common, because you are staring at it —
+  commit that before you restore, or you are choosing between the improvement and the proof.
+
+- **Restore with `git checkout -- <the file you sabotaged>`**, naming the file rather than `.`.
+  Once the fix is committed this is precise, local, and touches nothing another lane can see.
+  **Do not reach for `git stash` here.** This bullet used to end "use `git stash` to restore",
+  which was advice for the uncommitted case the rule above has already ruled out — leaving stash
+  as strictly the riskier tool for the only case that remains.
+
+  **`refs/stash` lives in the common git dir, so the stash stack is shared by every worktree** —
+  and this repo runs several lanes in parallel worktrees. The ref itself is the proof, next to one
+  that _is_ per-worktree:
+
+  ```bash
+  git rev-parse --git-path refs/stash   # …/ravn-task-management-challenge/.git/refs/stash
+  git rev-parse --git-path HEAD         # …/.git/worktrees/<lane>/HEAD
+  ```
+
+  So two lanes following this procedure at once push onto one stack, and a bare `git stash pop` in
+  one worktree restores the other's work into it. A _sabotage_ is the worst possible thing to
+  restore by accident: it is designed to break something, and it arrives looking like your own
+  uncommitted edit.
+
+  **For uncommitted single-file work, copy the file — do not stash it.** `cp <file> /tmp/<file>.bak`
+  and copy it back. That has no shared namespace and no ordering, so the hazard is removed rather
+  than managed. Keep `git stash` for the genuinely multi-file case.
+
+  When you must use the stack, **resolve entries by matching the branch name in `git stash list`,
+  never by index** — and that applies to `drop` as much as `pop`. `pop` is the loud failure;
+  `drop` is the silent one, and the incident behind this rule was a lane dropping _its own_
+  stashes. Its three were `stash@{0}`–`{2}` and another lane's was `stash@{3}`, so index-based
+  drops happened to be safe; the other interleaving destroys the foreign entry with nothing
+  reporting it.
+
+  **Match on the branch git records, not on a convention you adopted.** Git puts it in the subject
+  either way — `WIP on <branch>: …` for a bare stash, `On <branch>: …` with `-m` — which matters
+  because the entry you must not clobber belongs to a lane that may never have read this file.
+  `-m "<what>"` is still worth passing, for the description rather than the discriminator.
+
 - **Target the right function.** A sabotage applied to `handleCreate` will not fail a test about
   `handleEdit`, and the passing test looks like a toothless one.
 
-Both of those are about the local loop. **The CI counterpart is the sabotage-on-a-real-runner step
-of `/finish-issue`**, which is where that procedure lives.
+All three are about the local loop. **The CI counterpart is the sabotage-on-a-real-runner step of
+`/finish-issue`**, which is where that procedure lives.
 
 ## Branch layout
 

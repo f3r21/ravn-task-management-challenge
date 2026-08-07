@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { BoardColumn } from './board-column'
+import type { TaskCardLayout } from './task-card/task-card'
 import type { BoardView } from './board-toolbar'
 import { BOARD_STATUSES, type Status, type Task } from './task-types'
 
@@ -41,6 +42,40 @@ function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
   return grouped
 }
 
+/**
+ * What each view changes, and nothing else does.
+ *
+ * `grid`: mobile first — one column, then two, then the board proper. At the
+ * widest breakpoint the columns are pinned to the 348px the design draws them at
+ * and the row scrolls sideways, rather than being divided into five equal shares
+ * of the viewport. The brief asks for five statuses where the mockup shows three,
+ * and five equal shares of 1440px leaves each card around 200px — narrow enough
+ * that the points label, the date badge and the tag row all start wrapping and
+ * the card stops resembling the design at all. Sideways scrolling is also what a
+ * board is expected to do.
+ *
+ * `list`: not the board stacked — that is what the board already does at narrow
+ * widths, so a switcher between the two would do nothing on a phone. Each status
+ * becomes a full-width section and each task a single row, so the fields line up
+ * down the page and far more tasks fit on screen.
+ */
+const VIEW_LAYOUTS = {
+  grid: {
+    wrapper:
+      'flex flex-col gap-8 sm:grid sm:grid-cols-2 xl:flex xl:flex-row xl:overflow-x-auto xl:pb-2',
+    itemLayout: 'card',
+    columnClassName: 'xl:w-87 xl:shrink-0',
+  },
+  list: {
+    wrapper: 'flex flex-col gap-8',
+    itemLayout: 'row',
+    columnClassName: undefined,
+  },
+} as const satisfies Record<
+  BoardView,
+  { wrapper: string; itemLayout: TaskCardLayout; columnClassName: string | undefined }
+>
+
 export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps) {
   // Memoised to skip the regrouping — a `Map`, five arrays and five `sort()`s —
   // on renders where the tasks did not change, which is every keystroke in the
@@ -59,50 +94,20 @@ export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps
   // same array comes back out of the same cache entry.
   const grouped = useMemo(() => groupByStatus(tasks), [tasks])
 
-  if (view === 'list') {
-    return (
-      /*
-       * The list view is not the board stacked — that is what the board already
-       * does at narrow widths, so a switcher between the two would do nothing on a
-       * phone. Each status becomes a full-width section and each task a single row,
-       * so the fields line up down the page and far more tasks fit on screen.
-       */
-      <div className="flex flex-col gap-8">
-        {BOARD_STATUSES.map((status) => (
-          <BoardColumn
-            key={status}
-            status={status}
-            tasks={grouped.get(status) ?? []}
-            now={now}
-            itemLayout="row"
-            onEditTask={onEditTask}
-            onDeleteTask={onDeleteTask}
-          />
-        ))}
-      </div>
-    )
-  }
+  // The two views iterate the same statuses and differ in exactly three values,
+  // so those are what varies — not the loop, which used to be written out twice.
+  const { wrapper, itemLayout, columnClassName } = VIEW_LAYOUTS[view]
 
   return (
-    /*
-     * Mobile first: one column, then two, then the board proper.
-     *
-     * At the widest breakpoint the columns are pinned to the 348px the design
-     * draws them at and the row scrolls sideways, rather than being divided into
-     * five equal shares of the viewport. The brief asks for five statuses where
-     * the mockup shows three, and five equal shares of 1440px leaves each card
-     * around 200px — narrow enough that the points label, the date badge and the
-     * tag row all start wrapping and the card stops resembling the design at
-     * all. Sideways scrolling is also what a board is expected to do.
-     */
-    <div className="flex flex-col gap-8 sm:grid sm:grid-cols-2 xl:flex xl:flex-row xl:overflow-x-auto xl:pb-2">
+    <div className={wrapper}>
       {BOARD_STATUSES.map((status) => (
         <BoardColumn
           key={status}
           status={status}
           tasks={grouped.get(status) ?? []}
           now={now}
-          className="xl:w-87 xl:shrink-0"
+          itemLayout={itemLayout}
+          className={columnClassName}
           onEditTask={onEditTask}
           onDeleteTask={onDeleteTask}
         />

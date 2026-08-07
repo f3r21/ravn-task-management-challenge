@@ -7,8 +7,8 @@ import { Item } from 'react-stately'
  * function, and that is a correctness requirement rather than a tidiness one —
  * see `renderSelectOption`.
  */
-export interface SelectOption {
-  id: string
+export interface SelectOption<T extends string = string> {
+  id: T
   label: string
 }
 
@@ -36,4 +36,23 @@ export interface SelectOption {
  */
 export function renderSelectOption(item: SelectOption) {
   return <Item key={item.id}>{item.label}</Item>
+}
+
+/**
+ * The option a key came back as, or `undefined` if it matches none.
+ *
+ * A lookup rather than `String(key) as T`, and the difference is not stylistic.
+ * Six call sites each asserted the selected key into their own enum, which is an
+ * assertion the compiler cannot check and which quietly turns any unexpected key
+ * — a sentinel that leaked, a stale URL parameter — into a value the rest of the
+ * app treats as a real `Status` or `PointEstimate`. Finding the option instead
+ * returns `item.id`, which is *already* typed `T`, so nothing is asserted and an
+ * unknown key is simply absent.
+ */
+export function findOption<T extends string>(
+  options: readonly SelectOption<T>[],
+  key: unknown,
+): SelectOption<T> | undefined {
+  const id = String(key)
+  return options.find((option) => option.id === id)
 }
