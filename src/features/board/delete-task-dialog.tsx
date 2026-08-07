@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { OverlayTriggerState } from 'react-stately'
-import { TextButton } from '@ravn/ui-kit'
-import { Dialog } from '@/ui/dialog/dialog'
+import { Modal, TextButton } from '@ravn/ui-kit'
 import type { Task } from './task-types'
 
 /**
@@ -87,35 +86,51 @@ export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogPro
   }
 
   return (
-    <Dialog
-      state={state}
+    <Modal
+      isOpen={state.isOpen}
+      // Gated as well as `isDismissable`, because they cover different routes.
+      // `isDismissable` drives react-aria's backdrop and Escape handling, so those
+      // two are prevented outright. The kit's own close button calls `onClose`
+      // unconditionally, so this is what stops it dismissing a delete already in
+      // flight — the case `update-delete-task.test.tsx` exists for.
+      onClose={() => {
+        if (!isDeleting) state.close()
+      }}
       title={`Delete ${task.name}`}
       role="alertdialog"
       isDismissable={!isDeleting}
+      // The app's own panel width, which the kit defaults to `max-w-md`.
+      width="max-w-[578px]"
     >
-      <p className="text-body-l font-semibold">Delete “{task.name}”?</p>
-      <p className="text-muted text-body-m">This cannot be undone.</p>
+      {/* The kit renders the title visibly, where this app's `Dialog` kept it
+          `sr-only`. So "Delete “{name}”?" as a body line would now repeat the
+          header word for word. The name still reaches the user — it is the
+          heading — and the body is left as the consequence alone, which is also
+          what `aria-describedby` now points at. */}
+      <div className="flex flex-col gap-6">
+        <p className="text-muted text-body-m">This cannot be undone.</p>
 
-      <div className="flex justify-end gap-6">
-        <TextButton
-          variant="secondary"
-          onPress={() => {
-            state.close()
-          }}
-          isDisabled={isDeleting}
-        >
-          Cancel
-        </TextButton>
-        <TextButton
-          variant="primary"
-          onPress={() => {
-            void handleConfirm()
-          }}
-          isDisabled={isDeleting}
-        >
-          {isDeleting ? 'Deleting…' : 'Delete'}
-        </TextButton>
+        <div className="flex justify-end gap-6">
+          <TextButton
+            variant="secondary"
+            onPress={() => {
+              state.close()
+            }}
+            isDisabled={isDeleting}
+          >
+            Cancel
+          </TextButton>
+          <TextButton
+            variant="primary"
+            onPress={() => {
+              void handleConfirm()
+            }}
+            isDisabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting…' : 'Delete'}
+          </TextButton>
+        </div>
       </div>
-    </Dialog>
+    </Modal>
   )
 }
