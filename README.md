@@ -445,6 +445,13 @@ its round trip through the URL; the profile page; date formatting across time zo
 mock/direct/proxied backend matrix in `src/lib/env.ts`; and the `@ravn/ui-kit` seam that
 neither repository's CI can see on its own.
 
+One of them is not a feature test at all. `board-render-cost.test.tsx` mounts a full board
+through the real route table and asserts that a keystroke in the search box re-renders **no**
+cards — so the board's memoisation is held by the suite rather than by a profiler someone
+remembers to open. It counts card avatars separately from the header's on purpose: a single
+combined total would also be satisfied by the header alone, and would go green on a board that
+had stopped rendering cards entirely.
+
 Dependencies get a second look on the way in. A separate `Dependency review` workflow fails
 a pull request that introduces a package carrying a high-severity advisory in GitHub's
 database — a different feed from npm's, read against the diff rather than the installed
