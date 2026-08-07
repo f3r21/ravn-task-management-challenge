@@ -64,3 +64,18 @@ UI_KIT_MIGRATION_NEXT_PROMPT.md
 # landing after `!.env.example` it quietly re-ignores the one env file this
 # repo does track.
 .vercel
+
+# Playwright MCP's scratch output — the accessibility snapshots and console logs
+# it writes into `.playwright-mcp/`, and the screenshots it drops in the repo
+# root when a lane drives the app in a browser.
+#
+# Root-anchored rather than a bare `*.png`, which would silently ignore any image
+# anyone legitimately adds anywhere. `docs/screenshots/` is `.jpg` today, so a
+# blanket rule would not have bitten yet — which is exactly the kind of ignore
+# that is discovered much later, by someone whose file simply never appeared.
+#
+# Added after one was swept into a commit by `git add -A`. The evidence for a
+# browser check belongs in the commit message as numbers anyone can reproduce,
+# not as a PNG nobody can diff.
+.playwright-mcp/
+/*.png
