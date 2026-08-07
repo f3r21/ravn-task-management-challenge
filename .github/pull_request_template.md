@@ -39,11 +39,11 @@ it gets. Delete the guidance comments as you fill each section in.
 - [ ] Behaviour change is covered by a test that fails without the change
 - [ ] Comments describing changed behaviour were re-read, not assumed still true
 
+Closes #
+
 ## Second-session review:
 
 <!-- Paste the link to the `gh pr review --comment` from the reviewing session.
      There is one account here and GitHub forbids approving your own pull
      request, so a comment review is what a second opinion looks like — leaving
      this blank means nobody read this but its author. -->
-
-Closes #
