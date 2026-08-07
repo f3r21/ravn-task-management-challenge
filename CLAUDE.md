@@ -95,6 +95,14 @@ nothing surfaces the conflict _before_ that point, so if an MCP tool that should
 failing outright, check `claude mcp remove <name>` first: if it complains about multiple
 scopes, that's the bug.
 
+**A worktree inherits that shadow rather than escaping it.** Local scope is keyed by the main
+checkout's absolute path, and a lane resolves through that key even though its own path appears
+nowhere in `~/.claude.json` — a freshly provisioned lane reported `context7` and `playwright` as
+"Project config" and `eslint` and `graphql` as "Local config" (`claude mcp get <name>`, run in
+the lane). So a stale local entry does not merely fail to reach a new worktree; it follows every
+one of them and keeps winning. `scripts/new-lane.sh` names the collision in its checklist, which
+is all a provisioner should do: clearing it means deleting configuration a human wrote.
+
 ### The UI layer is somebody else's package
 
 The second load-bearing decision, and the one this document used to omit entirely.
@@ -371,6 +379,16 @@ it. `main` only receives periodic promotions of a verified-stable `dev` (gate gr
 anything MCP-related, live-checked, not just "connected") via a `dev` → `main` PR. Nothing
 merges into `main` directly.
 
+**One consequence is easy to miss and cost six issues a day of staying open: `Closes #<n>` is
+inert here.** GitHub fires the keyword only on a merge into the repository's _default_ branch,
+which is `main`, and every lane PR targets `dev` — so the keyword records the link and closes
+nothing. Issues are closed by hand, with the merge commit in the closing comment, as
+`/finish-issue` step 8 describes. `ravn-ui-kit` is the control that makes this a cause rather
+than a theory: its PRs target `main`, so the identical keyword closes its issues automatically,
+and its ritual therefore must **not** carry the by-hand step. Making `dev` the default branch
+would also fix the keyword and is the wrong trade — `main` is what a reviewer of this submission
+clones, and GitHub shows the default branch first.
+
 **`/start-issue` cuts that branch for you, and refuses when it cannot do so safely.** It derives
 the base (`origin/dev` if the repo has one, else the repo's default — `dev` here, `main` in
 `ravn-ui-kit`), then **stops** if the branch you are standing on has an open PR, rather than
@@ -514,6 +532,23 @@ that review, `gate` and a test can all see.
 Code feature and never excluded anything. Note the reach of a `Read()` rule: it also covers
 Edit, Write, Glob, Grep and the shell's own readers, so reading a dependency's source now takes
 a deliberate change here rather than a `cat`.
+
+`scripts/new-lane.sh <lane-name> [branch]` provisions a lane worktree, and exists because doing
+it by hand went silently wrong four times: `.claude/skills/` is gitignored so a lane starts with
+none, `.claude/settings.local.json` and `.env` are gitignored so a lane starts without either,
+and an MCP server can resolve to the wrong scope. Every one of those looks like a working lane.
+The path is derived from `git rev-parse --git-common-dir`, never from the working directory:
+`../wt/<lane>` is the obvious spelling and it is wrong from inside a worktree, where `..` is
+already the worktree root, so it lands at `wt/wt/<lane>` — and a worktree nested inside the repo
+is the `.worktrees` episode that `vite.config.ts`, `eslint.config.js` and `.prettierignore` each
+carry an entry for. `settings.local.json` is **copied, never regenerated**; it holds approvals a
+human accumulated, and a fresh guess silently drops them. The run ends with `npm run gate` and a
+checklist read back off the provisioned worktree, because a lane that starts on a red tree
+attributes the failure to its own first change. `scripts/new-lane.test.mjs` pins the pre-flight
+guards only — everything past them creates a worktree and runs `npm ci`, which no unit suite
+should do on every run. Lanes are cut from `origin/dev` here and `origin/main` in the kit, which
+is the one line a copy between the two repos gets wrong, so the usage message states it and a
+test asserts that it does.
 
 **Nothing enforces `gate` before a commit** — running it is on you. It _is_ enforced before a
 merge (see "Branch layout"), but finding out in CI costs a push and a five-minute round trip to

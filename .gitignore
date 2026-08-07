@@ -16,7 +16,13 @@ npm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea
-.claude/settings.local.json
+# Per-machine permission approvals. The trailing `*` is load-bearing: an editor
+# or a `cp` leaves a sidecar beside it — `settings.local.json.bak-20260806` is
+# sitting in a worktree right now — and the exact-name spelling this line used to
+# have did not match one, so `git add -A` would have published a machine's
+# accumulated approvals into a public repo. `scripts/new-lane.sh` copies the file
+# itself into a new lane; the sidecars belong to the machine that made them.
+.claude/settings.local.json*
 UI_KIT_MIGRATION_PLAN.md
 UI_KIT_MIGRATION_NEXT_PROMPT.md
 
