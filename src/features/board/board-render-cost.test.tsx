@@ -41,8 +41,12 @@ import { BOARD_STATUSES } from './task-types'
  *
  * `TaskCard` renders exactly one `Avatar`, unconditionally — it passes
  * `task.assignee?.avatar`, so an unassigned task still gets the initials fallback.
- * The split relies on the header being the only caller asking for `size={40}`
- * (`app-header.tsx`); every card takes the 32px default.
+ * The split is on `size`: the header asks for `"md"` (`app-header.tsx`) and every
+ * card for `"sm"` (`task-card.tsx`). Both are explicit, and that is load-bearing
+ * rather than tidy — app#30 swapped this component for `@ravn/ui-kit`'s, whose
+ * default is `md`, so the older rule of "the header names a size and cards take
+ * the default" would now count every card as a header and report zero card
+ * renders on a board that is re-rendering all of them.
  *
  * Both asserted numbers are re-derived by a green run, since the assertions *are*
  * the numbers:
@@ -65,10 +69,8 @@ vi.mock('@ravn/ui-kit', async (importOriginal) => {
   return {
     ...actual,
     Avatar: (props: ComponentProps<typeof actual.Avatar>) => {
-      // `size="md"` is the header's, `"sm"` the card's. Both are explicit since
-      // app#30 swapped this component for the kit's, whose default is `md` —
-      // relying on "the card passes no size", as this did, would now count every
-      // card as a header and read as zero card renders.
+      // See the header comment: the split is on the two explicit sizes, not on one
+      // caller naming a size while the other takes a default.
       if (props.size === 'md') {
         renders.header += 1
       } else {
