@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
+import { TextButton } from '@ravn/ui-kit'
 import { isUsingMockApi } from '@/lib/env'
 import { AsyncSection } from '@/ui/async-section/async-section'
-import { Button } from '@/ui/button/button'
 import { EmptyState } from '@/ui/empty-state/empty-state'
 import { Board } from './board'
 import { BoardSkeleton } from './board-skeleton'
@@ -163,9 +163,9 @@ export function BoardPage() {
               title="No tasks match these filters"
               description="Try removing a filter, or search for something else."
               action={
-                <Button variant="text" onPress={clearAll}>
+                <TextButton variant="secondary" onPress={clearAll}>
                   Clear filters
-                </Button>
+                </TextButton>
               }
             />
           ) : (

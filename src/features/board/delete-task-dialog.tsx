@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { OverlayTriggerState } from 'react-stately'
-import { Button } from '@/ui/button/button'
+import { TextButton } from '@ravn/ui-kit'
 import { Dialog } from '@/ui/dialog/dialog'
 import type { Task } from './task-types'
 
@@ -97,16 +97,16 @@ export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogPro
       <p className="text-muted text-body-m">This cannot be undone.</p>
 
       <div className="flex justify-end gap-6">
-        <Button
-          variant="text"
+        <TextButton
+          variant="secondary"
           onPress={() => {
             state.close()
           }}
           isDisabled={isDeleting}
         >
           Cancel
-        </Button>
-        <Button
+        </TextButton>
+        <TextButton
           variant="primary"
           onPress={() => {
             void handleConfirm()
@@ -114,7 +114,7 @@ export function DeleteTaskDialog({ state, task, onConfirm }: DeleteTaskDialogPro
           isDisabled={isDeleting}
         >
           {isDeleting ? 'Deleting…' : 'Delete'}
-        </Button>
+        </TextButton>
       </div>
     </Dialog>
   )

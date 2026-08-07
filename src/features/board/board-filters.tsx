@@ -1,6 +1,5 @@
 import { useId, useMemo } from 'react'
-import { Button } from '@/ui/button/button'
-import { AssigneeIcon, CalendarIcon, PointsIcon } from '@ravn/ui-kit'
+import { AssigneeIcon, CalendarIcon, PointsIcon, TextButton } from '@ravn/ui-kit'
 import { pointsLabel, statusLabel } from './task-display'
 import { IconField } from './icon-field'
 import { OptionalSelect, TagMultiSelect } from './option-select'
@@ -142,9 +141,9 @@ export function BoardFiltersBar({
       />
 
       {isFiltered ? (
-        <Button variant="text" onPress={clearAll}>
+        <TextButton variant="secondary" onPress={clearAll}>
           Clear filters
-        </Button>
+        </TextButton>
       ) : null}
 
       {directoryUnavailable ? (
