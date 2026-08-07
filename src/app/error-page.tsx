@@ -1,3 +1,4 @@
+import { Button } from '@/ui/button/button'
 interface ErrorPageProps {
   /** Shown above the retry affordance. Keep it about what the user can do. */
   message?: string
@@ -16,13 +17,13 @@ export function ErrorPage({
         {message}
       </h1>
       {onRetry ? (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="rounded-sm bg-interactive px-4 py-2 font-semibold text-main"
-        >
+        // The app's own `Button`, not a hand-rolled one. This was the third
+        // separate spelling of "a retry button" — three different class strings
+        // for one affordance — and `useButton` is what normalises Enter versus
+        // Space and keeps press state consistent across input types.
+        <Button variant="primary" onPress={onRetry}>
           Try again
-        </button>
+        </Button>
       ) : null}
     </main>
   )

@@ -1,5 +1,7 @@
-import { screen } from '@testing-library/react'
+import { graphql, HttpResponse } from 'msw'
+import { screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { server } from '@/mocks/server'
 import { renderApp, userEvent } from '@/test/test-utils'
 
 /**
@@ -43,5 +45,24 @@ describe('AppHeader', () => {
     renderApp('/')
 
     expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument()
+  })
+
+  it('does not claim to know who is signed in when the profile fails', async () => {
+    // `Avatar` falls back to "Unassigned", which is correct for a task nobody owns
+    // and a lie about the current user — so a failed profile fetch used to be
+    // indistinguishable from a working one.
+    server.use(
+      graphql.query('Profile', () => HttpResponse.json({ errors: [{ message: 'Not permitted' }] })),
+    )
+    renderApp('/')
+
+    const header = within(await screen.findByRole('banner'))
+    expect(
+      await header.findByRole('img', { name: 'Could not load your profile' }),
+    ).toBeInTheDocument()
+    // Scoped to the header: the board behind it legitimately shows "Unassigned"
+    // avatars for tasks nobody owns, which is exactly the word this fix stops the
+    // header from borrowing.
+    expect(header.queryByRole('img', { name: 'Unassigned' })).not.toBeInTheDocument()
   })
 })
