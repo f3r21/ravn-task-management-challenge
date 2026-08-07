@@ -1,17 +1,16 @@
 import { useId, useMemo } from 'react'
-import { MultiSelect, Select } from '@ravn/ui-kit'
 import { Button } from '@/ui/button/button'
-import { AssigneeIcon, CalendarIcon, LabelIcon, PointsIcon } from '@/ui/icons/icons'
-import { pointsLabel, statusLabel, tagLabel } from './task-display'
-import { renderSelectOption, type SelectOption } from './select-option'
+import { AssigneeIcon, CalendarIcon, PointsIcon } from '@/ui/icons/icons'
+import { pointsLabel, statusLabel } from './task-display'
+import { IconField } from './icon-field'
+import { OptionalSelect, TagMultiSelect } from './option-select'
+import type { SelectOption } from './select-option'
 import type { BoardFilters } from './use-board-filters'
 import {
   ALL_POINT_ESTIMATES,
-  ALL_TAGS,
   BOARD_STATUSES,
   type PointEstimate,
   type Status,
-  type TaskTag,
   type User,
 } from './task-types'
 
@@ -31,31 +30,19 @@ interface BoardFiltersBarProps {
   directoryUnavailable: boolean
 }
 
-/**
- * The key standing in for "no filter" in each single-select.
- *
- * An explicit option rather than a way of clearing the control: a single-select has
- * no gesture for "undo my pick", so without one the only escape from a filter was
- * "Clear filters", which drops all six at once. §5 is about *combining* filters, so
- * backing one of them out individually has to be possible.
- *
- * Prefixed so it cannot collide with a status, an estimate or a user id.
- */
-const ANY = '__any__'
+// Derived from module constants, so these are built once at import rather than on
+// every render of the bar. The "any" entry is no longer here: `OptionalSelect`
+// owns that sentinel and the round trip back out of it, so these lists hold only
+// real choices and stay typed as their own enums.
+const STATUS_ITEMS: SelectOption<Status>[] = BOARD_STATUSES.map((id) => ({
+  id,
+  label: statusLabel(id),
+}))
 
-// Derived from module constants, so these are built once at import rather than
-// on every render of the bar.
-const STATUS_ITEMS: SelectOption[] = [
-  { id: ANY, label: 'Any status' },
-  ...BOARD_STATUSES.map((id) => ({ id, label: statusLabel(id) })),
-]
-
-const TAG_ITEMS: SelectOption[] = ALL_TAGS.map((id) => ({ id, label: tagLabel(id) }))
-
-const POINT_ITEMS: SelectOption[] = [
-  { id: ANY, label: 'Any estimate' },
-  ...ALL_POINT_ESTIMATES.map((id) => ({ id, label: pointsLabel(id) })),
-]
+const POINT_ITEMS: SelectOption<PointEstimate>[] = ALL_POINT_ESTIMATES.map((id) => ({
+  id,
+  label: pointsLabel(id),
+}))
 
 /**
  * The filter row above the board.
@@ -82,56 +69,42 @@ export function BoardFiltersBar({
   // the array — and so each item object, which is the collection cache's key —
   // changes exactly when a name could have changed, and not on every render.
   const ownerItems = useMemo<SelectOption[]>(
-    () => [
-      { id: ANY, label: 'Any owner' },
-      ...users.map((user) => ({ id: user.id, label: user.fullName })),
-    ],
+    () => users.map((user) => ({ id: user.id, label: user.fullName })),
     [users],
   )
 
   return (
     <div className="flex flex-wrap items-center gap-4" role="group" aria-label="Filter tasks">
-      <Select<SelectOption>
+      <OptionalSelect
         label="Filter by status"
         placeholder="Status"
-        items={STATUS_ITEMS}
-        selectedKey={filters.status ?? ANY}
-        onSelectionChange={(key) => {
-          const id = String(key)
-          setFilter('status', id === ANY ? undefined : (id as Status))
+        options={STATUS_ITEMS}
+        noneLabel="Any status"
+        value={filters.status ?? null}
+        onChange={(status) => {
+          setFilter('status', status ?? undefined)
         }}
-      >
-        {renderSelectOption}
-      </Select>
+      />
 
-      <MultiSelect<SelectOption>
+      <TagMultiSelect
         label="Filter by tags"
-        placeholder="Tags"
-        icon={<LabelIcon className="size-6 shrink-0" />}
-        items={TAG_ITEMS}
-        selectedKeys={filters.tags}
-        onSelectionChange={(keys) => {
-          const next: TaskTag[] =
-            keys === 'all' ? [...ALL_TAGS] : ([...keys].map(String) as TaskTag[])
-          setFilter('tags', next)
+        value={filters.tags}
+        onChange={(tags) => {
+          setFilter('tags', tags)
         }}
-      >
-        {renderSelectOption}
-      </MultiSelect>
+      />
 
-      <Select<SelectOption>
+      <OptionalSelect
         label="Filter by estimated points"
         placeholder="Estimate"
         icon={<PointsIcon className="size-6 shrink-0" />}
-        items={POINT_ITEMS}
-        selectedKey={filters.pointEstimate ?? ANY}
-        onSelectionChange={(key) => {
-          const id = String(key)
-          setFilter('pointEstimate', id === ANY ? undefined : (id as PointEstimate))
+        options={POINT_ITEMS}
+        noneLabel="Any estimate"
+        value={filters.pointEstimate ?? null}
+        onChange={(pointEstimate) => {
+          setFilter('pointEstimate', pointEstimate ?? undefined)
         }}
-      >
-        {renderSelectOption}
-      </Select>
+      />
 
       {/* A failed directory says so on the control it broke, rather than leaving a
           picker that offers only "Any owner" and looks like a team of nobody. The
@@ -145,36 +118,28 @@ export function BoardFiltersBar({
           can only fail after a request — never gets one, so the message renders
           with no id and the trigger with no `aria-describedby`. Confirmed in jsdom
           and in Chrome. An `aria-describedby` we own does not depend on that. */}
-      <Select<SelectOption>
+      <OptionalSelect
         label="Filter by owner"
         placeholder="Owner"
         icon={<AssigneeIcon className="size-6 shrink-0" />}
         aria-describedby={directoryUnavailable ? noticeId : undefined}
-        items={ownerItems}
-        selectedKey={filters.ownerId ?? ANY}
-        onSelectionChange={(key) => {
-          const id = String(key)
-          setFilter('ownerId', id === ANY ? undefined : id)
+        options={ownerItems}
+        noneLabel="Any owner"
+        value={filters.ownerId ?? null}
+        onChange={(ownerId) => {
+          setFilter('ownerId', ownerId ?? undefined)
         }}
-      >
-        {renderSelectOption}
-      </Select>
+      />
 
-      <div className="rounded-4 bg-muted/10 flex items-center gap-2 px-4 py-1">
-        <CalendarIcon className="text-muted size-6 shrink-0" />
-        <label htmlFor="filter-due-date" className="sr-only">
-          Filter by due date
-        </label>
-        <input
-          id="filter-due-date"
-          type="date"
-          value={filters.dueDate ?? ''}
-          onChange={(event) => {
-            setFilter('dueDate', event.target.value === '' ? undefined : event.target.value)
-          }}
-          className="text-body-m bg-transparent font-semibold outline-none"
-        />
-      </div>
+      <IconField
+        icon={<CalendarIcon className="text-muted size-6 shrink-0" />}
+        label="Filter by due date"
+        type="date"
+        value={filters.dueDate ?? ''}
+        onChange={(dueDate) => {
+          setFilter('dueDate', dueDate === '' ? undefined : dueDate)
+        }}
+      />
 
       {isFiltered ? (
         <Button variant="text" onPress={clearAll}>

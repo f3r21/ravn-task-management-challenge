@@ -4,6 +4,7 @@ import { useProfile } from '@/features/profile/use-profile'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { Avatar } from '@/ui/avatar/avatar'
 import { BellIcon, SearchIcon } from '@/ui/icons/icons'
+import { Skeleton } from '@/ui/skeleton/skeleton'
 
 /**
  * The top bar: search on the left, notifications and the current user on the
@@ -33,7 +34,14 @@ export function AppHeader() {
   const searchId = useId()
   // Same query key as the settings page, so the signed-in user is fetched once
   // and the two cannot disagree about who it is.
-  const { data: profile } = useProfile()
+  // `status` as well as `data`, for the same reason `BoardPage` needs it from
+  // `useUsers`: a pending profile and a failed one both leave `data` undefined,
+  // and rendering them alike is a silent degradation. `Avatar` falls back to
+  // "Unassigned" when it has no name — the right word for a task nobody owns, and
+  // a lie about the signed-in user. A failed profile fetch was indistinguishable
+  // from a working one, which is the kind of failure nobody reports because
+  // nobody can see it.
+  const { data: profile, status: profileStatus } = useProfile()
   const { filters, setFilter } = useBoardFilters()
 
   return (
@@ -66,11 +74,19 @@ export function AppHeader() {
         >
           <BellIcon className="size-6" />
         </button>
-        <Avatar
-          size={40}
-          src={avatarSrcUnlessDecommissioned(profile?.avatar)}
-          name={profile?.fullName}
-        />
+        {profileStatus === 'pending' ? (
+          // A placeholder rather than initials, so nothing is asserted about who
+          // is signed in before the answer arrives. No live region here: the
+          // header is chrome, and announcing its avatar would interrupt whatever
+          // the page itself is saying.
+          <Skeleton className="size-10 shrink-0 rounded-full" />
+        ) : (
+          <Avatar
+            size={40}
+            src={avatarSrcUnlessDecommissioned(profile?.avatar)}
+            name={profile?.fullName ?? 'Could not load your profile'}
+          />
+        )}
       </div>
     </header>
   )
