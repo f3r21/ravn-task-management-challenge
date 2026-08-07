@@ -1,9 +1,9 @@
 import { useRef } from 'react'
 import { useRadio, useRadioGroup, VisuallyHidden } from 'react-aria'
 import { useRadioGroupState, type RadioGroupState } from 'react-stately'
+import { Button } from '@ravn/ui-kit'
 import { cn } from '@/lib/cn'
 import { GridViewIcon, ListViewIcon, PlusIcon } from '@/ui/icons/icons'
-import { IconButton } from '@/ui/icon-button/icon-button'
 
 export type BoardView = 'list' | 'grid'
 
@@ -114,12 +114,11 @@ export function BoardToolbar({ view, onViewChange, onCreateTask }: BoardToolbarP
         ))}
       </div>
 
-      <IconButton
-        label="Create task"
-        variant="primary"
-        icon={<PlusIcon className="size-3.5" />}
-        onClick={onCreateTask}
-      />
+      {/* `onPress`, not `onClick`: the kit's `Button` is built on `useButton`, so the
+          press sequence is React Aria's rather than the DOM's. */}
+      <Button aria-label="Create task" variant="primary" onPress={onCreateTask}>
+        <PlusIcon className="size-3.5" />
+      </Button>
     </div>
   )
 }
