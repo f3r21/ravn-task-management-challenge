@@ -23,32 +23,54 @@ import { BOARD_STATUSES } from './task-types'
  * `memo` does not change — the number would stay flat across exactly the fix this
  * measures, and read as no improvement.
  *
- * `TaskCard` renders exactly one `Avatar`, unconditionally — it passes
- * `task.assignee?.avatar`, so an unassigned task still gets the initials fallback —
- * and `AppHeader` renders one more. That is what makes the count `cards + 1`, and
- * it would drift silently if a second avatar appeared on the card or that one
- * became conditional.
+ * **Card avatars are counted separately from the header's**, and that separation is
+ * what makes both assertions sharp rather than merely true:
  *
- * Both figures this work quotes are re-derived from this one file. The *after* is
- * a green run, since the assertion is the number:
+ * - The closing assertion is `cards === 0`. A count that lumped the two together
+ *   would assert `=== 1`, a number the header alone satisfies — so a board that had
+ *   stopped rendering cards entirely would pass it. Zero is not reachable that way.
+ * - The opening assertion is `cards === 150`, which proves the board really did
+ *   mount every card before anything was measured. Without it the test could go
+ *   green having measured nothing at all, which is the shape this repo has already
+ *   paid for four times — most memorably a Tailwind canary that generated the very
+ *   classes it grepped for.
+ *
+ * The header count is deliberately *not* asserted. It is 2 at mount, not 1: the
+ * profile query resolves and `AppHeader` renders again. That is timing-dependent,
+ * so pinning it would buy nothing and flake.
+ *
+ * `TaskCard` renders exactly one `Avatar`, unconditionally — it passes
+ * `task.assignee?.avatar`, so an unassigned task still gets the initials fallback.
+ * The split relies on the header being the only caller asking for `size={40}`
+ * (`app-header.tsx`); every card takes the 32px default.
+ *
+ * Both asserted numbers are re-derived by a green run, since the assertions *are*
+ * the numbers:
  *
  *     npx vitest run src/features/board/board-render-cost.test.tsx
  *
- * The *before* needs the fix taken back out — drop the `memo()` wrapper in
- * `task-card.tsx` and run the same command, which fails with `expected 151 to be
- * 1`. There is deliberately no `console.log` here reporting the count: Vitest
- * buffers test-side console output and prints it only for failing tests, so on a
- * green run it would emit nothing and the figure would look sourced when it was
- * not.
+ * The unmemoised figure is the one thing CI cannot assert, because asserting it
+ * would mean keeping the code broken. Reproduce it by dropping the `memo()` wrapper
+ * in `task-card.tsx` and running the same command, which fails
+ * `expected 150 to be 0` — 150 cards re-rendering for one character.
+ *
+ * There is deliberately no `console.log` reporting the counts: Vitest buffers
+ * test-side console output and prints it only for failing tests, so on a green run
+ * it would emit nothing and the figure would look sourced when it was not.
  */
-const renders = vi.hoisted(() => ({ avatars: 0 }))
+const renders = vi.hoisted(() => ({ cards: 0, header: 0 }))
 
 vi.mock('@/ui/avatar/avatar', async (importOriginal) => {
   const actual = await importOriginal<typeof AvatarModule>()
   return {
     ...actual,
     Avatar: (props: ComponentProps<typeof actual.Avatar>) => {
-      renders.avatars += 1
+      // `size={40}` is the header's; a card passes no size and takes the default.
+      if (props.size === 40) {
+        renders.header += 1
+      } else {
+        renders.cards += 1
+      }
       return createElement(actual.Avatar, props)
     },
   }
@@ -105,16 +127,21 @@ describe('board render cost', () => {
       { timeout: 20_000 },
     )
 
+    // The board really is fully mounted — see the note above on why measuring
+    // nothing must not look like measuring zero.
+    expect(renders.cards).toBe(TASK_COUNT)
+
     // The board is up. Everything counted from here belongs to the keystroke.
-    renders.avatars = 0
+    renders.cards = 0
 
     await user.type(
       await screen.findByRole('searchbox', { name: 'Search tasks' }, { timeout: 20_000 }),
       'a',
     )
 
-    // The header's own avatar re-renders — it is inside the component that owns the
-    // input — and nothing else should.
-    expect(renders.avatars).toBe(1)
+    // Not one card re-renders. The header's own avatar does — it is inside the
+    // component that owns the input — and is counted separately so it cannot
+    // satisfy this on its own.
+    expect(renders.cards).toBe(0)
   }, 30_000)
 })

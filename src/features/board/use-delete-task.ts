@@ -59,6 +59,14 @@ export function useDeleteTask(): UseMutationResult<{ id: string }, Error, string
       // Read before the write, and from `getQueriesData` rather than from what
       // `setQueriesData` returns: that hands back the data it just wrote, which
       // is the post-removal state and worthless as a rollback.
+      //
+      // One snapshot per mutation, which is safe only because two deletes cannot
+      // overlap here: the confirmation dialog is modal, `taskUnderAction` holds a
+      // single task, and the Delete button disables itself for the duration. If a
+      // second delete ever becomes reachable — a bulk action, or deleting straight
+      // from the card menu — this needs revisiting, because the later `onMutate`
+      // would snapshot a cache the earlier one had already edited and a rollback
+      // could resurrect a task the other delete legitimately removed.
       const previous = queryClient.getQueriesData<Task[]>({ queryKey: taskKeys.all })
 
       queryClient.setQueriesData<Task[]>({ queryKey: taskKeys.all }, (tasks) =>
@@ -72,6 +80,13 @@ export function useDeleteTask(): UseMutationResult<{ id: string }, Error, string
       // The board reappears with the card on it, and `board-page.tsx` reports the
       // failure through a toast; the two together are what tell the user the
       // delete did not happen, since the card vanishing is no longer proof it did.
+      //
+      // A `tasks` of `undefined` here writes nothing rather than clearing the
+      // entry — `setQueryData` treats an undefined value as "no update". That
+      // reads like a latent bug and is the correct outcome: a key holding
+      // `undefined` was mid-first-load, so the removal above (`tasks?.filter`)
+      // also returned `undefined` and left it untouched. There is nothing to undo.
+      // What restarts that query is the invalidation in `onSettled`.
       for (const [queryKey, tasks] of context?.previous ?? []) {
         queryClient.setQueryData(queryKey, tasks)
       }
