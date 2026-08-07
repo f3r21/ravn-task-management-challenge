@@ -370,8 +370,17 @@ describe('deleting a task', () => {
     await chooseAction(user, 'Slack', 'Delete')
 
     // `alertdialog`, so the consequence is announced rather than just the title.
+    //
+    // The name is asserted rather than the exact sentence carrying it. It used to
+    // sit in a body line, "Delete “Slack”?", because this app's own `Dialog` kept
+    // its title `sr-only`. `@ravn/ui-kit`'s `Modal` renders the title visibly, so
+    // that line would repeat the heading word for word and app#30 dropped it. What
+    // the test is for is unchanged and is the reason `delete-task-dialog.tsx` puts
+    // the name in the prompt at all: the menu that opened this is one of many
+    // identical menus, and a user who picked the wrong one has no other way to
+    // notice before the task is gone.
     const dialog = await screen.findByRole('alertdialog')
-    expect(dialog).toHaveTextContent(/delete “slack”\?/i)
+    expect(dialog).toHaveTextContent(/delete slack/i)
     expect(dialog).toHaveTextContent(/cannot be undone/i)
   })
 
@@ -405,6 +414,59 @@ describe('deleting a task', () => {
 
     const dialog = await screen.findByRole('alertdialog', { name: /delete slack/i })
     expect(dialog).toHaveAccessibleDescription(/cannot be undone/i)
+  })
+
+  it('cannot be dismissed by clicking away while the delete is in flight', async () => {
+    // `delete-task-dialog.tsx` passes `isDismissable={!isDeleting}` to pin the dialog
+    // open once the user has committed, so they cannot walk away from a delete
+    // already on its way to the server and be left unsure whether it happened.
+    //
+    // The **backdrop** rather than Escape, and that is not a detail. Mid-delete both
+    // buttons are `isDisabled`, so focus sits on a disabled element and an Escape
+    // keypress never propagates — the dialog stays open whatever `isDismissable`
+    // says. A test written against Escape passes against a build where the pin has
+    // been removed entirely, which is how this one was first written and why it was
+    // rewritten. `isDismissable` genuinely governs the backdrop, so that is the route
+    // that can distinguish the two states.
+    server.use(
+      graphql.mutation('DeleteTask', async () => {
+        // Never settles, so `isDeleting` stays true for the whole assertion.
+        await new Promise(() => {
+          // Deliberately empty: this promise is the gate.
+        })
+        return HttpResponse.json({ data: { deleteTask: { id: '1' } } })
+      }),
+    )
+
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Delete')
+    const dialog = await screen.findByRole('alertdialog')
+
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    // The button reporting progress is what says `isDeleting` is true — without it
+    // the click below could be racing the state update rather than testing the pin.
+    await within(dialog).findByRole('button', { name: 'Deleting…' })
+
+    await user.click(document.body)
+
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+  })
+
+  it('still closes when clicked away from, with no delete in flight', async () => {
+    // The control, and it matters more than the test above: an assertion that the
+    // dialog does not close passes just as happily against a dialog that can never
+    // be dismissed at all — a worse defect than the one being guarded. It also
+    // proves the click route reaches the overlay at all, which the Escape route
+    // did not.
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Delete')
+    await screen.findByRole('alertdialog')
+
+    await user.click(document.body)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    })
   })
 
   it('leaves the task alone when the user cancels', async () => {

@@ -1,4 +1,4 @@
-import { Skeleton } from '@/ui/skeleton/skeleton'
+import { Skeleton } from '@ravn/ui-kit'
 import { BOARD_STATUSES } from './task-types'
 
 /** How many placeholder cards each column shows while the board loads. */

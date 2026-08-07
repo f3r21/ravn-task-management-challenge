@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { server } from '@/mocks/server'
 import { makeTask } from '@/mocks/task-fixtures'
 import { renderApp, userEvent } from '@/test/test-utils'
-import type * as AvatarModule from '@/ui/avatar/avatar'
+import type * as UiKit from '@ravn/ui-kit'
 import { BOARD_STATUSES } from './task-types'
 
 /**
@@ -41,8 +41,12 @@ import { BOARD_STATUSES } from './task-types'
  *
  * `TaskCard` renders exactly one `Avatar`, unconditionally — it passes
  * `task.assignee?.avatar`, so an unassigned task still gets the initials fallback.
- * The split relies on the header being the only caller asking for `size={40}`
- * (`app-header.tsx`); every card takes the 32px default.
+ * The split is on `size`: the header asks for `"md"` (`app-header.tsx`) and every
+ * card for `"sm"` (`task-card.tsx`). Both are explicit, and that is load-bearing
+ * rather than tidy — app#30 swapped this component for `@ravn/ui-kit`'s, whose
+ * default is `md`, so the older rule of "the header names a size and cards take
+ * the default" would now count every card as a header and report zero card
+ * renders on a board that is re-rendering all of them.
  *
  * Both asserted numbers are re-derived by a green run, since the assertions *are*
  * the numbers:
@@ -60,13 +64,14 @@ import { BOARD_STATUSES } from './task-types'
  */
 const renders = vi.hoisted(() => ({ cards: 0, header: 0 }))
 
-vi.mock('@/ui/avatar/avatar', async (importOriginal) => {
-  const actual = await importOriginal<typeof AvatarModule>()
+vi.mock('@ravn/ui-kit', async (importOriginal) => {
+  const actual = await importOriginal<typeof UiKit>()
   return {
     ...actual,
     Avatar: (props: ComponentProps<typeof actual.Avatar>) => {
-      // `size={40}` is the header's; a card passes no size and takes the default.
-      if (props.size === 40) {
+      // See the header comment: the split is on the two explicit sizes, not on one
+      // caller naming a size while the other takes a default.
+      if (props.size === 'md') {
         renders.header += 1
       } else {
         renders.cards += 1

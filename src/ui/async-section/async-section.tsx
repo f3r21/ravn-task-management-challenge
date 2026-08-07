@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
+import { TextButton } from '@ravn/ui-kit'
 import { ApiError } from '@/graphql/client'
 import { cn } from '@/lib/cn'
-import { Button } from '@/ui/button/button'
 
 interface AsyncSectionProps {
   /** React Query's own status, passed straight through. */
@@ -81,9 +81,9 @@ export function AsyncSection({
           <p className="text-body-l font-semibold">{errorTitle}</p>
           <p className="text-muted text-body-m max-w-md">{message}</p>
           {isUnauthenticated ? null : (
-            <Button variant="primary" onPress={onRetry}>
+            <TextButton variant="primary" onPress={onRetry}>
               Try again
-            </Button>
+            </TextButton>
           )}
         </div>
       ) : null}
