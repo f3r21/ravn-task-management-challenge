@@ -1,24 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useOverlayTriggerState } from 'react-stately'
+import { useMemo, useState } from 'react'
 import { ApiError } from '@/graphql/client'
-import { parseApiDate, toDateInputValue } from '@/lib/due-date'
 import { isUsingMockApi } from '@/lib/env'
 import { Button } from '@/ui/button/button'
 import { EmptyState } from '@/ui/empty-state/empty-state'
-import { useToast } from '@/ui/toast/toast-context'
 import { Board } from './board'
 import { BoardSkeleton } from './board-skeleton'
 import { BoardFiltersBar } from './board-filters'
 import { BoardToolbar, type BoardView } from './board-toolbar'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { TaskFormDialog } from './task-form-dialog'
-import type { TaskFormFields } from './task-form-state'
-import type { Task, User } from './task-types'
+import { toFormFields } from './task-mapping'
+import type { User } from './task-types'
+import { useBoardActions } from './use-board-actions'
+import { useBoardDialogs } from './use-board-dialogs'
 import { useBoardFilters } from './use-board-filters'
-import { useCreateTask } from './use-create-task'
-import { useDeleteTask } from './use-delete-task'
 import { useTasks } from './use-tasks'
-import { useUpdateTask } from './use-update-task'
 import { useUsers } from './use-users'
 
 /**
@@ -103,132 +99,19 @@ export function BoardPage() {
     usersStatus === 'pending' ? 'pending' : 'ready',
   )
   const { data: tasks, status, error, refetch } = useTasks(queryInput)
-  const toast = useToast()
 
-  const createDialog = useOverlayTriggerState({})
-  const editDialog = useOverlayTriggerState({})
-  const deleteDialog = useOverlayTriggerState({})
+  // One state machine for all three dialogs, rather than three booleans and a
+  // nullable task. `openEdit`/`openDelete` are stable across renders, which
+  // `memo(TaskCard)` depends on — see `use-board-dialogs.ts`.
+  const { dialog, createState, editState, deleteState, openCreate, openEdit, openDelete } =
+    useBoardDialogs()
 
-  // Which task the edit and delete dialogs are about. Held here rather than on
-  // the card, because a dialog rendered inside a card would be unmounted by the
-  // refetch that follows a successful mutation — mid-transition.
-  const [taskUnderAction, setTaskUnderAction] = useState<Task | null>(null)
-
-  const createTask = useCreateTask()
-  const updateTask = useUpdateTask()
-  const deleteTask = useDeleteTask()
-
-  // Stable identities, and that is the entire point of the two `useCallback`s.
-  //
-  // These reach every `TaskCard` on the board as `onEdit`/`onDelete`. Written
-  // inline at the call site they were a fresh closure on every render of this
-  // page — and this page re-renders on every keystroke in the header's search
-  // box, because that writes to the URL. `memo()` compares props shallowly, so an
-  // inline arrow here makes `memo(TaskCard)` a pure cost with no benefit: every
-  // card fails the comparison and rebuilds its twenty-odd elements. That failure
-  // is silent — the tests still pass and the board is still correct, it just
-  // never gets faster — which is why `board-render-cost.test.tsx` measures it
-  // rather than trusting it.
-  //
-  // Read through refs because `useOverlayTriggerState` **rebuilds its state
-  // object on every render**, so `[editDialog]` as a dependency would re-create
-  // these callbacks every time and change nothing. That is not a guess: depending
-  // on the object was the first attempt and left the measurement pinned at its
-  // unmemoised 151. The `open`/`close` functions on the state *are* stable, but
-  // naming one in a dependency array trips `@typescript-eslint/unbound-method` —
-  // the state's type declares them as methods.
-  //
-  // This is the same problem `ToastProvider` has with `useToastState`, solved the
-  // same way, including syncing in an effect rather than assigning during render,
-  // which is not safe under concurrent rendering. Nothing can observe the gap:
-  // both are only ever called from a card menu's `onAction`, long after the first
-  // effect has flushed.
-  const editDialogRef = useRef(editDialog)
-  const deleteDialogRef = useRef(deleteDialog)
-  useEffect(() => {
-    editDialogRef.current = editDialog
-    deleteDialogRef.current = deleteDialog
-  }, [editDialog, deleteDialog])
-
-  const openEditDialog = useCallback((task: Task) => {
-    setTaskUnderAction(task)
-    editDialogRef.current.open()
-  }, [])
-
-  const openDeleteDialog = useCallback((task: Task) => {
-    setTaskUnderAction(task)
-    deleteDialogRef.current.open()
-  }, [])
-
-  /** The API wants a DateTime; the date input gives `yyyy-MM-dd`. Midnight UTC
-   *  is the instant `due-date.ts` reads back as that same calendar day. */
-  function toApiDate(dueDate: string): string {
-    return `${dueDate}T00:00:00.000Z`
-  }
-
-  async function handleCreate(fields: TaskFormFields) {
-    await createTask.mutateAsync({
-      name: fields.name.trim(),
-      status: fields.status,
-      tags: fields.tags,
-      dueDate: toApiDate(fields.dueDate),
-      pointEstimate: fields.pointEstimate,
-      ...(fields.assigneeId ? { assigneeId: fields.assigneeId } : {}),
-    })
-    toast.show('success', 'Task created')
-  }
-
-  async function handleEdit(fields: TaskFormFields) {
-    if (!taskUnderAction) {
-      return
-    }
-    try {
-      await updateTask.mutateAsync({
-        id: taskUnderAction.id,
-        name: fields.name.trim(),
-        status: fields.status,
-        tags: fields.tags,
-        dueDate: toApiDate(fields.dueDate),
-        pointEstimate: fields.pointEstimate,
-        // Omitted when the field is blank, which is what leaves the server's own
-        // ordering alone. Sending `null` would be a request to unset a `Float!`.
-        ...(fields.position.trim() === '' ? {} : { position: Number(fields.position) }),
-        // Sent even when empty, unlike the create path. `UpdateTaskInput` is a patch,
-        // so omitting the field means "leave it as it is" — which made unassigning
-        // impossible. `null` is what says "nobody".
-        assigneeId: fields.assigneeId,
-      })
-      toast.show('success', 'Task updated')
-    } catch (error) {
-      // §4 asks for a notification whether the request succeeded *or failed*, and
-      // the success half alone was the asymmetry: `handleDelete` below has always
-      // reported both. The dialog's own `role="alert"` stays and is still the
-      // primary report — it keeps the reason beside the form the user is looking
-      // at — but it leaves with the dialog, and someone who dismisses a failed
-      // save should not be left with no record that it failed.
-      //
-      // Rethrown, because `TaskFormDialog` catches this to render that alert and
-      // keep itself open. Swallowing it here would close the dialog on failure and
-      // throw the user's edits away.
-      toast.show('error', error instanceof Error ? error.message : 'Could not save the task.')
-      throw error
-    }
-  }
-
-  async function handleDelete() {
-    if (!taskUnderAction) {
-      return
-    }
-    try {
-      await deleteTask.mutateAsync(taskUnderAction.id)
-      toast.show('success', 'Task deleted')
-    } catch (error) {
-      // The confirmation dialog has no room for an inline error, and the delete
-      // is the kind of action a user needs told about either way.
-      toast.show('error', error instanceof Error ? error.message : 'Could not delete the task.')
-      throw error
-    }
-  }
+  // What the board can do, and what the user is told about each. The three take
+  // the task they act on as an argument rather than reading it from state, so
+  // there is no "which task is this about?" to get wrong and no unreachable
+  // `if (!task) return` guard — each call site below sits inside a branch that
+  // has already narrowed `dialog` to the variant carrying it.
+  const { create, edit, remove } = useBoardActions()
 
   return (
     <main className="flex flex-col gap-6">
@@ -248,13 +131,7 @@ export function BoardPage() {
         </p>
       ) : null}
 
-      <BoardToolbar
-        view={view}
-        onViewChange={setView}
-        onCreateTask={() => {
-          createDialog.open()
-        }}
-      />
+      <BoardToolbar view={view} onViewChange={setView} onCreateTask={openCreate} />
 
       <BoardFiltersBar
         filters={filters}
@@ -266,42 +143,40 @@ export function BoardPage() {
       />
 
       {/* Mounted only while open, so every visit starts from a blank form rather
-          than whatever the last one was left holding — and so the edit dialog
-          is seeded from the task it was opened for. */}
-      {createDialog.isOpen ? (
+          than whatever the last one was left holding — and so the edit dialog is
+          seeded from the task it was opened for.
+
+          Switching on `dialog.kind` rather than testing three `isOpen` flags is
+          what makes "two dialogs at once" unrepresentable, and it narrows the
+          union so each branch's `dialog.task` is typed without a guard. */}
+      {dialog.kind === 'create' ? (
         <TaskFormDialog
-          state={createDialog}
+          state={createState}
           users={users ?? NO_USERS}
-          onSubmit={handleCreate}
+          onSubmit={create}
           title="Create task"
           submitLabel="Create"
         />
       ) : null}
 
-      {editDialog.isOpen && taskUnderAction ? (
+      {dialog.kind === 'edit' ? (
         <TaskFormDialog
-          state={editDialog}
+          state={editState}
           users={users ?? NO_USERS}
-          onSubmit={handleEdit}
+          onSubmit={(fields) => edit(dialog.task, fields)}
           mode="edit"
-          title={`Edit ${taskUnderAction.name}`}
+          title={`Edit ${dialog.task.name}`}
           submitLabel="Save"
-          initialFields={{
-            name: taskUnderAction.name,
-            status: taskUnderAction.status,
-            tags: taskUnderAction.tags,
-            dueDate: parseApiDate(taskUnderAction.dueDate)
-              ? toDateInputValue(parseApiDate(taskUnderAction.dueDate) as Date)
-              : '',
-            pointEstimate: taskUnderAction.pointEstimate,
-            position: String(taskUnderAction.position),
-            assigneeId: taskUnderAction.assignee?.id ?? null,
-          }}
+          initialFields={toFormFields(dialog.task)}
         />
       ) : null}
 
-      {deleteDialog.isOpen && taskUnderAction ? (
-        <DeleteTaskDialog state={deleteDialog} task={taskUnderAction} onConfirm={handleDelete} />
+      {dialog.kind === 'delete' ? (
+        <DeleteTaskDialog
+          state={deleteState}
+          task={dialog.task}
+          onConfirm={() => remove(dialog.task)}
+        />
       ) : null}
 
       {status === 'pending' ? <BoardSkeleton /> : null}
@@ -338,12 +213,7 @@ export function BoardPage() {
             />
           )
         ) : (
-          <Board
-            tasks={tasks}
-            view={view}
-            onEditTask={openEditDialog}
-            onDeleteTask={openDeleteDialog}
-          />
+          <Board tasks={tasks} view={view} onEditTask={openEdit} onDeleteTask={openDelete} />
         )
       ) : null}
     </main>
