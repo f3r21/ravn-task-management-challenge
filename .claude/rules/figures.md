@@ -17,10 +17,31 @@ to check it in one paste.
 ```
 
 That `exit=` is not decoration, and the exemplar carried the bug it now demonstrates against —
-see "A command that cannot fail" below. On bash, the same line is
-`echo "exit=${PIPESTATUS[0]}"`; lanes here run zsh, so the zsh spelling is the one written
-above. Ship both when you write the command down for someone else, because the bash form
-prints an empty string under zsh and an empty string looks like provenance.
+see "A command that cannot fail" below.
+
+**It generalises: _any_ command you pipe discards its exit status, not just this one.** A pipe
+reports the last stage, so `npm audit … | head`, `gh … | jq` and `git log … | grep` all report the
+filter's success and none report the thing you were asking about. That is not hypothetical — this
+fix was relayed to three sessions and then its own author ran
+`npm audit --audit-level=high 2>&1 | head -14 ; echo "audit exit=$?"`, read `head`'s `0`, and
+nearly reported a failing audit as passing. The defect is in the shape of the idiom, which is why
+this section names the shape rather than one recipe.
+
+Three spellings recover the status. **Lanes here run zsh**, where the bash one prints an empty
+string — and an empty string looks like provenance:
+
+```bash
+out=$(npm run gate 2>&1); rc=$?      # command substitution — no pipe, nothing to lose
+… | tail -6 ; echo $pipestatus[1]    # zsh          (bash: echo "exit=${PIPESTATUS[0]}")
+set -o pipefail; … | tail -6         # either shell — the pipeline itself carries the status
+```
+
+Ship both shell spellings whenever you write a piped command down for someone else to run.
+
+One caveat on the third form, so it does not surprise you: `ravn-ui-kit`'s `figure-audit.mjs`
+still scores `set -o pipefail` as a blind command, so a figure written that way is flagged there
+while being correct here. That is `ravn-ui-kit#78`, filed; prefer one of the first two forms in a
+figure destined for the kit until it closes.
 
 ## Why
 
@@ -168,6 +189,53 @@ it. Named here as a hazard to check, not as an incident that occurred.
 **Before trusting either a negative or a confirmation, ask what the command prints when the
 claim is false.** If the answer is "the same thing", it is not evidence — prefer a spelling that
 can fail, and if only a silent one exists, say so beside the figure.
+
+## A measurement that reaches no decision
+
+Everything above improves the **instrument** — carry the command, control the negative, recover
+the status through a pipe, answer it with something that could have said otherwise. All of it
+stops at the measurement.
+
+**None of it touches an instrument that is already correct and wired to a hardcoded verdict**, and
+that is what makes this a separate class rather than a harder case of the last one: fixing the
+instrument does nothing. The reading was right. Nothing consumed it.
+
+Two instances, from opposite ends:
+
+- **A verdict that was constant.** A probe filling this repo's `## Second-session review:` line
+  printed `content=0 -> FILLED` — on one line. The count was correct; `echo FILLED` sat beside it
+  unconditionally, comparing nothing. The output contradicted itself in the same breath and the
+  run was read as a success.
+- **No verdict at all.** `out=$(npm run gate 2>&1); rc=$?; echo "GATE EXIT=$rc"` printed **1**, and
+  the next line committed. That reading path is the one this file recommends — command
+  substitution, no pipe, status recovered — and no branch consumed it. Its author: _"I built the
+  check for the first storey while standing in the second."_ (Reported by kit-1 and **not
+  re-derivable**: `gh search issues 'GATE EXIT' --repo f3r21/ravn-ui-kit` returns nothing, while
+  the control `gh search issues 'pipefail' …` correctly returns `#78`. Cited as reported.)
+
+**The test, applied to a line of output: can it print a different verdict than it just measured?**
+If it cannot, because nothing compares the measurement to anything, there is no check there — only
+a measurement and a claim standing next to each other.
+
+**Before the fact, the same question is cheaper: of every correct answer, ask what it causes. If
+the answer is "it gets printed", there is no control there at all.**
+
+The worked example is the compound that produced the first instance, kept because no invented one
+will beat it. A probe anchored on the bare substring `"## Second-session review:"` edited a PR body
+that _described its own change_, so the string occurred five times and only once at line start —
+four of five were prose or code spans, and a line-start anchor was available and unused:
+
+```bash
+gh pr view 97 --json body --jq '.body' > /tmp/b.txt
+grep -c 'Second-session review'    /tmp/b.txt   # 5
+grep -c '^## Second-session review:' /tmp/b.txt # 1
+```
+
+It inserted the review into a quotation. It then verified by asking _is there content beneath a
+heading_ rather than _did my edit land where I meant_, found the real section still empty, and
+**inserted it a second time.** Wrong instrument, wrong verification, and an action repeated on the
+strength of the wrong verification — committed while writing about this class, on the pull request
+that existed to fix it, by the participant who formulated it.
 
 ## Exemptions, deliberately narrow
 
