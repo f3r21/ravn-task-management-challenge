@@ -90,13 +90,46 @@ wrong answers in one day had exactly that shape:
 None of the three looked broken, which is the whole problem: an error is self-announcing and an
 empty result is not.
 
-**And it runs in both directions — a clean _positive_ is no better.** `v0.5.0` of
-`@ravn/ui-kit` was tagged from a tree whose committed `dist/` was stale against its own source:
-two of the three fixes it was cut for were absent from the built output, while the third was
-present. Every spot-check passed. The `.d.ts` is generated separately from the JS bundle, so the
-types advertised the new `fallbackLabel` prop that the shipped code did not implement — a
-confirming answer from a source that could not have disconfirmed. That seam is exactly what
-`src/test/ui-kit-smoke.test.tsx` exists to catch, and it was skipped before tagging.
+### Re-running the same command is not a second opinion
+
+The worked example for this section was, in its first draft, a confident and **false** claim that
+`v0.5.0` of `@ravn/ui-kit` shipped a stale `dist/` with the `fallbackLabel` prop missing from the
+built JS. It is in the built JS. The sequence that produced the error is the lesson:
+
+1. A grep was written without the space the minifier emits — `role:"img"` — and returned `0`.
+2. A second session confirmed it **by running the same grep**, and the agreement was read as
+   corroboration.
+3. It took the `dist/` freshness guard — an instrument that could have returned the other
+   answer — to settle it.
+
+```bash
+git show v0.5.0:dist/index.js | grep -c 'role:"img"'     # 0  ← the grep that produced the claim
+git show v0.5.0:dist/index.js | grep -c 'role: "img"'    # 2  ← the fix is in the bundle
+git show v0.5.0:dist/index.js | grep -c 'fallbackLabel'  # 1  ← so is the prop
+git show v0.5.0:dist/index.js | grep -c 'jsx-runtime'    # 1  ← positive control: grep works here
+```
+
+That last line is the cheap habit worth stealing. **A negative result needs a positive control** —
+a pattern you know must match — or you cannot tell absence from a pattern that never could have
+matched.
+
+**The rule in its actionable form: a confirmation drawn from the same instrument as the original
+claim carries no independent information, whatever its source.** Re-running someone else's grep is
+exactly as weak as re-running your own; two sessions agreeing adds nothing if both asked the same
+question the same way. The fix is not "verify harder" — it is **verify with an instrument that
+could have returned the other answer.**
+
+This is the same error as stopping at the first sabotage that confirms what you expected. The
+threshold sabotage above agreed with the claim; only the failing-test sabotage could have
+contradicted it, and it did.
+
+### A real seam, named as a seam
+
+`.d.ts` is generated separately from the JS bundle in `@ravn/ui-kit`, so the types can advertise a
+prop the shipped code does not implement. That did **not** happen at `v0.5.0` — the tag's genuine
+defects were an unbumped `package.json` version and an unrolled `[Unreleased]` — but the seam is
+real, and `src/test/ui-kit-smoke.test.tsx` exists because neither repository's CI can see across
+it. Named here as a hazard to check, not as an incident that occurred.
 
 **Before trusting either a negative or a confirmation, ask what the command prints when the
 claim is false.** If the answer is "the same thing", it is not evidence — prefer a spelling that
