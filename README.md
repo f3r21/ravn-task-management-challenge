@@ -8,16 +8,18 @@ signed-in user's profile.
 running against the real API. How it does that without publishing RAVN's token is under
 [Deployment](#deployment).
 
-Every checkbox in the brief's six sections is implemented, with two exceptions that are the
-API's shape rather than choices. Both are spelled out — alongside one place the brief and
-the schema simply use different names for the same working field — under
+Every checkbox in the brief's six sections is implemented but one: §6 asks the settings page
+to show a `Position`, and `User` has no such field. That gap, and two places where the brief's
+wording and the schema's simply differ without costing anything, are spelled out under
 [Things the brief asks for that the API cannot do](#things-the-brief-asks-for-that-the-api-cannot-do).
 
 ![The dashboard](docs/screenshots/dashboard.jpg)
 
 ## Setup
 
-Requires Node 22.13 or newer (see `engines` in `package.json`).
+Requires Node on the 22 line, floored at 22.13.0 — `engines` in `package.json` is `^22.13.0`
+and `.nvmrc` pins `22`. CI installs straight from `.nvmrc`, so those two files are the
+authority rather than this sentence.
 
 ```bash
 npm install
@@ -25,13 +27,15 @@ npm run dev          # http://localhost:5173
 ```
 
 Browsers: **Chrome 111, Edge 111, Firefox 128, Safari 16.4, iOS Safari 16.4**, declared in
-`package.json`'s `browserslist`. That one list is converted into the Vite build target and
-into a lint over `src/`, so the floor the build compiles for and the floor the code is
-checked against cannot disagree. Firefox is 128 rather than Vite's default 114 because that
-is what Tailwind v4 requires — the lower number was a claim the stylesheet could not honour.
+`package.json`'s `browserslist` — `node -p "require('./package.json').browserslist.join(', ')"`.
+That one list is converted into the Vite build target and into a lint over `src/`, so the floor
+the build compiles for and the floor the code is checked against cannot disagree. Firefox is 128
+rather than Vite's default 114 because that is what Tailwind v4 requires — the lower number was a
+claim the stylesheet could not honour.
 
-**It runs with no configuration.** With no API token present the app serves its own mocked
-data and says so on screen, so you can clone this and see a working board immediately.
+**It runs with no configuration.** Until the API is configured — which is the state a fresh
+clone is in, and the one a half-filled `.env` is still in — the app serves its own mocked data
+and says so on screen, so you can clone this and see a working board immediately.
 
 To point it at the real API instead:
 
@@ -57,6 +61,7 @@ switch on.
 | `npm run gate`         | Typecheck, lint, format check, coverage — what CI runs          |
 | `npm run codegen`      | Regenerate GraphQL types from `schema.graphql`                  |
 | `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted  |
+| `npm run css:canary`   | Fail if kit-only Tailwind classes did not reach the built CSS   |
 
 ## What it does
 
@@ -137,11 +142,24 @@ a style guide, per-component specs and variant states. Building those components
 `src/ui/` would have meant a design system that only existed as a side effect of one app.
 
 So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 46
-components and 21 icons built from the Figma export, each with Storybook stories, its own
-test suite and its own CI. **[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)**
-to see every component, its props and its states without cloning anything. The count is
-`node_modules/@ravn/ui-kit/dist/index.d.ts`'s 72 capitalized exports less the 21 typed
-`IconProps` and 5 shared constants, so it can be re-derived rather than trusted.
+components and 21 icons built from the Figma export, with Storybook stories for all but one
+component, its own test suite and its own CI.
+**[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)** to see every component, its
+props and its states without cloning anything.
+
+Both counts are re-derived from the installed artifact rather than trusted here — note that
+it is the _function_ exports that are counted, since interfaces and types are capitalized
+exports too and grepping for those instead returns 132:
+
+```bash
+f=node_modules/@ravn/ui-kit/dist/index.d.ts
+grep -E '^export declare function [A-Z]' $f | grep -vc IconProps   # 46 components
+grep -E '^export declare function [A-Z]' $f | grep -c  IconProps   # 21 icons
+```
+
+"All but one" is `popover.tsx`, which ships a test and no stories at the pinned `v0.4.0`
+while its sibling `FloatingPopover` has both — 1 of 40 component source files, from
+`gh api 'repos/f3r21/ravn-ui-kit/git/trees/v0.4.0?recursive=1'`.
 
 This app is its first consumer, and consuming it is what proves the package
 works: several real defects (a popover that could not escape an `overflow: hidden` ancestor,
@@ -191,8 +209,10 @@ commit it resolved to — so the installed bytes are identified rather than desc
 This app used to hold a built copy at `vendor/ravn-ui-kit/` instead, because the kit repo was
 private and reaching it from CI would have needed a PAT secret. Two things that cost, both
 worth knowing if the idea ever comes back: minified output reflows on any change, so a kit
-contrast fix touching a handful of hex values produced a 1,300-line diff here — 50.8% of this
-repository's entire line churn was that directory. And the lockfile entry for a `file:` link
+contrast fix touching a handful of hex values produced a 1,300-line diff here, and by the time
+the directory was deleted it accounted for more of this repository's line churn than every
+hand-written file combined — `git log --format='' --numstat -- vendor/ravn-ui-kit | awk '$1!="-"{a+=$1+$2}END{print a}'`
+against the same command without the pathspec. And the lockfile entry for a `file:` link
 is `{"resolved": "vendor/ravn-ui-kit", "link": true}`, carrying no version and no integrity
 hash, so `@ravn/ui-kit@0.3.0` named four mutually different `dist/` trees over this repo's
 history with nothing able to detect it.
@@ -368,27 +388,29 @@ anything else can be retried.
 ## Things the brief asks for that the API cannot do
 
 - **§6 asks the settings page to show `Position`.** `User` has no such field. It exposes
-  `id`, `fullName`, `email`, `avatar`, `type`, `createdAt` and `updatedAt` — confirmed
-  against the live endpoint's own introspection response, not inferred. The other five
-  requested fields are all shown. Inventing a sixth seemed worse than saying this.
+  `id`, `fullName`, `email`, `avatar`, `type`, `createdAt` and `updatedAt` —
+  `awk '/^type User /,/^}/' schema.graphql` prints exactly those seven, and
+  `npm run schema:check` re-introspects the live endpoint to prove that file has not drifted
+  from it. The other five requested fields are all shown. Inventing a sixth seemed worse
+  than saying this.
 
   Worth separating from the other `Position`: **§4's editable position is a different
-  field and it does exist.** `Task.position` is a `Float` and `UpdateTaskInput` accepts
-  it, so the edit modal sets it. Only `User.position` is missing.
+  field and it does exist.** `Task.position` is a `Float!` and `UpdateTaskInput` accepts it
+  as a nullable `Float`, so the edit modal sets it. Only `User.position` is missing.
 
-- **`CreateTaskInput` has no `position`.** The server assigns it on create, so the field
-  appears in the edit modal only — a control on create would collect a value with nowhere
-  to send it.
-
-Those are the two. A third difference is listed here because it is the same kind of
-surprise, but it costs nothing:
+That is the only checkbox the API's shape prevents. Two further differences are listed here
+because they are the same kind of surprise, but neither costs anything:
 
 - **§5 calls the points filter `EstimatedPoints`.** The field is `pointEstimate`. The
   schema wins, and the filter itself works exactly as asked — only the name differs.
 
+- **`CreateTaskInput` has no `position`, and the brief never asks for one on create.** The
+  server assigns it, so the field appears in the edit modal only — which is where §4 does
+  ask for it. A control on create would collect a value with nowhere to send it.
+
 ## Bonus items
 
-Three of the five:
+Of the brief's five, these are built:
 
 - **Task count per column** — the design draws it (`In Progress (03)`), zero-padded.
 - **Due-date colour by urgency** — all three tiers the brief lists: green while the deadline
@@ -409,9 +431,19 @@ options menu, which exercises the same `updateTask` mutation a drop would.
 
 ## Testing
 
-370 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
-threshold on every metric; CI runs the same thing, plus a production build, a bundle-size
-budget and `npm audit --audit-level=high`, on every pull request.
+`npm run gate` is the bar: typecheck, lint, format check and coverage against an 85%
+threshold on every metric. CI runs the same thing, then a production build, the Tailwind
+`@source` canary (`npm run css:canary`), a bundle-size budget and
+`npm audit --audit-level=high`, on every pull request.
+
+No count is quoted here on purpose — this line has said 287, 316, 321, 358 and 370 at various
+points, each true when written and stale within a day. `npm test` prints the live figure. What
+the suite covers is the part that does not go stale: every feature through the surface a user
+touches — the board's loading, error and empty states as three distinct things; create, edit
+and delete including cache invalidation and the failure notification on each; every filter and
+its round trip through the URL; the profile page; date formatting across time zones; the
+mock/direct/proxied backend matrix in `src/lib/env.ts`; and the `@ravn/ui-kit` seam that
+neither repository's CI can see on its own.
 
 Dependencies get a second look on the way in. A separate `Dependency review` workflow fails
 a pull request that introduces a package carrying a high-severity advisory in GitHub's

@@ -49,11 +49,28 @@ PR needs checks most, because its base has not landed yet. Two more workflows si
 
 The load-bearing decision in the project; most confusion traces back to it.
 
-`src/lib/env.ts` is the app's only read of `import.meta.env`, and it requires `VITE_API_URL`
-and `VITE_API_TOKEN` **together** — a URL without a token reaches a real server that answers
-every query `UNAUTHENTICATED`, which looks broken rather than unconfigured. With either
-missing, `apiUrl` falls back to `MOCK_API_URL` (`https://mock.local/graphql`) and `main.tsx`
-_awaits_ MSW's worker before the first render.
+`src/lib/env.ts` is the app's only read of `import.meta.env`, and `readApiConfig` resolves to
+**three** states, not two (`src/lib/env.ts:87-104`):
+
+```ts
+export type ApiConfig =
+  { mode: 'direct'; url: string; token: string } | { mode: 'proxied'; url: string }
+```
+
+- **`direct`** — an _absolute_ `VITE_API_URL` **plus** `VITE_API_TOKEN`. The two are required
+  together, because an absolute URL without a token reaches a real server that answers every
+  query `UNAUTHENTICATED`, which looks broken rather than unconfigured.
+- **`proxied`** — a **same-origin path**, and **no token is required**; one set alongside it is
+  deliberately _dropped_ rather than forwarded, since the proxy attaches its own. This is the
+  **deployed** shape: Vercel serves `/api/graphql` and `api/graphql.ts` holds the credential.
+- **`undefined` → mock** — no `VITE_API_URL` at all, or an absolute one with no token. Then
+  `apiUrl` falls back to `MOCK_API_URL` (`https://mock.local/graphql`) and `main.tsx` _awaits_
+  MSW's worker before the first render.
+
+So "requires both together" is true only of the _absolute_ shape. An earlier revision of this
+paragraph described the two-state version and was therefore wrong about the mode production
+actually runs in. Re-derive with `grep -n "mode: '" src/lib/env.ts` → `:98` proxied, `:103`
+direct.
 
 So there is no "mock mode" branch inside the app. `src/graphql/client.ts` always performs a
 real `fetch` against a real URL and MSW intercepts at the network layer, which means the
