@@ -17,10 +17,31 @@ to check it in one paste.
 ```
 
 That `exit=` is not decoration, and the exemplar carried the bug it now demonstrates against —
-see "A command that cannot fail" below. On bash, the same line is
-`echo "exit=${PIPESTATUS[0]}"`; lanes here run zsh, so the zsh spelling is the one written
-above. Ship both when you write the command down for someone else, because the bash form
-prints an empty string under zsh and an empty string looks like provenance.
+see "A command that cannot fail" below.
+
+**It generalises: _any_ command you pipe discards its exit status, not just this one.** A pipe
+reports the last stage, so `npm audit … | head`, `gh … | jq` and `git log … | grep` all report the
+filter's success and none report the thing you were asking about. That is not hypothetical — this
+fix was relayed to three sessions and then its own author ran
+`npm audit --audit-level=high 2>&1 | head -14 ; echo "audit exit=$?"`, read `head`'s `0`, and
+nearly reported a failing audit as passing. The defect is in the shape of the idiom, which is why
+this section names the shape rather than one recipe.
+
+Three spellings recover the status. **Lanes here run zsh**, where the bash one prints an empty
+string — and an empty string looks like provenance:
+
+```bash
+out=$(npm run gate 2>&1); rc=$?      # command substitution — no pipe, nothing to lose
+… | tail -6 ; echo $pipestatus[1]    # zsh          (bash: echo "exit=${PIPESTATUS[0]}")
+set -o pipefail; … | tail -6         # either shell — the pipeline itself carries the status
+```
+
+Ship both shell spellings whenever you write a piped command down for someone else to run.
+
+One caveat on the third form, so it does not surprise you: `ravn-ui-kit`'s `figure-audit.mjs`
+still scores `set -o pipefail` as a blind command, so a figure written that way is flagged there
+while being correct here. That is `ravn-ui-kit#78`, filed; prefer one of the first two forms in a
+figure destined for the kit until it closes.
 
 ## Why
 
