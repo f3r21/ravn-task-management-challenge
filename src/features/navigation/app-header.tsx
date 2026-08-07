@@ -1,10 +1,10 @@
 import { useId } from 'react'
+import { Skeleton } from '@ravn/ui-kit'
 import { useBoardFilters } from '@/features/board/use-board-filters'
 import { useProfile } from '@/features/profile/use-profile'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { Avatar } from '@/ui/avatar/avatar'
 import { BellIcon, SearchIcon } from '@/ui/icons/icons'
-import { Skeleton } from '@/ui/skeleton/skeleton'
 
 /**
  * The top bar: search on the left, notifications and the current user on the

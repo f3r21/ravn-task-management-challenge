@@ -1,8 +1,8 @@
+import { Skeleton } from '@ravn/ui-kit'
 import { formatUtcTimestamp } from '@/lib/due-date'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { AsyncSection } from '@/ui/async-section/async-section'
 import { Avatar } from '@/ui/avatar/avatar'
-import { Skeleton } from '@/ui/skeleton/skeleton'
 import type { User } from '@/features/board/task-types'
 import { useProfile } from './use-profile'
 
