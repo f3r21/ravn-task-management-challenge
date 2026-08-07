@@ -61,13 +61,42 @@ readonly RECURSIVE_AND_FORCE='[[:space:]]-([[:alpha:]]*r[[:alpha:]]*f|[[:alpha:]
 # machine or the account with them.
 readonly ROOT_OR_HOME='[[:space:]](/|~|\$HOME|\$\{HOME\})(/?\*?)([[:space:]]|$)'
 
+# A git global option as it sits between `git` and `push` — `-C /tmp/repo`,
+# `-c user.name=x`, `--work-tree /tmp`. The value is a separate token and is
+# optional, because plenty of global options take none (`--no-pager`); it may
+# not itself begin with `-`, so an option without a value cannot swallow the
+# option after it. Neither half may cross a shell separator, which keeps a
+# match inside one subcommand the way `[^;&|]*` does further down.
+#
+# The previous spelling, `([[:space:]]+-[^[:space:]]+)*`, allowed exactly one
+# whitespace-free token per option. `-C /tmp/repo` is two, so after `-C` the
+# required `push` met ` /tmp/repo` and the match died — and coverage came out
+# exactly inverted, which is what hid it for so long: attached `git -C<path>
+# push --force`, which git itself rejects as an unknown option, was blocked,
+# and the valid spelling walked through. The deny globs miss it too — every
+# one hardcodes the literal `git push`, and `-C <path>` between those two
+# words defeats all of them at once — so this is the only layer that sees it.
+readonly GIT_GLOBAL_OPTION='[[:space:]]+-[^;&|[:space:]]+([[:space:]]+[^-;&|[:space:]][^;&|[:space:]]*)?'
+
+# What may follow a force flag and still count as the end of it. Whitespace
+# and end-of-string are the obvious two; the punctuation is here because
+# `(git push --force)` and `git push --force;` are the same command wearing one
+# character of shell syntax, and the earlier `([[:space:]]|$)` did not accept
+# it. `-` is deliberately *not* in this set, and that absence is the entire
+# carve-out described below — it is the only thing distinguishing `--force`
+# from `--force-with-lease`, so nothing may be added here without checking
+# what it does to the lease spellings.
+readonly FORCE_FLAG_END='([[:space:]]|$|[;&|)])'
+
 # `git push --force`, `git push -f`, and the `+refspec` spelling of the same
 # thing — but deliberately not `--force-with-lease` or `--force-if-includes`,
 # which refuse to overwrite commits the pusher has not seen and so keep the
-# property this rule exists to protect. The old regex
+# property this rule exists to protect. Every lane rebases and pushes with
+# `--force-with-lease`; a version of this rule that catches it stops the work
+# it exists to protect. The original regex
 # (`git[[:space:]]+push.*--force`) got this backwards on both counts: it matched
 # the lease variants by substring, and missed `+refspec` entirely.
-readonly FORCE_PUSH='(^|[;&|(]|[[:space:]])git([[:space:]]+-[^[:space:]]+)*[[:space:]]+push([[:space:]]+[^;&|]*)?[[:space:]](--force([[:space:]]|$)|-[[:alnum:]]*f[[:alnum:]]*([[:space:]]|$)|\+[^[:space:]]+)'
+readonly FORCE_PUSH="(^|[;&|(]|[[:space:]])git(${GIT_GLOBAL_OPTION})*[[:space:]]+push([[:space:]]+[^;&|]*)?[[:space:]](--force${FORCE_FLAG_END}|-[[:alnum:]]*f[[:alnum:]]*${FORCE_FLAG_END}|\+[^[:space:]]+)"
 
 # Piping a download straight into a shell. Widened from the original `| sh` to
 # cover bash/zsh and an intervening `sudo`, because the risk is identical.

@@ -2,7 +2,9 @@ import { isInaccessible } from '@testing-library/dom'
 import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react'
 import { graphql, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
+import type { TasksQueryVariables } from '@/graphql/generated/graphql'
 import { server } from '@/mocks/server'
+import { taskStore } from '@/mocks/task-store'
 import { renderApp, userEvent } from '@/test/test-utils'
 
 async function renderBoard() {
@@ -112,6 +114,59 @@ describe('creating a task', () => {
     // The board refetches after the mutation, so this asserts the whole loop:
     // mutation, cache invalidation, refetch, render.
     expect(await screen.findByRole('heading', { name: 'Write the README' })).toBeInTheDocument()
+  })
+
+  it('has the card on the board by the time it says "Task created"', async () => {
+    // The toast is the confirmation, and the board has to agree with it when it
+    // appears. It did not: the refetch that carries the new card is a second round
+    // trip, `useTasks` keeps the previous result on screen for the whole of it, and
+    // on an empty board that meant "Task created" landing beside an empty state
+    // still reading "No tasks yet". Not a race — it happened on every create — and
+    // the natural reading is that nothing was saved, which invites a duplicate.
+    //
+    // The refetch is held rather than raced, so what is being asserted is that the
+    // board was already right *without* it.
+    for (const seeded of taskStore.listTasks({})) {
+      taskStore.deleteTask({ id: seeded.id })
+    }
+
+    let releaseRefetches = () => {}
+    const refetchGate = new Promise<void>((resolve) => {
+      releaseRefetches = resolve
+    })
+    let requests = 0
+    let refetchesAnswered = 0
+
+    server.use(
+      graphql.query<Record<string, unknown>, TasksQueryVariables>(
+        'Tasks',
+        async ({ variables }) => {
+          requests += 1
+          if (requests > 1) {
+            await refetchGate
+            refetchesAnswered += 1
+          }
+          return HttpResponse.json({ data: { tasks: taskStore.listTasks(variables.input) } })
+        },
+      ),
+    )
+
+    const { user, dialog } = await openCreateDialog()
+    expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument()
+
+    await user.type(screen.getByRole('textbox', { name: /task title/i }), 'Write the README')
+    await user.click(within(dialog).getByRole('button', { name: 'Create' }))
+
+    expect(await screen.findByText('Task created')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Write the README' })).toBeInTheDocument()
+    expect(screen.queryByText(/no tasks yet/i)).not.toBeInTheDocument()
+
+    // Let the held refetch finish before the test ends, so its response is not
+    // landing on an unmounted tree.
+    releaseRefetches()
+    await waitFor(() => {
+      expect(refetchesAnswered).toBe(requests - 1)
+    })
   })
 
   it('keeps the dialog open and shows the reason when the mutation fails', async () => {

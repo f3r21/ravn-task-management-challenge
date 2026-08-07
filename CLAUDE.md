@@ -95,6 +95,14 @@ nothing surfaces the conflict _before_ that point, so if an MCP tool that should
 failing outright, check `claude mcp remove <name>` first: if it complains about multiple
 scopes, that's the bug.
 
+**A worktree inherits that shadow rather than escaping it.** Local scope is keyed by the main
+checkout's absolute path, and a lane resolves through that key even though its own path appears
+nowhere in `~/.claude.json` — a freshly provisioned lane reported `context7` and `playwright` as
+"Project config" and `eslint` and `graphql` as "Local config" (`claude mcp get <name>`, run in
+the lane). So a stale local entry does not merely fail to reach a new worktree; it follows every
+one of them and keeps winning. `scripts/new-lane.sh` names the collision in its checklist, which
+is all a provisioner should do: clearing it means deleting configuration a human wrote.
+
 ### The UI layer is somebody else's package
 
 The second load-bearing decision, and the one this document used to omit entirely.
@@ -148,23 +156,24 @@ commits its `dist/` and checks its freshness in its own CI. Consequences:
   "Invalid hook call". That switch is a one-line `package.json` edit, and the failure reads as
   a bug in the component rather than in how it was installed. The comment there has the full
   shape of it.
-- **The Tailwind `@source` scan is the silent failure to watch.** `src/styles/base.css` names
-  `../../node_modules/@ravn/ui-kit/dist`; if that scan ever breaks, kit-only utility classes
-  vanish from the built CSS **with no build error**. `max-w-[120px]` and `tabular-nums` occur
-  in the kit's `dist` and nowhere in `src/`, so grepping the built CSS for both is the canary:
+- **The Tailwind `@source` scan is the silent failure to watch, and it is now checked in CI.**
+  `src/styles/base.css` names `../../node_modules/@ravn/ui-kit/dist`; if that scan ever breaks,
+  kit-only utility classes vanish from the built CSS **with no build error and no test
+  failure**. `npm run css:canary` reads a production build and fails if too few kit-only
+  classes reached it; CI runs it after `npm run build`.
 
-  ```bash
-  npm run build
-  grep -c 'tabular-nums' dist/assets/*.css        # expect >= 1
-  grep -c 'max-w-\\\[120px\\\]' dist/assets/*.css   # expect >= 1 — note the escaping
-  ```
+  **The hand-written version of this canary could not fail, and this file is why.** It named
+  two specific classes to grep for — and Tailwind scans the whole project, Markdown included,
+  so naming them here generated them from _this document_. Both survived `@source` being
+  deleted outright. A canary is not allowed to name the classes it looks for; `css:canary`
+  derives them at run time instead, and its header explains the derivation. **Do not add an
+  example class name back to this bullet.**
 
-  **Grep the escaped form, not the literal one.** Tailwind escapes the brackets of an
-  arbitrary-value class, so it emits `.max-w-\[120px\]`, and `grep -F 'max-w-[120px]'`
-  therefore matches **nothing on a completely healthy build** — indistinguishable from the
-  failure this check exists to detect. That false alarm has been hit twice; what settled it
-  was running the same grep against the deployed production CSS, which "failed" too. If this
-  canary ever fires, run it against production before believing it.
+  The old spelling also had an escaping trap worth remembering if you ever grep the CSS by
+  hand: Tailwind escapes the brackets of an arbitrary-value class, so a literal
+  `grep -F 'max-w-[…]'` matches nothing on a completely healthy build — indistinguishable
+  from the failure. That false alarm was hit twice. `css:canary` unescapes selectors itself,
+  so it cannot recur there.
 
 **The standing rule: when a kit component fails an assertion here, the fix goes in the kit,
 not in the test.** This app is what proves the package works, and every defect found by
@@ -406,6 +415,27 @@ it. `main` only receives periodic promotions of a verified-stable `dev` (gate gr
 anything MCP-related, live-checked, not just "connected") via a `dev` → `main` PR. Nothing
 merges into `main` directly.
 
+**One consequence is easy to miss and cost six issues a day of staying open: `Closes #<n>` is
+inert here.** GitHub fires the keyword only on a merge into the repository's _default_ branch,
+which is `main`, and every lane PR targets `dev` — so the keyword records the link and closes
+nothing. Issues are closed by hand, with the merge commit in the closing comment, as
+`/finish-issue` step 8 describes. `ravn-ui-kit` is the control that makes this a cause rather
+than a theory: its PRs target `main`, so the identical keyword closes its issues automatically,
+and its ritual therefore must **not** carry the by-hand step. Making `dev` the default branch
+would also fix the keyword and is the wrong trade — `main` is what a reviewer of this submission
+clones, and GitHub shows the default branch first.
+
+**`/start-issue` cuts that branch for you, and refuses when it cannot do so safely.** It derives
+the base (`origin/dev` if the repo has one, else the repo's default — `dev` here, `main` in
+`ravn-ui-kit`), then **stops** if the branch you are standing on has an open PR, rather than
+extending work a reviewer is already looking at. Issue branches are named
+`<type>/<issue>-<slug>`, so branch → issue is `^[a-z]+/([0-9]+)-`; the number is optional
+because `int/` branches, `main` and `dev` answer to no issue, and branches cut before #70 do not
+have one. Branches are cut `--no-track`, so that an unpushed branch still reads as unpushed
+rather than inheriting `origin/dev` as an upstream it never earned. The reasoning, and the
+`switch -C` variant that looks idempotent and silently orphans commits, are in
+`.claude/commands/start-issue.md`.
+
 **That is now enforced on the server, not by habit.** A repository ruleset covers
 `refs/heads/main` and `refs/heads/dev` with four rules: changes arrive by pull request, the
 `Typecheck, lint, format, test, build` check must be green, no force-push, no deletion.
@@ -459,9 +489,15 @@ assuming.
 
 ## Claude Code setup in this repo
 
-`.claude/rules/` (`bonus-points`, `code-review`, `graphql-api`, `ui-kit`) restates the conventions
-above and nothing in the build depends on it; `ui-kit.md` exists because the fix-it-in-the-kit rule
-was previously carried only in host-local agent memory, one machine away from being lost.
+`.claude/rules/` (`bonus-points`, `code-review`, `figures`, `graphql-api`, `ui-kit`) restates the
+conventions above and nothing in the build depends on it; `ui-kit.md` exists because the
+fix-it-in-the-kit rule was previously carried only in host-local agent memory, one machine away
+from being lost. `figures.md` is the one rule here that governs this document too: a number
+written down anywhere, including in these pages, carries the command that re-derives it.
+`.github/ISSUE_TEMPLATE/lane-task.md` is where that obligation is collected for new work. It
+applies to figures written **from now on** rather than retroactively — the numbers already in
+this file were not swept, deliberately, because a bulk edit that re-derives a hundred figures at
+once is exactly the unverified pass the rule exists to prevent.
 
 `.claude/commands/` is two different kinds of file under one directory. `/gate` and
 `/schema-check` are thin wrappers over the npm scripts; `/rebase-stack` is a procedure over the
@@ -509,20 +545,46 @@ stopped. The coarser layer wins silently, and its blast radius is every session 
 rather than this repository. `/finish-issue` carries the rule that follows from it; what belongs
 here is that these are the three, and that only one of them is visible to review.
 
-**The glob layer is weaker than it reads, and the hook has holes the glob cannot cover.** Claude
-Code matches Bash rules per _subcommand_, splitting on `&&`, `||`, `;`, `|`, `|&`, `&` and
-newlines, so a deny rule that itself contains a separator can never match one — which is why
-`Bash(curl * | sh*)` and its two siblings in `settings.local.json` are very likely inert, and why
-the hook is what actually stops a piped download. In the other direction the hook's
-`git … push` regex models a global option as one attached token, so `git -C <path> push --force`
-matches neither the hook nor any deny glob, while `Bash(git *)` positively allows it. Neither
-layer covers the other; see #63.
+**The glob layer is weaker than it reads, and only one of the two layers can be fixed from
+here.** Claude Code matches Bash rules per _subcommand_, splitting on `&&`, `||`, `;`, `|`,
+`|&`, `&` and newlines, so a deny rule that itself contains a separator can never match one —
+which is why `Bash(curl * | sh*)` and its two siblings in `settings.local.json` are very likely
+inert, and why the hook is what actually stops a piped download. Delete them on your own
+machine; they are three lines of reassurance with nothing behind them. The same reading cuts
+the other way for the force-push globs: all six hardcode the literal two-token prefix
+`git push`, so `-C <path>` between those two words defeats every one of them at once, and
+`Bash(git *)` then positively _allows_ the result. The hook missed it too until #63 — its
+`git … push` regex modelled a global option as one whitespace-free token — as it missed
+`git push --force;` and the parenthesised twin, which one character of shell punctuation was
+enough to slip past. That side is now closed and pinned in `scripts/hooks.test.mjs`. The glob
+side is not, and structurally cannot be: `settings.local.json` is gitignored, so no change to
+it lands in a PR and nothing in the repository can see it drift. **Treat `block-dangerous.sh`
+as the layer that has to be right** — the permissions documentation says outright that Bash
+patterns constraining arguments are fragile, and the hook is the only one of the three layers
+that review, `gate` and a test can all see.
 
 `permissions.deny` in `settings.json` keeps `package-lock.json`, `coverage/`, `dist/` and
 `node_modules/` out of context. `.claudeignore`, which used to claim that job, is not a Claude
 Code feature and never excluded anything. Note the reach of a `Read()` rule: it also covers
 Edit, Write, Glob, Grep and the shell's own readers, so reading a dependency's source now takes
 a deliberate change here rather than a `cat`.
+
+`scripts/new-lane.sh <lane-name> [branch]` provisions a lane worktree, and exists because doing
+it by hand went silently wrong four times: `.claude/skills/` is gitignored so a lane starts with
+none, `.claude/settings.local.json` and `.env` are gitignored so a lane starts without either,
+and an MCP server can resolve to the wrong scope. Every one of those looks like a working lane.
+The path is derived from `git rev-parse --git-common-dir`, never from the working directory:
+`../wt/<lane>` is the obvious spelling and it is wrong from inside a worktree, where `..` is
+already the worktree root, so it lands at `wt/wt/<lane>` — and a worktree nested inside the repo
+is the `.worktrees` episode that `vite.config.ts`, `eslint.config.js` and `.prettierignore` each
+carry an entry for. `settings.local.json` is **copied, never regenerated**; it holds approvals a
+human accumulated, and a fresh guess silently drops them. The run ends with `npm run gate` and a
+checklist read back off the provisioned worktree, because a lane that starts on a red tree
+attributes the failure to its own first change. `scripts/new-lane.test.mjs` pins the pre-flight
+guards only — everything past them creates a worktree and runs `npm ci`, which no unit suite
+should do on every run. Lanes are cut from `origin/dev` here and `origin/main` in the kit, which
+is the one line a copy between the two repos gets wrong, so the usage message states it and a
+test asserts that it does.
 
 **Nothing enforces `gate` before a commit** — running it is on you. It _is_ enforced before a
 merge (see "Branch layout"), but finding out in CI costs a push and a five-minute round trip to

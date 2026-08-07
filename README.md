@@ -65,7 +65,12 @@ switch on.
 | ![Creating a task](docs/screenshots/create-task.jpg) | ![No results](docs/screenshots/empty-results.jpg) |
 | Creating a task                                      | Filters that match nothing                        |
 | ![Settings](docs/screenshots/settings.jpg)           | ![List layout](docs/screenshots/list-view.jpg)    |
-| The signed-in user                                   | The list layout                                   |
+| The signed-in user — email redacted, see below       | The list layout                                   |
+
+The email field in that screenshot reads `[email redacted]`. The API's seeded profile is a real
+person at RAVN, and this repository is public, so the address is masked in the image rather than
+published in it. Nothing else in any screenshot is altered — they are captures of the deployed
+build against the live API.
 
 - **Board** — five status columns, task cards with name, tags, due date, points, assignee
   and an options menu. Loading, error and empty states are three distinct things.
@@ -75,6 +80,10 @@ switch on.
   applied to a loaded list. Filters live in the URL.
 - **My task** (`/settings`) — the signed-in user, from the `profile` query. The label is
   the design's; the route is the one §6 asks for.
+- **Calendar, Team, Messages** — sample pages. §2 asks the sidebar for a list of menu items
+  "most of them" leading to a placeholder, which needs more destinations than the brief's
+  six sections build. They are real routes inside the app shell rather than the not-found
+  page: a working menu item that lands on "this page does not exist" reads as a broken link.
 
 ## Stack, and why
 
@@ -382,10 +391,10 @@ surprise, but it costs nothing:
 Three of the five:
 
 - **Task count per column** — the design draws it (`In Progress (03)`), zero-padded.
-- **Due-date colour by urgency** — red when overdue, amber when due today or tomorrow. The
-  brief suggests green for on-time; this uses the design's neutral badge instead, because
-  green is already the `iOS app` tag colour and a green badge sitting above a green chip
-  reads as a relationship that is not there.
+- **Due-date colour by urgency** — all three tiers the brief lists: green while the deadline
+  is more than a day out, amber when it is today or tomorrow, red once it is past. Colour is
+  never the only signal — the badge spells the date out in every tier, and the overdue one
+  adds "(overdue)" for anyone who does not receive colour at all.
 - **A list layout as well as the board** — each status becomes a full-width section and
   each task a single row, rather than the same card stacked. Worth being precise about why
   that distinction matters: the board is _already_ one stacked column at narrow widths, so
@@ -400,7 +409,7 @@ options menu, which exercises the same `updateTask` mutation a drop would.
 
 ## Testing
 
-287 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
+370 tests. `npm run gate` runs typecheck, lint, format check and coverage against an 85%
 threshold on every metric; CI runs the same thing, plus a production build, a bundle-size
 budget and `npm audit --audit-level=high`, on every pull request.
 
@@ -497,6 +506,7 @@ This repository is heavily instrumented for AI development via [Claude Code](htt
   - `PostToolUse` → `format-file.sh`: runs this repo's own ESLint and Prettier over the file Claude just saved, so a formatting slip never reaches `npm run gate`.
   - `PreToolUse` → `block-dangerous.sh`: refuses a handful of irreversible bash commands — a recursive forced `rm` aimed at `/` or `$HOME`, a plain force push, a download piped into a shell — by returning a `deny` decision, not by exiting non-zero, which Claude Code treats as a non-blocking error and runs the command anyway. `scripts/hooks.test.mjs` drives both scripts the way Claude Code drives them, because a hook that does nothing exits 0 exactly like a hook that works. Nothing enforces `gate` before a commit — running it is on you. A repository ruleset does enforce it before a merge: `main` and `dev` take changes by pull request only, with CI green against an up-to-date branch, and no force-push or deletion.
 - **Permissions (`.claude/settings.json`)**: Playwright and Chrome DevTools are whitelisted to run headless tests silently without interrupting the agent, and `permissions.deny` keeps `package-lock.json`, `coverage/`, `dist/` and `node_modules/` out of context — through the Read, Edit, Glob and Grep tools and through the shell's own readers alike.
+- **Lane provisioning (`scripts/new-lane.sh <lane-name> [branch]`)**: work happens in parallel git worktrees, and four of the things a worktree needs are gitignored, so they arrive in none of them — skills, local permissions, `.env`, and an MCP server that can resolve to the wrong scope. Each of those failures leaves a lane that looks fine and is missing a tool, so the script restores them, finishes with `npm run gate` so a lane never inherits a red tree as its own first bug, and prints a checklist read back off the worktree it just made. `scripts/new-lane.test.mjs` pins its pre-flight guards — the checks that keep a lane from landing inside the repo, where Vitest, ESLint and Prettier would all collect a second copy of this source tree.
 
 ## License
 

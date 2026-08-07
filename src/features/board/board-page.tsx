@@ -126,22 +126,37 @@ export function BoardPage() {
     if (!taskUnderAction) {
       return
     }
-    await updateTask.mutateAsync({
-      id: taskUnderAction.id,
-      name: fields.name.trim(),
-      status: fields.status,
-      tags: fields.tags,
-      dueDate: toApiDate(fields.dueDate),
-      pointEstimate: fields.pointEstimate,
-      // Omitted when the field is blank, which is what leaves the server's own
-      // ordering alone. Sending `null` would be a request to unset a `Float!`.
-      ...(fields.position.trim() === '' ? {} : { position: Number(fields.position) }),
-      // Sent even when empty, unlike the create path. `UpdateTaskInput` is a patch,
-      // so omitting the field means "leave it as it is" — which made unassigning
-      // impossible. `null` is what says "nobody".
-      assigneeId: fields.assigneeId,
-    })
-    toast.show('success', 'Task updated')
+    try {
+      await updateTask.mutateAsync({
+        id: taskUnderAction.id,
+        name: fields.name.trim(),
+        status: fields.status,
+        tags: fields.tags,
+        dueDate: toApiDate(fields.dueDate),
+        pointEstimate: fields.pointEstimate,
+        // Omitted when the field is blank, which is what leaves the server's own
+        // ordering alone. Sending `null` would be a request to unset a `Float!`.
+        ...(fields.position.trim() === '' ? {} : { position: Number(fields.position) }),
+        // Sent even when empty, unlike the create path. `UpdateTaskInput` is a patch,
+        // so omitting the field means "leave it as it is" — which made unassigning
+        // impossible. `null` is what says "nobody".
+        assigneeId: fields.assigneeId,
+      })
+      toast.show('success', 'Task updated')
+    } catch (error) {
+      // §4 asks for a notification whether the request succeeded *or failed*, and
+      // the success half alone was the asymmetry: `handleDelete` below has always
+      // reported both. The dialog's own `role="alert"` stays and is still the
+      // primary report — it keeps the reason beside the form the user is looking
+      // at — but it leaves with the dialog, and someone who dismisses a failed
+      // save should not be left with no record that it failed.
+      //
+      // Rethrown, because `TaskFormDialog` catches this to render that alert and
+      // keep itself open. Swallowing it here would close the dialog on failure and
+      // throw the user's edits away.
+      toast.show('error', error instanceof Error ? error.message : 'Could not save the task.')
+      throw error
+    }
   }
 
   async function handleDelete() {
