@@ -1,6 +1,6 @@
 import { dueDateTone, formatDueDate, type DueDateTone } from '@/lib/due-date'
-import { AlarmIcon } from '@/ui/icons/icons'
-import { Tag, type TagTone } from '@/ui/tag/tag'
+import { AlarmIcon, Tag, type AccentColor } from '@ravn/ui-kit'
+import { TAG_TEXT } from '../task-display'
 
 interface DueDateBadgeProps {
   dueDate: Date
@@ -21,9 +21,9 @@ interface DueDateBadgeProps {
  * Colour is decoration on top of the date in every tier — the badge always spells
  * the date out, and `overdue` says so in words below.
  */
-const TONE_TO_TAG: Record<DueDateTone, TagTone> = {
+const TONE_TO_TAG: Record<DueDateTone, AccentColor> = {
   overdue: 'red',
-  soon: 'amber',
+  soon: 'yellow',
   normal: 'green',
 }
 
@@ -31,7 +31,11 @@ export function DueDateBadge({ dueDate, now = new Date() }: DueDateBadgeProps) {
   const tone = dueDateTone(dueDate, now)
 
   return (
-    <Tag tone={TONE_TO_TAG[tone]} icon={<AlarmIcon className="size-6 shrink-0" />}>
+    <Tag
+      variant={TONE_TO_TAG[tone]}
+      icon={<AlarmIcon className="size-6 shrink-0" />}
+      className={TAG_TEXT}
+    >
       {/* The visible text says "Yesterday"; colour says "overdue". Colour alone
           is not information a screen reader or a colour-blind user receives, so
           the state is spelled out here and hidden from sighted layout. */}

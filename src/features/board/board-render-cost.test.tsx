@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { server } from '@/mocks/server'
 import { makeTask } from '@/mocks/task-fixtures'
 import { renderApp, userEvent } from '@/test/test-utils'
-import type * as AvatarModule from '@/ui/avatar/avatar'
+import type * as UiKit from '@ravn/ui-kit'
 import { BOARD_STATUSES } from './task-types'
 
 /**
@@ -60,13 +60,16 @@ import { BOARD_STATUSES } from './task-types'
  */
 const renders = vi.hoisted(() => ({ cards: 0, header: 0 }))
 
-vi.mock('@/ui/avatar/avatar', async (importOriginal) => {
-  const actual = await importOriginal<typeof AvatarModule>()
+vi.mock('@ravn/ui-kit', async (importOriginal) => {
+  const actual = await importOriginal<typeof UiKit>()
   return {
     ...actual,
     Avatar: (props: ComponentProps<typeof actual.Avatar>) => {
-      // `size={40}` is the header's; a card passes no size and takes the default.
-      if (props.size === 40) {
+      // `size="md"` is the header's, `"sm"` the card's. Both are explicit since
+      // app#30 swapped this component for the kit's, whose default is `md` —
+      // relying on "the card passes no size", as this did, would now count every
+      // card as a header and read as zero card renders.
+      if (props.size === 'md') {
         renders.header += 1
       } else {
         renders.cards += 1

@@ -1,9 +1,7 @@
 import { useId, useMemo, useReducer, useRef, useState } from 'react'
 import { type OverlayTriggerState } from 'react-stately'
-import { Modal } from '@ravn/ui-kit'
+import { AssigneeIcon, CalendarIcon, Modal, PointsIcon, TextButton } from '@ravn/ui-kit'
 import { toDateInputValue } from '@/lib/due-date'
-import { Button } from '@/ui/button/button'
-import { AssigneeIcon, CalendarIcon, PointsIcon } from '@/ui/icons/icons'
 import { IconField } from './icon-field'
 import { OptionalSelect, RequiredSelect, TagMultiSelect } from './option-select'
 import type { SelectOption } from './select-option'
@@ -245,18 +243,18 @@ export function TaskFormDialog({
         ) : null}
 
         <div className="flex justify-end gap-6">
-          <Button
-            variant="text"
+          <TextButton
+            variant="secondary"
             onPress={() => {
               state.close()
             }}
             isDisabled={isSubmitting}
           >
             Cancel
-          </Button>
-          <Button variant="primary" type="submit" isDisabled={isSubmitting}>
+          </TextButton>
+          <TextButton variant="primary" type="submit" isDisabled={isSubmitting}>
             {isSubmitting ? 'Saving…' : submitLabel}
-          </Button>
+          </TextButton>
         </div>
       </form>
     </Modal>

@@ -1,4 +1,4 @@
-import { Button } from '@/ui/button/button'
+import { TextButton } from '@ravn/ui-kit'
 interface ErrorPageProps {
   /** Shown above the retry affordance. Keep it about what the user can do. */
   message?: string
@@ -21,9 +21,9 @@ export function ErrorPage({
         // separate spelling of "a retry button" — three different class strings
         // for one affordance — and `useButton` is what normalises Enter versus
         // Space and keeps press state consistent across input types.
-        <Button variant="primary" onPress={onRetry}>
+        <TextButton variant="primary" onPress={onRetry}>
           Try again
-        </Button>
+        </TextButton>
       ) : null}
     </main>
   )

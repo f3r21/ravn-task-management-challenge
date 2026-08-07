@@ -370,8 +370,17 @@ describe('deleting a task', () => {
     await chooseAction(user, 'Slack', 'Delete')
 
     // `alertdialog`, so the consequence is announced rather than just the title.
+    //
+    // The name is asserted rather than the exact sentence carrying it. It used to
+    // sit in a body line, "Delete “Slack”?", because this app's own `Dialog` kept
+    // its title `sr-only`. `@ravn/ui-kit`'s `Modal` renders the title visibly, so
+    // that line would repeat the heading word for word and app#30 dropped it. What
+    // the test is for is unchanged and is the reason `delete-task-dialog.tsx` puts
+    // the name in the prompt at all: the menu that opened this is one of many
+    // identical menus, and a user who picked the wrong one has no other way to
+    // notice before the task is gone.
     const dialog = await screen.findByRole('alertdialog')
-    expect(dialog).toHaveTextContent(/delete “slack”\?/i)
+    expect(dialog).toHaveTextContent(/delete slack/i)
     expect(dialog).toHaveTextContent(/cannot be undone/i)
   })
 

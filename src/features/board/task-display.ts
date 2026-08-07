@@ -1,3 +1,4 @@
+import type { AccentColor } from '@ravn/ui-kit'
 import { assertNever } from '@/lib/assert-never'
 import type { PointEstimate, Status, TaskTag } from './task-types'
 
@@ -15,6 +16,25 @@ import type { PointEstimate, Status, TaskTag } from './task-types'
  * query by the text a user would say, and a screen reader does not spell out
  * capitals letter by letter.
  */
+
+/**
+ * The two things `@ravn/ui-kit`'s `Tag` does not do that this app's chips need.
+ *
+ * `uppercase` is load-bearing rather than cosmetic, and the paragraph above is
+ * why: the labels are deliberately stored in natural case *because* CSS
+ * uppercases them. Drop this and the chips read "iOS app" instead of "IOS APP" —
+ * the design's casing, gone, with every test still passing because they query the
+ * stored text.
+ *
+ * `whitespace-nowrap` is for the due-date badge, whose content is a spelled-out
+ * date: without it "Yesterday" and friends break across as many as three lines in
+ * a narrow column.
+ *
+ * Applied at both call sites rather than one, so the chips and the badge keep
+ * rendering identically to the component they replaced. The kit's `Tag` merges
+ * `className` last, which is what makes this work at all.
+ */
+export const TAG_TEXT = 'uppercase whitespace-nowrap'
 
 export function statusLabel(status: Status): string {
   switch (status) {
@@ -61,14 +81,12 @@ export function tagLabel(tag: TaskTag): string {
  * yellow. The remaining three fall out naturally: React and Rails take the blue
  * and red of their own brands, leaving Node js on the neutral chip.
  */
-export type TagAccent = 'green' | 'amber' | 'blue' | 'red' | 'neutral'
-
-export function tagAccent(tag: TaskTag): TagAccent {
+export function tagAccent(tag: TaskTag): AccentColor {
   switch (tag) {
     case 'IOS':
       return 'green'
     case 'ANDROID':
-      return 'amber'
+      return 'yellow'
     case 'REACT':
       return 'blue'
     case 'RAILS':

@@ -1,6 +1,5 @@
 import { useMemo, type ReactNode } from 'react'
-import { MultiSelect, Select } from '@ravn/ui-kit'
-import { LabelIcon } from '@/ui/icons/icons'
+import { LabelIcon, MultiSelect, Select } from '@ravn/ui-kit'
 import { findOption, renderSelectOption, type SelectOption } from './select-option'
 import { tagLabel } from './task-display'
 import { ALL_TAGS, type TaskTag } from './task-types'

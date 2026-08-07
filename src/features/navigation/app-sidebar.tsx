@@ -7,7 +7,7 @@ import {
   GridViewIcon,
   ListViewIcon,
   LogoMark,
-} from '@/ui/icons/icons'
+} from '@ravn/ui-kit'
 
 interface NavItem {
   to: string

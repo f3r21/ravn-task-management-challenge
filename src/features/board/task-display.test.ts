@@ -27,7 +27,7 @@ describe('tagLabel', () => {
 describe('tagAccent', () => {
   it('uses the two accents the design specifies', () => {
     expect(tagAccent('IOS')).toBe('green')
-    expect(tagAccent('ANDROID')).toBe('amber')
+    expect(tagAccent('ANDROID')).toBe('yellow')
   })
 
   it('resolves every remaining tag to a palette accent rather than undefined', () => {
