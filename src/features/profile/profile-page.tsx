@@ -1,8 +1,7 @@
-import { Skeleton } from '@ravn/ui-kit'
+import { Avatar, Skeleton } from '@ravn/ui-kit'
 import { formatUtcTimestamp } from '@/lib/due-date'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { AsyncSection } from '@/ui/async-section/async-section'
-import { Avatar } from '@/ui/avatar/avatar'
 import type { User } from '@/features/board/task-types'
 import { useProfile } from './use-profile'
 
@@ -91,7 +90,7 @@ export function ProfilePage() {
               <Avatar
                 src={avatarSrcUnlessDecommissioned(profile.avatar)}
                 name={profile.fullName}
-                size={40}
+                size="md"
               />
               <h2 id="profile-heading" className="text-body-l font-semibold">
                 {profile.fullName}

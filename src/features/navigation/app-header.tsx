@@ -1,9 +1,8 @@
 import { useId } from 'react'
-import { BellIcon, SearchIcon, Skeleton } from '@ravn/ui-kit'
+import { Avatar, BellIcon, SearchIcon, Skeleton } from '@ravn/ui-kit'
 import { useBoardFilters } from '@/features/board/use-board-filters'
 import { useProfile } from '@/features/profile/use-profile'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
-import { Avatar } from '@/ui/avatar/avatar'
 
 /**
  * The top bar: search on the left, notifications and the current user on the
@@ -81,7 +80,7 @@ export function AppHeader() {
           <Skeleton className="size-10 shrink-0 rounded-full" />
         ) : (
           <Avatar
-            size={40}
+            size="md"
             src={avatarSrcUnlessDecommissioned(profile?.avatar)}
             name={profile?.fullName ?? 'Could not load your profile'}
           />

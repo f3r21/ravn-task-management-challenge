@@ -1,10 +1,17 @@
 import { memo } from 'react'
 import { Item } from 'react-stately'
-import { AttachmentIcon, CommentIcon, Menu, MenuDotsIcon, SubtaskIcon, Tag } from '@ravn/ui-kit'
+import {
+  AttachmentIcon,
+  Avatar,
+  CommentIcon,
+  Menu,
+  MenuDotsIcon,
+  SubtaskIcon,
+  Tag,
+} from '@ravn/ui-kit'
 import { parseApiDate } from '@/lib/due-date'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { cn } from '@/lib/cn'
-import { Avatar } from '@/ui/avatar/avatar'
 import { pointsLabel, TAG_TEXT, tagAccent, tagLabel } from '../task-display'
 import type { Task } from '../task-types'
 import { DueDateBadge } from './due-date-badge'
@@ -83,6 +90,10 @@ function TaskCardImpl({ task, now, layout = 'card', onEdit, onDelete }: TaskCard
 
   const assignee = (
     <Avatar
+      // Explicit, because the defaults invert: this app's `Avatar` defaulted to the
+      // 32px size and the kit's defaults to 40px (`md`). Omitting it here is
+      // type-correct, lint-clean and silently grows every card avatar.
+      size="sm"
       src={avatarSrcUnlessDecommissioned(task.assignee?.avatar)}
       name={task.assignee?.fullName}
     />
