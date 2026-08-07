@@ -432,8 +432,12 @@ Break the code, watch the test fail, restore. Three rules learned the hard way:
   something, and it arrives looking like your own uncommitted edit. Found when one lane's cleanup
   turned up another lane's stash sitting beside its own.
 
-  If you genuinely have uncommitted work to park, `git stash push -m "<branch>: <what>"` and pop
-  it by matching that branch name in `git stash list` — never by index, and never bare.
+  If you genuinely have uncommitted work to park, `git stash push -m "<branch>: <what>"`, and
+  resolve the entry by matching that branch name in `git stash list` — never by index, and never
+  bare. **That applies to `drop` as much as to `pop`**: the incident that produced this rule was a
+  lane cleaning up its own stashes, where an index-based `drop` would have destroyed another
+  lane's work rather than merely restoring it into the wrong tree. `pop` is the loud failure;
+  `drop` is the silent one.
 
 - **Target the right function.** A sabotage applied to `handleCreate` will not fail a test about
   `handleEdit`, and the passing test looks like a toothless one.
