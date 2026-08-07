@@ -62,12 +62,10 @@ export function avatarSrcUnlessDecommissioned(
   // reads that same `browserslist` and fails on any static Web API member the floor
   // lacks, so rewriting this back to `URL.canParse` is a lint error rather than an
   // outage.
-  let hostname: string
-  try {
-    hostname = new URL(avatar).hostname
-  } catch {
+  if (!URL.canParse(avatar)) {
     return avatar
   }
+  const hostname = new URL(avatar).hostname
 
   return DECOMMISSIONED_AVATAR_HOSTS.has(hostname) ? undefined : avatar
 }
