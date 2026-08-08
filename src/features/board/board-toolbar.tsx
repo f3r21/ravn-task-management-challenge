@@ -17,6 +17,28 @@ const VIEWS: { value: BoardView; label: string; icon: typeof GridViewIcon }[] = 
   { value: 'grid', label: 'Grid view', icon: GridViewIcon },
 ]
 
+/**
+ * The view a radio group reported, or `undefined` if it names none.
+ *
+ * React Aria hands `onChange` a plain `string`, and this used to be `next as BoardView`
+ * at the call site, justified by a comment saying the value "can only have come from
+ * `VIEWS`". That was true, and it is the kind of true-by-inspection claim `findOption`
+ * in `select-option.tsx` replaced with something the compiler enforces: nothing
+ * re-checks it when `VIEWS` grows a third entry or the group gains an option from
+ * somewhere else. Looking the value up returns `view.value`, which is *already*
+ * `BoardView`, so nothing is asserted.
+ *
+ * Exported only so the miss can be tested. The call site's own miss branch is
+ * unreachable through the UI — React Aria only ever reports a value it rendered a
+ * radio for — so a test driving the component can exercise one direction and never the
+ * other. Testing this directly is what covers both, and a lookup that answered
+ * `undefined` for *everything* would satisfy "an unknown view is dropped" perfectly
+ * while breaking the switcher outright.
+ */
+export function readView(value: string): BoardView | undefined {
+  return VIEWS.find((view) => view.value === value)?.value
+}
+
 const GROUP_LABEL = 'Board layout'
 
 /**
@@ -93,10 +115,14 @@ function ViewRadio({
 export function BoardToolbar({ view, onViewChange, onCreateTask }: BoardToolbarProps) {
   const state = useRadioGroupState({
     value: view,
-    // React Aria hands back a plain string; the cast is confined to this boundary
-    // and the value can only have come from `VIEWS`.
+    // Looked up rather than asserted — see `readView`. A value naming no view is
+    // dropped rather than moving the board to one it does not have; that branch is
+    // unreachable through the UI today, which is why `readView` is tested directly.
     onChange: (next) => {
-      onViewChange(next as BoardView)
+      const view = readView(next)
+      if (view) {
+        onViewChange(view)
+      }
     },
     orientation: 'horizontal',
   })
