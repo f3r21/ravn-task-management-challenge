@@ -70,10 +70,13 @@ export function daysUntilDue(dueDate: Date, now: Date): number {
  * the deadline is close. `soon` is that tier, covering today and tomorrow, and
  * `normal` is the brief's "on time".
  *
- * The tiers are named for what the date *is*, not for what colour it takes. The
- * mapping onto the palette lives with the badge in `due-date-badge.tsx`, so a
- * repaint is a change to one component rather than to the thing the rest of the
- * app reasons about.
+ * The tiers are named for what the date *is*, not for what colour it takes, and
+ * that separation is now what lets them cross a package boundary: the three names
+ * are identical to `@ravn/ui-kit`'s `DueDateUrgency`, so a tone is handed to the
+ * kit as-is and the palette mapping is the kit's own `DUE_DATE_URGENCY_COLOR`.
+ * The app used to keep a second copy of that table beside its own badge; it does
+ * not any more, which is why a repaint is now a kit release rather than an edit
+ * here. See `task-card/to-kit-props.ts` for the hand-off.
  */
 export function dueDateTone(dueDate: Date, now: Date): DueDateTone {
   const daysLeft = daysUntilDue(dueDate, now)

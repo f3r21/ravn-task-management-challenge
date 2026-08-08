@@ -16,37 +16,36 @@ import { BOARD_STATUSES } from './task-types'
  * avoidable is the board re-rendering *with* it, rebuilding every card's twenty-odd
  * elements for a character that does not reach the API for another 300ms.
  *
- * The instrument is `Avatar`, counted through a module mock rather than a counter
- * added to `TaskCard` itself. That placement is the whole trick: `Avatar` is
- * rendered *inside* `TaskCard`, so it is downstream of the memo boundary. Counting
- * `TaskCard` from the outside would count React's *attempts* to render it, which
+ * The instrument is the kit's `Menu`, counted through a module mock rather than a
+ * counter added to a card. That placement is the whole trick: the menu is rendered
+ * *inside* each card, so it is downstream of the memo boundary. Counting the memoised
+ * component from the outside would count React's *attempts* to render it, which
  * `memo` does not change — the number would stay flat across exactly the fix this
  * measures, and read as no improvement.
  *
- * **Card avatars are counted separately from the header's**, and that separation is
- * what makes both assertions sharp rather than merely true:
+ * **The instrument used to be `Avatar`, and the board migration made that one blind.**
+ * Worth writing down, because the failure was silent in the dangerous direction: the
+ * board now renders `@ravn/ui-kit`'s `TaskCard`, which calls the kit's *internal*
+ * `Avatar` rather than importing it from the barrel this file mocks. So the mock
+ * stopped intercepting card avatars entirely and the opening count fell to zero —
+ * caught here only because that opening assertion exists. Had the test asserted just
+ * the closing `=== 0`, a completely blind instrument would have reported a perfect
+ * score. A mock of a package barrel only sees what the *app* imports through it.
  *
- * - The closing assertion is `cards === 0`. A count that lumped the two together
- *   would assert `=== 1`, a number the header alone satisfies — so a board that had
- *   stopped rendering cards entirely would pass it. Zero is not reachable that way.
+ * `Menu` is what the app still imports through the barrel, and it is a better
+ * instrument than `Avatar` was: `TaskActionsMenu` is the only thing in the app that
+ * renders one (`grep -rn --include='*.tsx' '<Menu' src`), exactly one per task, in
+ * both the board and the list view. The label filter is belt-and-braces so that
+ * adding a menu elsewhere later cannot quietly pollute the count.
+ *
+ * Both assertions stay sharp for the same reasons as before:
+ *
+ * - The closing assertion is `cards === 0`, and nothing else in the app renders a
+ *   `Menu`, so zero cannot be reached by some other component satisfying it.
  * - The opening assertion is `cards === 150`, which proves the board really did
  *   mount every card before anything was measured. Without it the test could go
- *   green having measured nothing at all, which is the shape this repo has already
- *   paid for four times — most memorably a Tailwind canary that generated the very
- *   classes it grepped for.
- *
- * The header count is deliberately *not* asserted. It is 2 at mount, not 1: the
- * profile query resolves and `AppHeader` renders again. That is timing-dependent,
- * so pinning it would buy nothing and flake.
- *
- * `TaskCard` renders exactly one `Avatar`, unconditionally — it passes
- * `task.assignee?.avatar`, so an unassigned task still gets the initials fallback.
- * The split is on `size`: the header asks for `"md"` (`app-header.tsx`) and every
- * card for `"sm"` (`task-card.tsx`). Both are explicit, and that is load-bearing
- * rather than tidy — app#30 swapped this component for `@ravn/ui-kit`'s, whose
- * default is `md`, so the older rule of "the header names a size and cards take
- * the default" would now count every card as a header and report zero card
- * renders on a board that is re-rendering all of them.
+ *   green having measured nothing at all — which is not hypothetical here, it is
+ *   precisely what the `Avatar` instrument started doing.
  *
  * Both asserted numbers are re-derived by a green run, since the assertions *are*
  * the numbers:
@@ -55,28 +54,30 @@ import { BOARD_STATUSES } from './task-types'
  *
  * The unmemoised figure is the one thing CI cannot assert, because asserting it
  * would mean keeping the code broken. Reproduce it by dropping the `memo()` wrapper
- * in `task-card.tsx` and running the same command, which fails
- * `expected 150 to be 0` — 150 cards re-rendering for one character.
+ * in `board-column.tsx` and running the same command, which fails
+ * `expected 150 to be 0` — 150 cards re-rendering for one character. **That wrapper
+ * moved**: it used to sit on each `TaskCard`, and the kit's `TaskListView` builds its
+ * own cards from a props array and memoises none of them, so the boundary is now the
+ * column. One boundary per column instead of one per card, and it skips the column
+ * header too.
  *
  * There is deliberately no `console.log` reporting the counts: Vitest buffers
  * test-side console output and prints it only for failing tests, so on a green run
  * it would emit nothing and the figure would look sourced when it was not.
  */
-const renders = vi.hoisted(() => ({ cards: 0, header: 0 }))
+const renders = vi.hoisted(() => ({ cards: 0 }))
 
 vi.mock('@ravn/ui-kit', async (importOriginal) => {
   const actual = await importOriginal<typeof UiKit>()
   return {
     ...actual,
-    Avatar: (props: ComponentProps<typeof actual.Avatar>) => {
-      // See the header comment: the split is on the two explicit sizes, not on one
-      // caller naming a size while the other takes a default.
-      if (props.size === 'md') {
-        renders.header += 1
-      } else {
+    Menu: (props: ComponentProps<typeof actual.Menu>) => {
+      // Only the per-task menus, named for the task they belong to. Nothing else in
+      // the app renders a `Menu` today; this keeps that from being load-bearing.
+      if (typeof props.label === 'string' && props.label.startsWith('Task options for')) {
         renders.cards += 1
       }
-      return createElement(actual.Avatar, props)
+      return createElement(actual.Menu, props)
     },
   }
 })
@@ -144,9 +145,8 @@ describe('board render cost', () => {
       'a',
     )
 
-    // Not one card re-renders. The header's own avatar does — it is inside the
-    // component that owns the input — and is counted separately so it cannot
-    // satisfy this on its own.
+    // Not one card re-renders. The header re-renders — it is the component that owns
+    // the input — but it renders no `Menu`, so it cannot satisfy this on its own.
     expect(renders.cards).toBe(0)
   }, 30_000)
 })
