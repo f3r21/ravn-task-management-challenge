@@ -1,8 +1,11 @@
 <!--
   The design's logo mark, on the surface colour the app renders against, so the tab
   icon does not become an invisible white glyph on a light browser chrome.
-  Kept as its own file rather than imported from `src/ui/icons/assets`: the browser
-  requests this before any bundle exists.
+  Kept as its own file rather than imported from the app's icon set: the browser
+  requests this before any bundle exists, so it cannot come from a bundle at all.
+  It named `src/ui/icons/assets` until app#105 — a path app#93 deleted when the
+  icons moved to `@ravn/ui-kit`, which is also where `LogoMark` lives now. The
+  reason is unchanged by that move, and so is the duplication it accepts.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
   <rect width="48" height="48" rx="10" fill="#222528" />
