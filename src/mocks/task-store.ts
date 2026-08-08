@@ -4,7 +4,7 @@ import type {
   FilterTaskInput,
   UpdateTaskInput,
 } from '@/graphql/generated/graphql'
-import type { Task, User } from '@/features/board/task-types'
+import type { Task, User } from '@/graphql/domain'
 import { SEED_TASKS, SEED_USERS } from './task-fixtures'
 
 /**

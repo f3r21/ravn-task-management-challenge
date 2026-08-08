@@ -1,24 +1,25 @@
 import { exhaustiveList } from '@/lib/exhaustive'
-import type {
-  PointEstimate,
-  Status,
-  TaskFieldsFragment,
-  TaskTag,
-  UserFieldsFragment,
-  UserType,
-} from '@/graphql/generated/graphql'
+import type { Status, TaskTag, PointEstimate } from '@/graphql/domain'
 
 /**
- * The domain shapes this feature works in.
+ * The orders this feature displays the API's enums in.
  *
- * Every type here is generated from `schema.graphql`, so the API is the single
- * source of truth for what a task is. This module exists to give those generated
- * names domain-meaningful aliases and to add the ordered lists the UI iterates —
- * not to redeclare anything.
+ * The type vocabulary itself now lives in `@/graphql/domain` — `Task` and `User`
+ * are returned by queries this feature does not own, and having them here meant
+ * `features/profile` and every MSW handler imported `@/features/board` to learn
+ * what a user is. That edge is now a lint error; see `eslint.config.js`.
+ *
+ * The three lists below stayed because they are not API vocabulary: each one is a
+ * choice the board's UI makes about presentation order, and the schema makes none
+ * of them. They go through `exhaustiveList` so that the API gaining a sixth status
+ * is a compile error naming what is missing, rather than a task with nowhere to
+ * render.
+ *
+ * The type re-export beneath them is a convenience for this feature's own 20-odd
+ * modules and nothing else — `@/graphql/domain` is the canonical import path, and
+ * anything outside `features/board` must use it.
  */
-export type { PointEstimate, Status, TaskTag, UserType }
-export type Task = TaskFieldsFragment
-export type User = UserFieldsFragment
+export type { PointEstimate, Status, Task, TaskTag, User, UserType } from '@/graphql/domain'
 
 /**
  * Column order on the board.

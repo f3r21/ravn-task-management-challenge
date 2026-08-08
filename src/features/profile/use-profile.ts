@@ -1,7 +1,7 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { request } from '@/graphql/client'
 import { ProfileDocument } from '@/graphql/generated/graphql'
-import type { User } from '@/features/board/task-types'
+import type { User } from '@/graphql/domain'
 
 export const profileKeys = { current: ['profile'] as const }
 

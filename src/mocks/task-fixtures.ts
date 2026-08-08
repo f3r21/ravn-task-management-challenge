@@ -1,4 +1,4 @@
-import type { Task, User } from '@/features/board/task-types'
+import type { Task, User } from '@/graphql/domain'
 
 /**
  * Seed data shared by the MSW handlers and the tests.

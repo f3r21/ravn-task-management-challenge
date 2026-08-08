@@ -255,6 +255,53 @@ exercise route matching. `AppLayout` wraps each element instead of being a paren
 `<Outlet />`: a parent would keep the shell mounted across navigations, which would put the
 not-found page inside chrome implying the app is fine.
 
+**That layering is lint-enforced since #40, having been prose until then — and prose does not
+fail a build.** `no-restricted-imports` in `eslint.config.js` bans `@/features/*` and
+`@/features/*/**` across `src/`, so no feature reaches into another and no lower layer
+(`mocks/`, `lib/`, `ui/`, `graphql/`) reaches up into any of them.
+
+What forced it: `User` is `UserFieldsFragment`, returned by the `Users`, `Profile` **and** `Tasks`
+queries and belonging to none of them — yet it lived in `features/board/task-types.ts`, so
+`features/profile` and every MSW handler imported `@/features/board` to learn what a user is, and
+deleting `features/board` would have stopped the mocks compiling. `Task` and `User` now live in
+`src/graphql/domain.ts` and `grep -rn "task-types" src | grep -v features/board` returns nothing.
+`task-types.ts` keeps the three `exhaustiveList` orderings — those are board policy rather than API
+vocabulary, since column order is the workflow's and the schema lists its members alphabetically —
+and re-exports the types for its own 20 modules
+(`grep -rl "task-types" src/features/board | grep -v '\.test\.' | wc -l`). That re-export is the
+one concession: #40 asked for `task-types.ts` to be left board-only, which meant editing 23 files
+in a feature another lane was actively rewriting, so the edge was cut at one file instead.
+`@/graphql/domain` is the canonical path; anything outside `features/board` must use it.
+
+**Two directories override the ban and neither is cleanup debt.** `src/app/` composes features
+because that is the routing layer's entire job — the rule as first drafted would have failed on
+`routes.tsx` itself. `src/features/navigation/` is the shell in everything but its directory,
+mounted once by `AppLayout` rather than by any feature, and its `useBoardFilters` edge is
+load-bearing: the `name` URL parameter had two independent writers until `FILTER_PARAMS`
+collapsed them, so renaming the key broke the header's search box with no type error and no
+failing test. Re-derive that rather than taking it from here:
+
+```bash
+git log -S 'FILTER_PARAMS' --oneline          # f683cb0 is the fix; later hits only mention it
+git show f683cb0 -- src/features/navigation/app-header.tsx | grep -E '^[-+].*(URLSearchParams|setFilter)'
+```
+
+The second command prints the `- const next = new URLSearchParams(current)` the header used to
+build for itself against the `+ setFilter('name', …)` that replaced it — that diff is the claim.
+Banning the import and re-exporting the hook would satisfy the linter and restore the defect.
+
+**The generated barrel is banned by `paths`, not deleted, and the spelling is the trap.**
+`src/graphql/generated/index.ts` is a one-line `export * from "./gql"` that nothing imports, and it
+does contradict the no-barrels rule — but it is codegen output the `client` preset cannot be told
+to skip, so deleting it buys one clean commit and a dirty diff on every `npm run codegen` after.
+A `patterns` entry is a gitignore-style glob, in which a bare directory name also matches
+everything beneath it: spelled `{ group: ['@/graphql/generated'] }` it flagged the 13 imports of
+`@/graphql/generated/graphql`, which is the correct path every consumer already uses. `paths`
+matches the specifier exactly. Note that grep answers **14** there
+(`grep -rl "from '@/graphql/generated/graphql'" src | wc -l`) — the fourteenth is that string
+inside a test fixture's string literal, not an import, which is the same parser-versus-grep gap
+the assertion count runs into under "Conventions".
+
 ### The token layer
 
 **The app defines no tokens.** `src/styles/base.css` is the only stylesheet here, and it
@@ -370,8 +417,28 @@ jsdom, faster and more precisely, and each extra flow is more live mutation.
 - **Comments explain why.** A stale comment is worse than no comment, because a reader trusts
   it. If you change behaviour, grep for comments describing the old one — several rounds of
   that have already been needed.
-- **Zero `any`, zero `@ts-ignore`.** Both are lint _errors_. The one unavoidable assertion sits
-  at the transport boundary in `client.ts`, so nothing downstream repeats it.
+- **Zero `any`, zero `@ts-ignore`.** Both are lint _errors_, so `npm run lint` is what holds
+  them at zero. **Type assertions are four, and this line claimed one until #40** — one at the
+  transport boundary and three downstream, plus zero non-null `!`:
+  `npm run assertions`, which lists each one and prints both totals.
+
+  Count them with a parser, never a regex. Comment density here is deliberately high, so `as`
+  is overwhelmingly prose: `grep -rn ' as ' src | wc -l` answers 182, and tightening it to
+  `grep -rnE ' as (readonly |[A-Z])' src | wc -l` only gets to 26 — that still matches
+  `import type * as UiKit`, still matches a comment quoting `String(key) as T`, and still cannot
+  see the **two** assertions sharing `use-board-filters.ts:65`, because grep counts lines and not
+  expressions. The non-null half cannot be grepped at all, `!` being negation and JSX punctuation
+  far more often than an assertion.
+
+  `client.ts:101` is the genuinely unavoidable one: `response.json()` is `Promise<any>` and
+  something has to name the shape. Of the three downstream, **two are removable and the codebase
+  already contains the fix** — `select-option.tsx:44` documents why a lookup beats
+  `String(key) as T` and applied it at six former call sites. `readMember`
+  (`use-board-filters.ts:65`) can be `allowed.find((member) => member === raw)`, which returns
+  `T | undefined` with nothing asserted; `board-toolbar.tsx:99` can find its value in `VIEWS` the
+  same way. Both files are `features/board` and were left to the lane rewriting that feature, so
+  four is the count as of #40 rather than a floor.
+
 - **`date-fns` for `isValid` / `parseISO` only.** All formatting is `Intl` with an explicit
   `timeZone: 'UTC'` — see the trap below for what a date library reading local fields did.
 - **React Aria _hooks_ only.** Never `react-aria-components`.

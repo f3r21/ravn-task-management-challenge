@@ -169,6 +169,35 @@ function unsupportedStaticMembers(floor) {
   return restricted
 }
 
+/**
+ * The generated re-export barrel, banned as an import target.
+ *
+ * `src/graphql/generated/index.ts` is a one-line `export * from "./gql"` that
+ * nothing imports, and it contradicts the no-barrels convention — but deleting it
+ * is futile. It is codegen output, the `client` preset offers no way to suppress
+ * it, and the next `npm run codegen` writes it straight back, leaving every run
+ * after that with a dirty diff. Banning the *import* enforces the same intent and
+ * survives regeneration, which deletion does not.
+ *
+ * `paths` and not `patterns`, which is the whole reason this is a named constant
+ * worth a comment: a `patterns` entry is a gitignore-style glob, and in gitignore
+ * a bare directory name matches everything beneath it too. Spelled as a pattern,
+ * `@/graphql/generated` flagged all 13 imports of `@/graphql/generated/graphql` —
+ * the correct path every consumer already uses — and would have forced the ban to
+ * be deleted rather than fixed. `paths` matches the specifier exactly.
+ *
+ * Both spellings are listed because `@/graphql/generated/index` resolves to the
+ * same module and would otherwise be an unguarded way back in.
+ */
+const RESTRICTED_GENERATED_BARREL = ['@/graphql/generated', '@/graphql/generated/index'].map(
+  (name) => ({
+    name,
+    message:
+      'Import @/graphql/generated/graphql directly. The generated index.ts is a re-export ' +
+      'barrel codegen emits and nothing should depend on.',
+  }),
+)
+
 const browserFloor = readBrowserFloor()
 
 export default tseslint.config(
@@ -229,6 +258,130 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
+    // The layering `CLAUDE.md` describes, made checkable.
+    //
+    // It was prose only, and prose does not fail a build: `features/profile` and
+    // the whole of `src/mocks/` both imported `@/features/board/task-types` to
+    // learn what a `User` is — a type returned by the `Users`, `Profile` *and*
+    // `Tasks` queries and belonging to none of them. Deleting `features/board`
+    // would have stopped the MSW handlers compiling. The types moved to
+    // `@/graphql/domain`; this rule is what stops the edge coming back.
+    //
+    // Only the `@/`-aliased form is banned, and that is a real limit rather than a
+    // claim that no other spelling exists. A feature's own modules import each
+    // other relatively (`./task-types`, `../task-display`), and today no *feature*
+    // escapes its own tree relatively — but files in `src/` do climb with `../../`:
+    //
+    //   grep -rn "from '\.\./\.\./" src    # 2 hits, both ui-kit-smoke.test.tsx
+    //
+    // Those two reach `package.json` and the kit's manifest, which this rule has no
+    // opinion about. So `../../../features/board/task-types` would slip past, and
+    // the honest statement is that the alias is the only spelling a cross-feature
+    // import currently *uses*, not the only one available. Banning relative escapes
+    // as well would mean a pattern per directory depth, which buys little against a
+    // spelling nothing in the codebase reaches for.
+    //
+    // Both `@/features/*` and `@/features/*/**` are listed because these are
+    // gitignore-style globs, in which `*` does not cross a `/` — the first alone
+    // would match `@/features/board` and miss `@/features/board/task-types`, which
+    // is every real violation.
+    //
+    // The generated barrel is banned alongside it — see
+    // `RESTRICTED_GENERATED_BARREL` for why that half is `paths` rather than a
+    // pattern, and why the file is not simply deleted.
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: RESTRICTED_GENERATED_BARREL,
+          patterns: [
+            {
+              group: ['@/features/*', '@/features/*/**'],
+              message:
+                'Cross-feature imports invert the layering. Shared API types live in ' +
+                '@/graphql/domain; shared components live in @/ui. A feature imports its own ' +
+                'modules relatively.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // `src/app/` composes features without restriction, and that is the whole job
+    // of the layer: `routes.tsx` names every page and `app-layout.tsx` assembles
+    // the chrome around them. The rule as first proposed in #40 would have failed
+    // on the router itself. This grant is deliberately open-ended — a new route
+    // imports a new feature, and having to widen a list here every time would be
+    // friction with nothing behind it.
+    //
+    // The barrel ban is carried over rather than dropped: `'no-restricted-imports':
+    // 'off'` would relax both halves at once, and nothing about composing features
+    // implies needing the generated barrel.
+    files: ['src/app/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', { paths: RESTRICTED_GENERATED_BARREL }],
+    },
+  },
+  {
+    // `src/features/navigation/` renders the same chrome — the header and sidebar
+    // are mounted once by `AppLayout`, not by any feature, so it is the shell in
+    // everything but its directory. But unlike `src/app/`, its right to reach into
+    // other features is **not** open-ended: it rests on two specific arguments
+    // about two specific modules, so it is those two modules that are exempted
+    // rather than the directory.
+    //
+    // `useProfile` backs the header avatar and the settings page under one query
+    // key, so the two cannot disagree about who is signed in. `useBoardFilters` is
+    // load-bearing rather than an oversight: the `name` URL parameter used to have
+    // two independent writers — the header building its own `URLSearchParams` and
+    // the hook with its own serialiser — so renaming the key on either side broke
+    // the header's search box with no type error and no failing test. #34
+    // collapsed both onto `FILTER_PARAMS` and made the header write through
+    // `setFilter`, so banning that import and re-exporting the hook from a shared
+    // module would satisfy this rule and restore the defect.
+    //
+    // Neither argument generalises to a third edge, and the first spelling of this
+    // override — `'no-restricted-imports'` reduced to the barrel over the whole
+    // directory — would have let one land silently. The `!` entries below are
+    // negations: `no-restricted-imports` patterns are gitignore-style, so a group
+    // bans everything it matches except what a later `!` line takes back.
+    //
+    // `@/features/*` is deliberately absent from this group, and removing it is
+    // what made the negations work at all. Gitignore semantics say a file cannot be
+    // re-included once its *parent directory* is excluded, and `@/features/*`
+    // excludes `@/features/board` as a directory — so with it present both `!` lines
+    // were dead and the two arguments above were being reported as violations.
+    // Nothing is lost by dropping it: `@/features/board` on its own is a
+    // directory-index import, and this project has no barrel files for it to reach.
+    // The broader rule above keeps both patterns because it has no negations to
+    // defeat.
+    files: ['src/features/navigation/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: RESTRICTED_GENERATED_BARREL,
+          patterns: [
+            {
+              group: [
+                '@/features/*/**',
+                '!@/features/board/use-board-filters',
+                '!@/features/profile/use-profile',
+              ],
+              message:
+                'The shell may reach into a feature only where that edge is argued for in ' +
+                'eslint.config.js — today `useBoardFilters` and `useProfile`. Add the argument ' +
+                'and the exemption together, or route the dependency through @/graphql/domain ' +
+                'or @/ui.',
+            },
+          ],
+        },
       ],
     },
   },
