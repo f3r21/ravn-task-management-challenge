@@ -123,7 +123,17 @@ describe('the board column, in either view', () => {
     // Not blocked on: an empty cell is a defensible table idiom and the row still carries
     // the task, which is why this migrated rather than stopping. Pinned as the difference it
     // is, so the day the kit closes it this goes red and the case above absorbs both views
-    // again — the same shape as the overdue tripwire.
+    // again — the same shape as the overdue tripwire, with the positive control adjacent
+    // rather than absent: the case above is the same query and fixture in the other view.
+    //
+    // **It is keyed to `'Unassigned'`, which is `Avatar`'s `fallbackLabel` default and not a
+    // promise about what `TaskTableRow` will render.** If #111 ships a different string this
+    // stays green through the fix — silently, at exactly the moment it is supposed to flip.
+    // That is precisely how the overdue tripwire nearly failed: it matched ` (overdue)`, the
+    // app's old wording, while the kit shipped `, overdue`. A tripwire keyed to a string it
+    // does not control is a tripwire only until the other side chooses differently, so
+    // **re-read this against the kit's implementation on the bump rather than trusting the
+    // red**. `queryByRole('img')` with no name filter is the fallback if the string moves.
     renderColumn([makeTask({ assignee: null })], 'list')
 
     expect(screen.queryByRole('img', { name: 'Unassigned' })).not.toBeInTheDocument()
