@@ -1,6 +1,6 @@
 import { useId, useMemo, useReducer, useRef, useState } from 'react'
 import { type OverlayTriggerState } from 'react-stately'
-import { AssigneeIcon, CalendarIcon, Modal, PointsIcon, TextButton } from '@ravn/ui-kit'
+import { AssigneeIcon, Datepicker, Modal, PointsIcon, TextButton } from '@ravn/ui-kit'
 import { toDateInputValue } from '@/lib/due-date'
 import { IconField } from './icon-field'
 import { OptionalSelect, RequiredSelect, TagMultiSelect } from './option-select'
@@ -202,14 +202,23 @@ export function TaskFormDialog({
             }}
           />
 
-          <IconField
-            icon={<CalendarIcon className="text-muted size-6 shrink-0" />}
+          {/* The kit's `Datepicker`, not its `DatePickerMenu`. The menu is the floating
+              calendar panel, and it reads and writes calendar fields through
+              `getLocalTimeZone()` — which is precisely the off-by-one-day bug
+              `lib/due-date.ts` documents at length and this app already shipped once.
+              `Datepicker` is a native `<input type="date">`, so the value it exchanges is
+              the same UTC-framed `YYYY-MM-DD` string `toDateInputValue` produces.
+
+              Its `onChange` hands over the value itself rather than an event — that is
+              react-aria's `useTextField` contract, not a styling difference, so the call
+              site loses its `event.target.value`. */}
+          <Datepicker
             label="Due date"
-            type="date"
             value={fields.dueDate}
             onChange={(dueDate) => {
               dispatch({ type: 'set-due-date', dueDate })
             }}
+            className="w-40"
           />
 
           {/* `step="any"` because position is a Float — the board leaves gaps
