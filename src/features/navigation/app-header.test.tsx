@@ -41,10 +41,25 @@ describe('AppHeader', () => {
     expect(screen.getByRole('searchbox', { name: /search tasks/i })).toHaveValue('sla')
   })
 
-  it('names the icon-only notification button', () => {
+  it('offers no notifications control, because there is no notifications feature', () => {
+    // **This asserts the opposite of what it used to, and the app is what was wrong.**
+    // The header shipped a real `<button aria-label="Notifications">` with no handler: a
+    // keyboard stop leading nowhere, announced as an affordance that did not exist.
+    //
+    // `@ravn/ui-kit`'s `TopNav` renders the bell as a button only when given
+    // `onNotificationsClick`, and as a plain `<span>` otherwise, on the stated reasoning
+    // that *"a button that does nothing is its own defect"*. No handler is passed because
+    // there is nothing to wire, so the glyph is decoration and says so.
+    //
+    // The day a notifications feature exists, pass `onNotificationsClick` and this flips —
+    // which is why it asserts the absence of the control rather than the presence of a
+    // `<span>`, a shape that would also pass if the bell vanished entirely.
     renderApp('/')
 
-    expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /notifications/i })).not.toBeInTheDocument()
+    // The header is still rendered; this is not passing because it failed to mount. The
+    // search field rather than the avatar, which is a `Skeleton` until the profile resolves.
+    expect(screen.getByRole('searchbox', { name: /search tasks/i })).toBeInTheDocument()
   })
 
   it('does not claim to know who is signed in when the profile fails', async () => {

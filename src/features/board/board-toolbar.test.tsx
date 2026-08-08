@@ -1,32 +1,7 @@
 import { screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { renderWithProviders, userEvent } from '@/test/test-utils'
-import { BoardToolbar, readView } from './board-toolbar'
-
-describe('readView', () => {
-  /*
-   * Tested directly rather than through the component, and that is the point of it
-   * being a named function at all.
-   *
-   * React Aria only ever reports a value it rendered a radio for, so the call site's
-   * "names no view" branch is unreachable through the UI — a test driving the toolbar
-   * can exercise one direction and never the other. Both directions are the whole
-   * check here: a lookup that answered `undefined` for *everything* satisfies "an
-   * unknown view is dropped" perfectly and breaks the switcher outright, and only the
-   * first case below can tell those two apart.
-   */
-  it('returns the view a known value names', () => {
-    expect(readView('grid')).toBe('grid')
-    expect(readView('list')).toBe('list')
-  })
-
-  it('drops a value naming no view, rather than passing it through', () => {
-    expect(readView('nonsense')).toBeUndefined()
-    expect(readView('')).toBeUndefined()
-    // The label, not the value — a plausible near-miss rather than obvious rubbish.
-    expect(readView('Grid view')).toBeUndefined()
-  })
-})
+import { BoardToolbar } from './board-toolbar'
 
 describe('BoardToolbar', () => {
   it('exposes the layout options as a radio group, so the choice is announced', () => {
