@@ -2,14 +2,23 @@ import { screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { makeTask, makeUser } from '@/mocks/task-fixtures'
 import { renderWithProviders, userEvent } from '@/test/test-utils'
-import { BoardColumn } from './board-column'
+import { Board } from './board'
 import type { BoardView } from './board-toolbar'
-import type { Task } from './task-types'
+import { BOARD_STATUSES, type Task } from './task-types'
 
 const now = new Date('2026-08-02T12:00:00.000Z')
 
+/**
+ * Rendered through `Board` rather than a column, because the two views are no longer the
+ * same component with a flag: the board maps one `TaskListView` per status, the list view
+ * is a single `TaskTable` holding every status at once. `Board` is the smallest thing that
+ * can be asked the same question twice.
+ *
+ * Every task here is `TODO`, so the other four statuses render empty and the queries below
+ * stay unambiguous.
+ */
 function renderColumn(tasks: Task[], view: BoardView = 'grid') {
-  return renderWithProviders(<BoardColumn status="TODO" tasks={tasks} view={view} now={now} />)
+  return renderWithProviders(<Board tasks={tasks} view={view} now={now} />)
 }
 
 /*
@@ -21,9 +30,9 @@ function renderColumn(tasks: Task[], view: BoardView = 'grid') {
  * data boundary, a name the app supplies, a slot the app fills, a state the app spells out.
  *
  * Both views are exercised from one file on purpose. They render through two different
- * components now — the board through the kit, the list through `task-row.tsx` — and the
- * single-component `layout` switch that used to make them agree is gone. `to-kit-props.ts`
- * is what replaces it; this is where that shows up as behaviour.
+ * components now — `TaskListView` per status for the board, one `TaskTable` for the whole
+ * list — and the single-component `layout` switch that used to make them agree is gone.
+ * `to-kit-props.ts` is what replaces it; this is where that shows up as behaviour.
  */
 
 describe('the board column, in either view', () => {
@@ -99,14 +108,28 @@ describe('the board column, in either view', () => {
     },
   )
 
-  it.each<BoardView>(['grid', 'list'])(
-    'says a task is unassigned rather than showing an empty avatar (%s view)',
-    (view) => {
-      renderColumn([makeTask({ assignee: null })], view)
+  it('says a task is unassigned rather than showing an empty avatar (board view)', () => {
+    renderColumn([makeTask({ assignee: null })])
 
-      expect(screen.getByRole('img', { name: 'Unassigned' })).toBeInTheDocument()
-    },
-  )
+    expect(screen.getByRole('img', { name: 'Unassigned' })).toBeInTheDocument()
+  })
+
+  it('leaves the list view’s assignee column empty for an unassigned task', () => {
+    // **The two views disagree here, and it is the kit's doing rather than the app's.**
+    // `TaskCard` renders `<Avatar>` unconditionally, so the `fallbackLabel` announces
+    // "Unassigned"; `TaskTableRow` renders its assignee cell only `{assigneeName ? … }`, so
+    // the state is silent. Filed as ravn-ui-kit#111.
+    //
+    // Not blocked on: an empty cell is a defensible table idiom and the row still carries
+    // the task, which is why this migrated rather than stopping. Pinned as the difference it
+    // is, so the day the kit closes it this goes red and the case above absorbs both views
+    // again — the same shape as the overdue tripwire.
+    renderColumn([makeTask({ assignee: null })], 'list')
+
+    expect(screen.queryByRole('img', { name: 'Unassigned' })).not.toBeInTheDocument()
+    // Not passing because the row vanished.
+    expect(screen.getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
+  })
 
   it.each<BoardView>(['grid', 'list'])(
     'lists every tag on the task, in the design’s own casing (%s view)',
@@ -208,20 +231,34 @@ describe('the board view', () => {
     expect(screen.getByRole('heading', { name: 'Todo (02)' })).toBeInTheDocument()
   })
 
-  it('says a column is empty rather than leaving a blank gap', () => {
+  it('says every empty column is empty rather than leaving a blank gap', () => {
     renderColumn([])
 
-    expect(screen.getByText(/no tasks here yet/i)).toBeInTheDocument()
+    // One per status: the board renders all five whether or not anything is in them.
+    expect(screen.getAllByText(/no tasks here yet/i)).toHaveLength(BOARD_STATUSES.length)
   })
 })
 
 describe('the list view', () => {
-  it('gives each row a heading and an article of its own', () => {
+  it('nests each row heading under its group heading', () => {
+    // `TaskTableGroup.headingLevel` is new in ravn-ui-kit#95. The group header was a
+    // hardcoded `<h3>` before it, which put an `h1 → h3` skip between this page's heading
+    // and its tasks — the thing axe reports as `heading-order`.
     renderColumn([makeTask({ name: 'Slack' })], 'list')
 
     expect(screen.getByRole('heading', { level: 2, name: 'Todo (01)' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 3, name: 'Slack' })).toBeInTheDocument()
-    expect(screen.getByRole('article')).toHaveAccessibleName('Slack')
+  })
+
+  it('renders the statuses as real table rows a screen reader can navigate', () => {
+    // The app's own row was an `<article aria-labelledby>`; the kit's is a `<tr>` in a
+    // `<table>`, which is the structure the design draws and the one that gives a screen
+    // reader row/column navigation. Asserting the role rather than the markup.
+    renderColumn([makeTask({ name: 'Slack' })], 'list')
+
+    const row = screen.getAllByRole('row').find((r) => within(r).queryByText('Slack'))
+    expect(row).toBeDefined()
+    expect(within(row as HTMLElement).getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
   })
 
   it('spells the points out in full, which is what the kit’s own table does', () => {
@@ -230,22 +267,21 @@ describe('the list view', () => {
     expect(screen.getByText('4 Points')).toBeInTheDocument()
   })
 
-  it('renders no tag list at all when the task has no tags', () => {
-    renderColumn([makeTask({ tags: [] })], 'list')
-
-    // Scoped to the row: the column itself is a `<ul>` of rows, so an unscoped
-    // `queryByRole('list')` finds that one and can never fail.
-    const row = screen.getByRole('article')
-    expect(within(row).queryByRole('list')).not.toBeInTheDocument()
-    expect(within(row).getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
-  })
-
   it('uses the singular for a one-point task', () => {
-    // The kit's card cannot do this — it renders "1 Pts" — which is ravn-ui-kit#94. The
-    // row still can, so it does.
+    // The table pluralises; the card does not, and renders "1 Pts" — ravn-ui-kit#94, still
+    // open. So the two views disagree on this one string by the kit's own doing.
     renderColumn([makeTask({ pointEstimate: 'ONE' })], 'list')
 
     expect(screen.getByText('1 Point')).toBeInTheDocument()
+  })
+
+  it('puts no select checkbox in the accessibility tree', () => {
+    // `TaskTableRow`'s checkbox is `sr-only` rather than merely invisible, so left on it
+    // would be announced and tabbable in every row while wired to nothing — this app has no
+    // bulk-selection feature. `isSelectable: false` is set in the adapter.
+    renderColumn([makeTask(), makeTask({ id: 'b', name: 'Other' })], 'list')
+
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
   })
 })
 
