@@ -18,39 +18,32 @@ import type { PointEstimate, Status, TaskTag } from './task-types'
  */
 
 /**
- * The two things `@ravn/ui-kit`'s `Tag` does not do that this app's chips need.
- *
- * `uppercase` is load-bearing rather than cosmetic, and the paragraph above is
- * why: the labels are deliberately stored in natural case *because* CSS
- * uppercases them. Drop this and the chips read "iOS app" instead of "IOS APP" —
- * the design's casing, gone, with every test still passing because they query the
- * stored text.
+ * What this app's own chips still need on top of `@ravn/ui-kit`'s `Tag`.
  *
  * `whitespace-nowrap` is for the due-date badge, whose content is a spelled-out
  * date: without it "Yesterday" and friends break across as many as three lines in
- * a narrow column.
+ * a narrow column. The kit's `Tag` merges `className` last, which is what makes
+ * this work at all.
  *
- * The kit's `Tag` merges `className` last, which is what makes this work at all.
+ * `uppercase` is here for the same reason it always was — the labels are stored in
+ * natural case *because* CSS uppercases them, so a screen reader reads "iOS app"
+ * rather than spelling out capitals — but **it is no longer this constant's job on
+ * the board.** `@ravn/ui-kit@v0.7.0` renders `TaskCard`'s and `TagCell`'s chips
+ * `uppercase` itself (ravn-ui-kit#102), without touching the label string. That is
+ * the fix, and it arrived because migrating onto the kit's card in app#31 dropped
+ * the casing: `tags` was `{ label, variant }[]` with no styling channel, so the
+ * board rendered "iOS app" while this row rendered "IOS APP" for about a day.
  *
- * **It now reaches only the list view, and that is a defect rather than a design.**
- * Both call sites are in `task-card/task-row.tsx`; the board's chips go through
- * `@ravn/ui-kit`'s `TaskCard`, whose `tags` prop is `{ label, variant }[]` with no
- * styling channel, so it renders a bare `Tag` and the `uppercase` above never reaches
- * it. The two views therefore disagree: the board reads "iOS app", the list "IOS APP".
+ * **Measure that class of change in a browser, never in jsdom.** The test
+ * environment loads no Tailwind, so `getComputedStyle(...).textTransform` answers
+ * `none` in *both* views and cannot tell a correct build from a broken one — every
+ * test passed throughout, because they query the stored text and the stored text was
+ * never what changed. Against a production build the chip now reports
+ * `textTransform: uppercase` with `textContent` still `"Android"`, in both views.
  *
- * Measured in a browser, not in jsdom — the test environment loads no Tailwind, so
- * `getComputedStyle(...).textTransform` answers `none` in *both* views and cannot tell
- * them apart. Against `npm run dev`, one card's `innerText` reads
- * `… | Android | React | …` and the same task's row reads `… | ANDROID | REACT | …`.
- *
- * Introduced by app#31 and filed as ravn-ui-kit#102, because the fix belongs there:
- * Figma draws these chips in caps, so the kit's own card should render them that way
- * rather than every consumer re-deriving it. Not worked around here — a Tailwind
- * arbitrary variant aimed at the kit's internal DOM from the card's `className` would
- * be exactly the brittle, silently-breaking hack this project keeps refusing.
- *
- * The paragraph above predicted this failure almost word for word: *"with every test
- * still passing because they query the stored text."* Every test does still pass.
+ * The kit's per-chip `className` (`TaskTag`) is the opt-out if a consumer ever wants
+ * the old rendering — `className: 'normal-case'`. This app does not: caps are what
+ * Figma draws, which is why #102 was filed rather than worked around here.
  */
 export const TAG_TEXT = 'uppercase whitespace-nowrap'
 

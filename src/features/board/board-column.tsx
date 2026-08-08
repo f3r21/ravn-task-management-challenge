@@ -115,13 +115,15 @@ interface BoardListSectionProps {
 }
 
 /**
- * The list view's own column, which the kit could not take over — see `task-row.tsx` and
- * ravn-ui-kit#95 for why (`TaskTableRow` has no actions slot, so rendering through it would
- * drop Edit and Delete from every row).
+ * The list view's own column, which the kit could not take over until `v0.7.0` — see
+ * `task-row.tsx`. `TaskTableRow` had no actions slot, so rendering through it would have
+ * dropped Edit and Delete from every row; ravn-ui-kit#95 added the slot and a
+ * `TaskTableGroup.headingLevel`, and this app now pins a tag containing both.
  *
- * It is still driven by `toKitTableRowProps`, the same adapter the real component would
- * take, so the two views cannot show different information and the swap is a one-line
- * change here once the kit ships the slot.
+ * **So this is pending rather than blocked**, and the distinction is the whole reason the
+ * comment says which. It is driven by `toKitTableRowProps`, the same adapter the real
+ * component takes, so the two views cannot show different information and the swap is a
+ * change here rather than another translation layer.
  */
 function BoardListSection({
   status,
