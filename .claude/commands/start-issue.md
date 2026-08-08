@@ -9,6 +9,11 @@ Run these in order, in **this worktree only** — never in the primary checkout,
 sessions have open and which `git worktree list` will name for you:
 
 ```bash
+# Is the WORK startable? Everything below this line asks about the branch; this asks about the
+# issue. Any output → STOP, do not continue.
+gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/issues/<n>/dependencies/blocked_by" \
+   --jq '[.[] | select(.state == "open") | "#\(.number) \(.title)"] | .[]'
+
 git fetch origin --prune
 git status --porcelain                     # must be clean before anything below
 
@@ -41,6 +46,15 @@ PR. Four rules, in the order the commands above apply them:
   load-bearing half: this repo's _default_ branch is `main` too, so asking `gh repo view` alone
   would cut every lane branch from the promotion branch instead of the integration one.
 
+- **An open blocker on the issue stops the ritual too, and it is not the same question.** The PR
+  check is about the branch under your feet; this is about the work you are picking up. It checked a
+  property of the branch and never a property of the work, and two issues here read as available
+  while the dependency graph said otherwise — permissively, which is the direction that gets acted
+  on. The rule is `select(.state == "open")`: **a closed blocker is not a blocker.** #31 carries two
+  blockers and both are closed, so it is startable; filtering on whether a dependency exists at all
+  would refuse it. A lookup that fails is not a clear verdict — read the issue before starting.
+  `check-blocked.py` in the orchestration toolkit is the same endpoint and the same filter with exit
+  codes, for anything scripted.
 - **An open PR on the branch you are standing on stops the ritual.** Not a warning — stop, and say
   which PR. Whether the next issue belongs in a PR already under review is the reviewer's call, and
   the lane is the one party that cannot make it. Draft counts: a draft still ends up as one PR
