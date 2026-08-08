@@ -38,7 +38,24 @@ That last step matters: if the gate is already red, the failure is not yours, an
 checked out, and judgement covered the gap every time. The failure it invites: a lane finishes on a
 branch whose PR is open and reviewed, is handed the next issue, and commits it there — the
 reviewer's PR silently grows unrelated work, and repeat it twice more and three issues share one
-PR. Four rules, in the order the commands above apply them:
+PR. Five rules, in the order the commands above apply them:
+
+- **An open blocker on the issue stops the ritual, and it is not the same question as the next
+  rule.** That one is about the branch under your feet; this is about the work you are picking up.
+  The ritual checked a property of the branch and never a property of the work, and two issues here
+  read as available while the dependency graph said otherwise — permissively, which is the direction
+  that gets acted on. The rule is `select(.state == "open")`: **a closed blocker is not a blocker.**
+  `#30` carries one blocker and it is closed, so it is startable; filtering on whether a dependency
+  exists at all would refuse it. A lookup that fails is not a clear verdict — read the issue before
+  starting. `check-blocked.py` in the orchestration toolkit is the same endpoint and the same filter
+  with exit codes, for anything scripted.
+
+  Re-derive the example rather than trusting it — these move, and this one already has:
+
+  ```bash
+  gh api "repos/f3r21/ravn-task-management-challenge/issues/30/dependencies/blocked_by" \
+    --jq '"\([.[]|select(.state=="open")]|length) open of \(length)"'    # → 0 open of 1
+  ```
 
 - **The base is derived, never assumed:** `origin/dev` if this repo has one, otherwise the repo's
   own default branch. That resolves to `dev` here and to `main` in `ravn-ui-kit`, which has no
@@ -46,15 +63,6 @@ PR. Four rules, in the order the commands above apply them:
   load-bearing half: this repo's _default_ branch is `main` too, so asking `gh repo view` alone
   would cut every lane branch from the promotion branch instead of the integration one.
 
-- **An open blocker on the issue stops the ritual too, and it is not the same question.** The PR
-  check is about the branch under your feet; this is about the work you are picking up. It checked a
-  property of the branch and never a property of the work, and two issues here read as available
-  while the dependency graph said otherwise — permissively, which is the direction that gets acted
-  on. The rule is `select(.state == "open")`: **a closed blocker is not a blocker.** #31 carries two
-  blockers and both are closed, so it is startable; filtering on whether a dependency exists at all
-  would refuse it. A lookup that fails is not a clear verdict — read the issue before starting.
-  `check-blocked.py` in the orchestration toolkit is the same endpoint and the same filter with exit
-  codes, for anything scripted.
 - **An open PR on the branch you are standing on stops the ritual.** Not a warning — stop, and say
   which PR. Whether the next issue belongs in a PR already under review is the reviewer's call, and
   the lane is the one party that cannot make it. Draft counts: a draft still ends up as one PR
