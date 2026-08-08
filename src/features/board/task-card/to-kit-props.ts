@@ -124,21 +124,13 @@ export function toKitCardProps(task: Task, now: Date, options: CardOptions = {})
 interface RowOptions {
   /** Position within its status group, 1-based — the kit zero-pads it for display. */
   index: number
+  /** The per-task overflow menu, rendered in the row's own actions slot. */
+  actions?: TaskTableRowProps['actions']
+  /** One level below the group header, so the list view's outline nests. */
   headingLevel?: TaskTableRowProps['headingLevel']
 }
 
-/**
- * `estimationPoints` is narrowed to non-optional, which the kit's own type leaves open.
- * Every task has a `PointEstimate` and `pointValue` maps it onto a number, so this adapter
- * cannot omit it — saying so lets `task-row.tsx` render the points with no unreachable
- * `!== undefined` branch. It is a promise about this function, not a constraint on the kit,
- * so the real `TaskTableRow` still accepts the result unchanged.
- */
-export function toKitTableRowProps(
-  task: Task,
-  now: Date,
-  options: RowOptions,
-): TaskTableRowProps & { estimationPoints: number } {
+export function toKitTableRowProps(task: Task, now: Date, options: RowOptions): TaskTableRowProps {
   const shown = taskPresentation(task, now)
 
   return {

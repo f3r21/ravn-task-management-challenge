@@ -15,37 +15,14 @@ import type { PointEstimate, Status, TaskTag } from './task-types'
  * `text-transform` in CSS. Keeping the strings in natural case means a test can
  * query by the text a user would say, and a screen reader does not spell out
  * capitals letter by letter.
+ *
+ * **The CSS is `@ravn/ui-kit`'s now, not this app's.** `TaskCard` and `TagCell`
+ * uppercase their own chips since `v0.7.0` (ravn-ui-kit#102), which is why the
+ * `TAG_TEXT` constant that used to live here is gone — every one of its call sites
+ * went with the app-owned card and row. The kit's fix is a class and never
+ * `label.toUpperCase()`, for exactly the reason above, so the contract these labels
+ * rely on is unchanged and is now stated in two repositories instead of one.
  */
-
-/**
- * What this app's own chips still need on top of `@ravn/ui-kit`'s `Tag`.
- *
- * `whitespace-nowrap` is for the due-date badge, whose content is a spelled-out
- * date: without it "Yesterday" and friends break across as many as three lines in
- * a narrow column. The kit's `Tag` merges `className` last, which is what makes
- * this work at all.
- *
- * `uppercase` is here for the same reason it always was — the labels are stored in
- * natural case *because* CSS uppercases them, so a screen reader reads "iOS app"
- * rather than spelling out capitals — but **it is no longer this constant's job on
- * the board.** `@ravn/ui-kit@v0.7.0` renders `TaskCard`'s and `TagCell`'s chips
- * `uppercase` itself (ravn-ui-kit#102), without touching the label string. That is
- * the fix, and it arrived because migrating onto the kit's card in app#31 dropped
- * the casing: `tags` was `{ label, variant }[]` with no styling channel, so the
- * board rendered "iOS app" while this row rendered "IOS APP" for about a day.
- *
- * **Measure that class of change in a browser, never in jsdom.** The test
- * environment loads no Tailwind, so `getComputedStyle(...).textTransform` answers
- * `none` in *both* views and cannot tell a correct build from a broken one — every
- * test passed throughout, because they query the stored text and the stored text was
- * never what changed. Against a production build the chip now reports
- * `textTransform: uppercase` with `textContent` still `"Android"`, in both views.
- *
- * The kit's per-chip `className` (`TaskTag`) is the opt-out if a consumer ever wants
- * the old rendering — `className: 'normal-case'`. This app does not: caps are what
- * Figma draws, which is why #102 was filed rather than worked around here.
- */
-export const TAG_TEXT = 'uppercase whitespace-nowrap'
 
 export function statusLabel(status: Status): string {
   switch (status) {
