@@ -40,7 +40,14 @@ function sourceFiles(dir, found = []) {
   return found
 }
 
-/** Every `x as T` in one file, as `{ location, text }`, skipping `as const`. */
+/**
+ * Every `x as T` and every non-null `x!` in one file, skipping `as const`.
+ *
+ * Both are counted because they are the same claim — "trust me about this type" —
+ * and `CLAUDE.md` asserts a number for each. The non-null half cannot be grepped
+ * at all: `!` is negation, `!=`, and JSX punctuation far more often than it is an
+ * assertion.
+ */
 function assertionsIn(path) {
   const source = ts.createSourceFile(
     path,
@@ -51,17 +58,22 @@ function assertionsIn(path) {
   )
   const found = []
 
+  const record = (node, kind) => {
+    const { line } = source.getLineAndCharacterOfPosition(node.getStart(source))
+    found.push({
+      kind,
+      location: `${relative(ROOT, path)}:${line + 1}`,
+      text: node.getText(source).replace(/\s+/g, ' '),
+    })
+  }
+
   const visit = (node) => {
     if (ts.isAsExpression(node)) {
       const isAsConst =
         ts.isTypeReferenceNode(node.type) && node.type.typeName.getText(source) === 'const'
-      if (!isAsConst) {
-        const { line } = source.getLineAndCharacterOfPosition(node.getStart(source))
-        found.push({
-          location: `${relative(ROOT, path)}:${line + 1}`,
-          text: node.getText(source).replace(/\s+/g, ' '),
-        })
-      }
+      if (!isAsConst) record(node, 'as')
+    } else if (ts.isNonNullExpression(node)) {
+      record(node, 'non-null')
     }
     ts.forEachChild(node, visit)
   }
@@ -86,10 +98,14 @@ if (scanned.length === 0) {
 }
 
 const assertions = scanned.flatMap(assertionsIn)
-for (const { location, text } of assertions) {
-  console.log(`${location}  ${text}`)
+for (const { kind, location, text } of assertions) {
+  console.log(`${location}  [${kind}]  ${text}`)
 }
+
+const asCount = assertions.filter(({ kind }) => kind === 'as').length
+const nonNullCount = assertions.length - asCount
 console.log(
-  `\n${assertions.length} type assertion(s) across ${scanned.length} shipped source files ` +
-    '(excludes tests, src/test/, src/graphql/generated/, and `as const`).',
+  `\n${asCount} \`as\` assertion(s) and ${nonNullCount} non-null \`!\` assertion(s) across ` +
+    `${scanned.length} shipped source files (excludes tests, src/test/, ` +
+    'src/graphql/generated/, and `as const`).',
 )
