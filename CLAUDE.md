@@ -132,12 +132,6 @@ substantially done: `Modal`, `Select`, `MultiSelect` and `Menu` came first, then
 whatever `src/ui/` still holds — today `async-section`, `empty-state`, `error-boundary` and
 `toast`. Read the directory rather than this sentence; it is the list that keeps moving.
 
-**Where the kit falls short, the kit gets fixed.** A gap is filed against `ravn-ui-kit` and
-waited on, not worked around here — no adapter-layer shim, and no keeping a component
-app-owned to avoid the round trip. That costs real time: an app change can end up blocked on a
-kit issue, a kit release and a version bump. It is deliberate, because the alternative is a
-second implementation of something the design system is supposed to own.
-
 **It arrives as a git dependency pinned to a tag, not from npm.** There is no registry to
 publish to, so the dependency is the repository itself, of the form
 `"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#<tag>"`. For the tag actually pinned, read
