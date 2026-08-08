@@ -129,8 +129,10 @@ was built as one: **`@ravn/ui-kit`** (https://github.com/f3r21/ravn-ui-kit), a s
 with its own Storybook, tests and CI. This app is its first consumer. The migration onto it is
 substantially done: `Modal`, `Select`, `MultiSelect` and `Menu` came first, then `Avatar`,
 `Button`, `Tag` and `Skeleton` (#30), then the board itself (#31). What remains app-owned is
-whatever `src/ui/` still holds — today `async-section`, `empty-state`, `error-boundary` and
-`toast`. Read the directory rather than this sentence; it is the list that keeps moving.
+what this app still implements rather than imports: `src/ui/` holds the shared primitives that
+have not moved, and individual components elsewhere stay app-owned for reasons recorded beside
+them — see the corollary below on a migration blocked by a kit gap. Read the imports rather
+than this sentence; it is the list that keeps moving.
 
 **It arrives as a git dependency pinned to a tag, not from npm.** There is no registry to
 publish to, so the dependency is the repository itself, of the form
