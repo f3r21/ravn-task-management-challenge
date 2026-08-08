@@ -29,10 +29,11 @@ import { TaskActionsMenu } from './task-actions-menu'
  * not another translation layer. The props it cannot honour — `isSelectable`, `index` —
  * are named below rather than dropped silently.
  *
- * It also still spells the overdue state out (see `dueDate` below), which the kit's own
- * renderers do not. That is **ravn-ui-kit#92**, and until it lands the board and this row
- * genuinely differ on that one point — the board card cannot say it, and there is no
- * reason to make this row stop.
+ * It spells the overdue state out itself (see `dueDate` below). That used to be a point on
+ * which this row and the board genuinely differed — the kit conveyed urgency by colour
+ * alone, which was **ravn-ui-kit#92** — and `v0.6.0` closed it, so the two agree again.
+ * The wording here was moved onto the kit's `, overdue` ahead of that release precisely so
+ * the bump would not change what a screen reader says.
  */
 type TaskRowProps = Pick<
   TaskTableRowProps,
@@ -97,16 +98,18 @@ function TaskRowImpl({
           >
             {/* The visible text says "Yesterday"; colour says "overdue". Colour alone is
                 not information a screen reader receives, so the state is spelled out and
-                hidden from sighted layout. The kit's `TaskCard` and `DueDateCell` do not
-                do this — ravn-ui-kit#92 — which is why the board card currently cannot.
+                hidden from sighted layout.
 
-                Phrased `, overdue` rather than the ` (overdue)` this app used to emit, to
-                match what ravn-ui-kit#96 will announce once it lands. Otherwise the board
-                and this row would state the same fact two different ways in one app, and
-                the announced text would change under users on the version bump — for a
-                row that is scheduled to become the kit's own `TaskTableRow` (#95) anyway.
-                Spoken punctuation, not visible: the comma paces the announcement, which
-                is the kit's own idiom ("Notifications, 3 unread"). */}
+                Phrased `, overdue` rather than the ` (overdue)` this app used to emit,
+                which is the string `@ravn/ui-kit` emits for the same state since
+                `v0.6.0` (ravn-ui-kit#92). Matching it was done *before* that release
+                rather than after, so the bump changed nothing a screen reader hears and
+                the two views never stated one fact two ways. Spoken punctuation, not
+                visible: the comma paces the announcement, which is the kit's own idiom
+                ("Notifications, 3 unread").
+
+                This stays hand-written only until ravn-ui-kit#95 lets the row become the
+                kit's own `TaskTableRow`, which announces it via `dueDateUrgencyLabel`. */}
             {dueDate}
             {isOverdue ? <span className="sr-only">, overdue</span> : null}
           </Tag>

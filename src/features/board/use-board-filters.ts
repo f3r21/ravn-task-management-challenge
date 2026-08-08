@@ -57,12 +57,21 @@ export const FILTER_PARAMS = {
  */
 export type DirectoryStatus = 'pending' | 'ready'
 
-/** Narrows a raw query-string value to a union member, or drops it. */
+/**
+ * Narrows a raw query-string value to a union member, or drops it.
+ *
+ * A hand-edited URL is untrusted input. Without this check `?status=nonsense` would
+ * be sent to the API as a `Status` and rejected, turning a typo into an error screen.
+ *
+ * **Returns the member it found rather than asserting the input into the union**, the
+ * same shape as `findOption` in `select-option.tsx`. It used to read
+ * `(allowed as readonly string[]).includes(raw) ? (raw as T) : undefined` — two
+ * assertions doing the work the array already knows: `allowed`'s elements are `T`, so
+ * handing one of them back needs no claim from the author. A `null` `raw` matches
+ * nothing and falls out on its own, which is why the explicit guard is gone too.
+ */
 function readMember<T extends string>(raw: string | null, allowed: readonly T[]): T | undefined {
-  // A hand-edited URL is untrusted input. Without this check `?status=nonsense`
-  // would be sent to the API as a Status and rejected, turning a typo into an
-  // error screen.
-  return raw !== null && (allowed as readonly string[]).includes(raw) ? (raw as T) : undefined
+  return allowed.find((member) => member === raw)
 }
 
 /**

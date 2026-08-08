@@ -9,6 +9,11 @@ Run these in order, in **this worktree only** — never in the primary checkout,
 sessions have open and which `git worktree list` will name for you:
 
 ```bash
+# Is the WORK startable? Everything below this line asks about the branch; this asks about the
+# issue. Any output → STOP, do not continue.
+gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/issues/<n>/dependencies/blocked_by" \
+   --jq '[.[] | select(.state == "open") | "#\(.number) \(.title)"] | .[]'
+
 git fetch origin --prune
 git status --porcelain                     # must be clean before anything below
 
@@ -33,7 +38,24 @@ That last step matters: if the gate is already red, the failure is not yours, an
 checked out, and judgement covered the gap every time. The failure it invites: a lane finishes on a
 branch whose PR is open and reviewed, is handed the next issue, and commits it there — the
 reviewer's PR silently grows unrelated work, and repeat it twice more and three issues share one
-PR. Four rules, in the order the commands above apply them:
+PR. Five rules, in the order the commands above apply them:
+
+- **An open blocker on the issue stops the ritual, and it is not the same question as the next
+  rule.** That one is about the branch under your feet; this is about the work you are picking up.
+  The ritual checked a property of the branch and never a property of the work, and two issues here
+  read as available while the dependency graph said otherwise — permissively, which is the direction
+  that gets acted on. The rule is `select(.state == "open")`: **a closed blocker is not a blocker.**
+  `#30` carries one blocker and it is closed, so it is startable; filtering on whether a dependency
+  exists at all would refuse it. A lookup that fails is not a clear verdict — read the issue before
+  starting. `check-blocked.py` in the orchestration toolkit is the same endpoint and the same filter
+  with exit codes, for anything scripted.
+
+  Re-derive the example rather than trusting it — these move, and this one already has:
+
+  ```bash
+  gh api "repos/f3r21/ravn-task-management-challenge/issues/30/dependencies/blocked_by" \
+    --jq '"\([.[]|select(.state=="open")]|length) open of \(length)"'    # → 0 open of 1
+  ```
 
 - **The base is derived, never assumed:** `origin/dev` if this repo has one, otherwise the repo's
   own default branch. That resolves to `dev` here and to `main` in `ravn-ui-kit`, which has no

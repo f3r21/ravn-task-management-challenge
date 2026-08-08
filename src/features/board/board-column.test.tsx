@@ -253,55 +253,43 @@ describe('the overdue state', () => {
   const overdue = [makeTask({ dueDate: '2026-07-20T00:00:00.000Z' })]
 
   /*
-   * **Matched on the word alone, never on its punctuation.** Every assertion in this block
-   * used to read `/\(overdue\)/`, keyed to the parenthesised form the app's own badge
-   * emitted. `ravn-ui-kit#96` — the fix for the gap the tripwire below exists to watch —
-   * announces `, overdue` instead, following the kit's house idiom ("Notifications, 3
-   * unread"). No parentheses, so the old regex would have gone on matching nothing and the
-   * tripwire would have stayed green at exactly the moment it was supposed to go red.
+   * **Matched on the word alone, never on its punctuation**, and that is what made the
+   * hand-off work rather than a detail of style.
    *
-   * A tripwire keyed to a format it does not control is not a tripwire. This is keyed to
-   * the word, which is what actually has to be announced; only the due-date tag renders in
-   * these trees, so it cannot match anything else.
+   * Until `@ravn/ui-kit@v0.6.0` the board could not say this at all: the kit rendered the
+   * due date as a colour-coded `Tag` and nothing else, so a third case here pinned the
+   * *absence* — a tripwire named for ravn-ui-kit#92, designed to go red the moment the kit
+   * started announcing the state. On the bump it did, alone, out of 455 tests, and that red
+   * is why these two cases now cover both views instead of the list only.
+   *
+   * The tripwire nearly failed to fire. It first read `/\(overdue\)/`, keyed to the
+   * parenthesised form this app's own badge emitted; the kit announces `, overdue`,
+   * following its house idiom ("Notifications, 3 unread"). No parentheses, so it would have
+   * stayed green at exactly the moment it was supposed to go red — caught in review before
+   * the release, not after. **A tripwire keyed to a format it does not control is not a
+   * tripwire.** Only the due-date tag renders in these trees, so the word alone cannot match
+   * anything else.
    */
   const OVERDUE = /overdue/i
 
-  it('is spelled out in the list view, instead of relying on colour alone', () => {
-    renderColumn(overdue, 'list')
+  it.each<BoardView>(['grid', 'list'])(
+    'is spelled out rather than relying on colour alone (%s view)',
+    (view) => {
+      renderColumn(overdue, view)
 
-    expect(screen.getByText(OVERDUE)).toBeInTheDocument()
-  })
+      expect(screen.getByText(OVERDUE)).toBeInTheDocument()
+      // The visible date is untouched by the state being announced — the kit's fix adds an
+      // `sr-only` node beside it rather than changing `dueDateText`.
+      expect(screen.getByText('20 July, 2026')).toBeInTheDocument()
+    },
+  )
 
-  it('does not claim a task is overdue when it is not', () => {
-    renderColumn([makeTask({ dueDate: '2026-12-01T00:00:00.000Z' })], 'list')
+  it.each<BoardView>(['grid', 'list'])(
+    'does not claim a task is overdue when it is not (%s view)',
+    (view) => {
+      renderColumn([makeTask({ dueDate: '2026-12-01T00:00:00.000Z' })], view)
 
-    expect(screen.queryByText(OVERDUE)).not.toBeInTheDocument()
-  })
-
-  it('is NOT yet spelled out on the board — tripwire for ravn-ui-kit#92', () => {
-    /*
-     * **This test asserts a defect, and it is meant to fail when the defect is fixed.**
-     *
-     * The kit's `TaskCard` renders the due date as a colour-coded `Tag` and nothing else;
-     * `"overdue"` is rendered as a string zero times in `dist/index.js@v0.5.3`, which is
-     * the tag this app installs. The app's own badge used to add an `sr-only` state, and
-     * the board lost that on migration — the state is now carried by colour alone, which
-     * is WCAG 2.2 1.4.1.
-     *
-     * The alternative was to fold the state into the app-supplied `dueDateText`, and that
-     * was considered and rejected by the app's owner: "no quick fixes, we are migrating to
-     * using the ui-kit". So the fix belongs in the kit, and it is filed as
-     * ravn-ui-kit#92 — with ravn-ui-kit#96 open against it.
-     *
-     * Pinning the absence rather than deleting the assertion is what keeps this from
-     * quietly becoming permanent. The moment the kit starts announcing the state, this
-     * goes red — and that red is the instruction: delete this test, and let the two cases
-     * above cover the board as well as the list.
-     */
-    renderColumn(overdue)
-
-    expect(screen.queryByText(OVERDUE)).not.toBeInTheDocument()
-    // The date itself is still there, so this is not passing because the tag vanished.
-    expect(screen.getByText('20 July, 2026')).toBeInTheDocument()
-  })
+      expect(screen.queryByText(OVERDUE)).not.toBeInTheDocument()
+    },
+  )
 })

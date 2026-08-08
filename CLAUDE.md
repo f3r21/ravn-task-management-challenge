@@ -424,26 +424,33 @@ jsdom, faster and more precisely, and each extra flow is more live mutation.
   it. If you change behaviour, grep for comments describing the old one — several rounds of
   that have already been needed.
 - **Zero `any`, zero `@ts-ignore`.** Both are lint _errors_, so `npm run lint` is what holds
-  them at zero. **Type assertions are four, and this line claimed one until #40** — one at the
-  transport boundary and three downstream, plus zero non-null `!`:
-  `npm run assertions`, which lists each one and prints both totals.
+  them at zero. **Type assertions are one as of #110** — the transport boundary, and nothing
+  downstream — plus zero non-null `!`: `npm run assertions`, which lists each one and prints
+  both totals. Like the count below it, that is a reading at a commit rather than a floor;
+  re-run it rather than quoting this sentence.
 
   Count them with a parser, never a regex. Comment density here is deliberately high, so `as`
-  is overwhelmingly prose: `grep -rn ' as ' src | wc -l` answers 182, and tightening it to
+  is overwhelmingly prose: `grep -rn ' as ' src | wc -l` answers 191, and tightening it to
   `grep -rnE ' as (readonly |[A-Z])' src | wc -l` only gets to 26 — that still matches
-  `import type * as UiKit`, still matches a comment quoting `String(key) as T`, and still cannot
-  see the **two** assertions sharing `use-board-filters.ts:65`, because grep counts lines and not
-  expressions. The non-null half cannot be grepped at all, `!` being negation and JSX punctuation
-  far more often than an assertion.
+  `import type * as UiKit`, and still matches comments, which is now most of what it finds: the
+  three downstream assertions are gone and the sentences explaining why they went quote the code
+  that replaced them. Grep also counts lines rather than expressions, which is how it missed that
+  `use-board-filters.ts` once carried **two** assertions on one line. The non-null half cannot be
+  grepped at all, `!` being negation and JSX punctuation far more often than an assertion.
 
-  `client.ts:101` is the genuinely unavoidable one: `response.json()` is `Promise<any>` and
-  something has to name the shape. Of the three downstream, **two are removable and the codebase
-  already contains the fix** — `select-option.tsx:44` documents why a lookup beats
-  `String(key) as T` and applied it at six former call sites. `readMember`
-  (`use-board-filters.ts:65`) can be `allowed.find((member) => member === raw)`, which returns
-  `T | undefined` with nothing asserted; `board-toolbar.tsx:99` can find its value in `VIEWS` the
-  same way. Both files are `features/board` and were left to the lane rewriting that feature, so
-  four is the count as of #40 rather than a floor.
+  `client.ts:101` is the one that remains, and it is genuinely unavoidable: `response.json()` is
+  `Promise<any>` and something has to name the shape.
+
+  The other three went the way `select-option.tsx:44` describes — a lookup returns a value that
+  is _already_ typed, so nothing is asserted and an unknown key is simply absent. It replaced six
+  call sites in #40; `readMember` and `board-toolbar.tsx` followed in #110, and both are worth
+  reading for what the change costs rather than what it saves. `readMember` collapsed to
+  `allowed.find((member) => member === raw)` with nothing left over. `board-toolbar.tsx` did not:
+  a lookup can miss, and `onViewChange: (view: BoardView) => void` cannot accept
+  `BoardView | undefined`, so the guard is **type-required** and its else-branch is unreachable
+  through the UI. That file sits at 75% branch coverage as a result, deliberately — the
+  alternatives were reinstating the assertion, or `.filter().forEach()`, which reports 100% by
+  emitting no branch for the metric to miss.
 
 - **`date-fns` for `isValid` / `parseISO` only.** All formatting is `Intl` with an explicit
   `timeZone: 'UTC'` — see the trap below for what a date library reading local fields did.
