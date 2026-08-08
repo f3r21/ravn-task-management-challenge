@@ -30,9 +30,27 @@ import type { PointEstimate, Status, TaskTag } from './task-types'
  * date: without it "Yesterday" and friends break across as many as three lines in
  * a narrow column.
  *
- * Applied at both call sites rather than one, so the chips and the badge keep
- * rendering identically to the component they replaced. The kit's `Tag` merges
- * `className` last, which is what makes this work at all.
+ * The kit's `Tag` merges `className` last, which is what makes this work at all.
+ *
+ * **It now reaches only the list view, and that is a defect rather than a design.**
+ * Both call sites are in `task-card/task-row.tsx`; the board's chips go through
+ * `@ravn/ui-kit`'s `TaskCard`, whose `tags` prop is `{ label, variant }[]` with no
+ * styling channel, so it renders a bare `Tag` and the `uppercase` above never reaches
+ * it. The two views therefore disagree: the board reads "iOS app", the list "IOS APP".
+ *
+ * Measured in a browser, not in jsdom — the test environment loads no Tailwind, so
+ * `getComputedStyle(...).textTransform` answers `none` in *both* views and cannot tell
+ * them apart. Against `npm run dev`, one card's `innerText` reads
+ * `… | Android | React | …` and the same task's row reads `… | ANDROID | REACT | …`.
+ *
+ * Introduced by app#31 and filed as ravn-ui-kit#102, because the fix belongs there:
+ * Figma draws these chips in caps, so the kit's own card should render them that way
+ * rather than every consumer re-deriving it. Not worked around here — a Tailwind
+ * arbitrary variant aimed at the kit's internal DOM from the card's `className` would
+ * be exactly the brittle, silently-breaking hack this project keeps refusing.
+ *
+ * The paragraph above predicted this failure almost word for word: *"with every test
+ * still passing because they query the stored text."* Every test does still pass.
  */
 export const TAG_TEXT = 'uppercase whitespace-nowrap'
 
