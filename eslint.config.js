@@ -169,6 +169,35 @@ function unsupportedStaticMembers(floor) {
   return restricted
 }
 
+/**
+ * The generated re-export barrel, banned as an import target.
+ *
+ * `src/graphql/generated/index.ts` is a one-line `export * from "./gql"` that
+ * nothing imports, and it contradicts the no-barrels convention — but deleting it
+ * is futile. It is codegen output, the `client` preset offers no way to suppress
+ * it, and the next `npm run codegen` writes it straight back, leaving every run
+ * after that with a dirty diff. Banning the *import* enforces the same intent and
+ * survives regeneration, which deletion does not.
+ *
+ * `paths` and not `patterns`, which is the whole reason this is a named constant
+ * worth a comment: a `patterns` entry is a gitignore-style glob, and in gitignore
+ * a bare directory name matches everything beneath it too. Spelled as a pattern,
+ * `@/graphql/generated` flagged all 13 imports of `@/graphql/generated/graphql` —
+ * the correct path every consumer already uses — and would have forced the ban to
+ * be deleted rather than fixed. `paths` matches the specifier exactly.
+ *
+ * Both spellings are listed because `@/graphql/generated/index` resolves to the
+ * same module and would otherwise be an unguarded way back in.
+ */
+const RESTRICTED_GENERATED_BARREL = ['@/graphql/generated', '@/graphql/generated/index'].map(
+  (name) => ({
+    name,
+    message:
+      'Import @/graphql/generated/graphql directly. The generated index.ts is a re-export ' +
+      'barrel codegen emits and nothing should depend on.',
+  }),
+)
+
 const browserFloor = readBrowserFloor()
 
 export default tseslint.config(
@@ -230,6 +259,78 @@ export default tseslint.config(
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+    },
+  },
+  {
+    // The layering `CLAUDE.md` describes, made checkable.
+    //
+    // It was prose only, and prose does not fail a build: `features/profile` and
+    // the whole of `src/mocks/` both imported `@/features/board/task-types` to
+    // learn what a `User` is — a type returned by the `Users`, `Profile` *and*
+    // `Tasks` queries and belonging to none of them. Deleting `features/board`
+    // would have stopped the MSW handlers compiling. The types moved to
+    // `@/graphql/domain`; this rule is what stops the edge coming back.
+    //
+    // Only the `@/`-aliased form needs banning. A feature's own modules import
+    // each other relatively (`./task-types`, `../task-display`) and no file in
+    // `src/` climbs out of its own directory tree with `../../`, so the alias is
+    // the only spelling a cross-feature import currently has. Both `@/features/*`
+    // and `@/features/*/**` are listed because these are gitignore-style globs, in
+    // which `*` does not cross a `/` — the first alone would match
+    // `@/features/board` and miss `@/features/board/task-types`, which is every
+    // real violation.
+    //
+    // The generated barrel is banned alongside it — see
+    // `RESTRICTED_GENERATED_BARREL` for why that half is `paths` rather than a
+    // pattern, and why the file is not simply deleted.
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: RESTRICTED_GENERATED_BARREL,
+          patterns: [
+            {
+              group: ['@/features/*', '@/features/*/**'],
+              message:
+                'Cross-feature imports invert the layering. Shared API types live in ' +
+                '@/graphql/domain; shared components live in @/ui. A feature imports its own ' +
+                'modules relatively.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The two places allowed to compose features, and why each is not an
+    // exception waiting to be cleaned up.
+    //
+    // `src/app/` is routing and the shell — `routes.tsx` names every page and
+    // `app-layout.tsx` assembles the chrome around them. Composing features is the
+    // entire job of the layer, so the rule as first proposed in #40 would have
+    // failed on the router itself.
+    //
+    // `src/features/navigation/` renders that chrome: the header and the sidebar
+    // are mounted once by `AppLayout`, not by any feature, so it is the shell in
+    // everything but its directory. Its two edges are deliberate. `useProfile`
+    // backs the header avatar and the settings page under one query key, so the
+    // two cannot disagree about who is signed in. `useBoardFilters` is
+    // load-bearing rather than an oversight: the `name` URL parameter used to have
+    // two independent writers — the header building its own `URLSearchParams` and
+    // the hook with its own serialiser — so renaming the key on either side broke
+    // the header's search box with no type error and no failing test. #34
+    // collapsed both onto `FILTER_PARAMS` and made the header write through
+    // `setFilter`. Banning that import and re-exporting the hook from a shared
+    // module would satisfy this rule and restore the defect, so the import is
+    // allowed and the reason is written down here.
+    //
+    // The barrel ban is carried over rather than dropped: `'no-restricted-imports':
+    // 'off'` here would relax both halves at once, and nothing about composing
+    // features implies needing the generated barrel.
+    files: ['src/app/**/*.{ts,tsx}', 'src/features/navigation/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', { paths: RESTRICTED_GENERATED_BARREL }],
     },
   },
   {
