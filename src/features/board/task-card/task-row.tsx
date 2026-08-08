@@ -13,21 +13,33 @@ import { TaskActionsMenu } from './task-actions-menu'
  * One task as a row, for the list view — and the one board component the kit could not
  * take over.
  *
- * **Why this is still here.** `TaskTableRow` shipped everything else this migration needed
- * (`isSelectable`, `headingLevel`), but it has **no actions slot** — five fixed cells and
- * no `ReactNode` anywhere in its props, verified against the `v0.5.3` source with
+ * **Why this existed.** At `v0.5.3` `TaskTableRow` had shipped everything else this
+ * migration needed (`isSelectable`, `headingLevel`) but had **no actions slot** — five
+ * fixed cells and no `ReactNode` anywhere in its props, verified against the source with
  * `TaskCard`'s own `actions?: React.ReactNode` as the positive control. Rendering the list
- * view through it would silently drop Edit and Delete from every row, which is a
- * functional regression rather than a styling one. `TaskTable` also hardcodes its group
- * header as `<h3>`, which would put a skipped level between this page's `<h1>` and its
- * tasks. Both are filed as **ravn-ui-kit#95**; the standing rule is that a migration
- * blocked on a kit gap stops rather than regressing the app.
+ * view through it would have silently dropped Edit and Delete from every row, a functional
+ * regression rather than a styling one, and `TaskTable` hardcoded its group header as
+ * `<h3>`, putting a skipped level between this page's `<h1>` and its tasks. Both were filed
+ * as **ravn-ui-kit#95**, because the standing rule is that a migration blocked on a kit gap
+ * stops rather than regressing the app.
  *
- * **What it does about it.** This takes the kit's own `TaskTableRowProps` rather than a
+ * **#95 shipped in `v0.7.0` and this app pins it, so the block is gone.** What remains is
+ * the migration itself. Do not read this file as evidence that the list view cannot move —
+ * check the pinned tag rather than this paragraph, since a comment asserting a block
+ * outlives the block by exactly as long as nobody rereads it:
+ *
+ * ```bash
+ * grep ui-kit package.json     # then, against that tag:
+ * gh api "repos/f3r21/ravn-ui-kit/contents/src/components/card/task-table.tsx?ref=<tag>" \
+ *   --jq .content | base64 -d | grep -c 'actions?: React.ReactNode'    # must be 2
+ * ```
+ *
+ * Two rather than non-zero: the group-header slot masks the row slot at 1.
+ *
+ * **What it does meanwhile.** This takes the kit's own `TaskTableRowProps` rather than a
  * shape of its own, so `to-kit-props.ts` already emits exactly what the real component
- * wants and swapping this out once #95 lands is a one-line change in `board-column.tsx`,
- * not another translation layer. The props it cannot honour — `isSelectable`, `index` —
- * are named below rather than dropped silently.
+ * wants. The props it cannot honour — `isSelectable`, `index` — are named below rather than
+ * dropped silently.
  *
  * It spells the overdue state out itself (see `dueDate` below). That used to be a point on
  * which this row and the board genuinely differed — the kit conveyed urgency by colour
@@ -108,8 +120,10 @@ function TaskRowImpl({
                 visible: the comma paces the announcement, which is the kit's own idiom
                 ("Notifications, 3 unread").
 
-                This stays hand-written only until ravn-ui-kit#95 lets the row become the
-                kit's own `TaskTableRow`, which announces it via `dueDateUrgencyLabel`. */}
+                Hand-written only until this row becomes the kit's own `TaskTableRow`,
+                which announces the same state via `dueDateUrgencyLabel`. That is now a
+                migration outstanding rather than a gap — ravn-ui-kit#95 shipped in
+                `v0.7.0`. */}
             {dueDate}
             {isOverdue ? <span className="sr-only">, overdue</span> : null}
           </Tag>
