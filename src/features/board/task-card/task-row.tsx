@@ -98,9 +98,17 @@ function TaskRowImpl({
             {/* The visible text says "Yesterday"; colour says "overdue". Colour alone is
                 not information a screen reader receives, so the state is spelled out and
                 hidden from sighted layout. The kit's `TaskCard` and `DueDateCell` do not
-                do this — ravn-ui-kit#92 — which is why the board card currently cannot. */}
+                do this — ravn-ui-kit#92 — which is why the board card currently cannot.
+
+                Phrased `, overdue` rather than the ` (overdue)` this app used to emit, to
+                match what ravn-ui-kit#96 will announce once it lands. Otherwise the board
+                and this row would state the same fact two different ways in one app, and
+                the announced text would change under users on the version bump — for a
+                row that is scheduled to become the kit's own `TaskTableRow` (#95) anyway.
+                Spoken punctuation, not visible: the comma paces the announcement, which
+                is the kit's own idiom ("Notifications, 3 unread"). */}
             {dueDate}
-            {isOverdue ? <span className="sr-only"> (overdue)</span> : null}
+            {isOverdue ? <span className="sr-only">, overdue</span> : null}
           </Tag>
         ) : null}
       </div>

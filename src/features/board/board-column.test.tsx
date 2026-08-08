@@ -252,16 +252,30 @@ describe('the list view', () => {
 describe('the overdue state', () => {
   const overdue = [makeTask({ dueDate: '2026-07-20T00:00:00.000Z' })]
 
+  /*
+   * **Matched on the word alone, never on its punctuation.** Every assertion in this block
+   * used to read `/\(overdue\)/`, keyed to the parenthesised form the app's own badge
+   * emitted. `ravn-ui-kit#96` — the fix for the gap the tripwire below exists to watch —
+   * announces `, overdue` instead, following the kit's house idiom ("Notifications, 3
+   * unread"). No parentheses, so the old regex would have gone on matching nothing and the
+   * tripwire would have stayed green at exactly the moment it was supposed to go red.
+   *
+   * A tripwire keyed to a format it does not control is not a tripwire. This is keyed to
+   * the word, which is what actually has to be announced; only the due-date tag renders in
+   * these trees, so it cannot match anything else.
+   */
+  const OVERDUE = /overdue/i
+
   it('is spelled out in the list view, instead of relying on colour alone', () => {
     renderColumn(overdue, 'list')
 
-    expect(screen.getByText(/\(overdue\)/)).toBeInTheDocument()
+    expect(screen.getByText(OVERDUE)).toBeInTheDocument()
   })
 
   it('does not claim a task is overdue when it is not', () => {
     renderColumn([makeTask({ dueDate: '2026-12-01T00:00:00.000Z' })], 'list')
 
-    expect(screen.queryByText(/\(overdue\)/)).not.toBeInTheDocument()
+    expect(screen.queryByText(OVERDUE)).not.toBeInTheDocument()
   })
 
   it('is NOT yet spelled out on the board — tripwire for ravn-ui-kit#92', () => {
@@ -269,23 +283,24 @@ describe('the overdue state', () => {
      * **This test asserts a defect, and it is meant to fail when the defect is fixed.**
      *
      * The kit's `TaskCard` renders the due date as a colour-coded `Tag` and nothing else;
-     * `"overdue"` is rendered as a string zero times in `dist/index.js@v0.5.3`. The app's
-     * own badge used to add an `sr-only` " (overdue)", and the board lost that on
-     * migration — the state is now carried by colour alone, which is WCAG 1.4.1.
+     * `"overdue"` is rendered as a string zero times in `dist/index.js@v0.5.3`, which is
+     * the tag this app installs. The app's own badge used to add an `sr-only` state, and
+     * the board lost that on migration — the state is now carried by colour alone, which
+     * is WCAG 2.2 1.4.1.
      *
      * The alternative was to fold the state into the app-supplied `dueDateText`, and that
      * was considered and rejected by the app's owner: "no quick fixes, we are migrating to
      * using the ui-kit". So the fix belongs in the kit, and it is filed as
-     * ravn-ui-kit#92.
+     * ravn-ui-kit#92 — with ravn-ui-kit#96 open against it.
      *
      * Pinning the absence rather than deleting the assertion is what keeps this from
      * quietly becoming permanent. The moment the kit starts announcing the state, this
-     * goes red — and that red is the instruction: delete this test, restore the real
-     * assertion above it for the board too, and drop the note in `task-row.tsx`.
+     * goes red — and that red is the instruction: delete this test, and let the two cases
+     * above cover the board as well as the list.
      */
     renderColumn(overdue)
 
-    expect(screen.queryByText(/\(overdue\)/)).not.toBeInTheDocument()
+    expect(screen.queryByText(OVERDUE)).not.toBeInTheDocument()
     // The date itself is still there, so this is not passing because the tag vanished.
     expect(screen.getByText('20 July, 2026')).toBeInTheDocument()
   })
