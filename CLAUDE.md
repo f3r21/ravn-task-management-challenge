@@ -126,13 +126,23 @@ The second load-bearing decision, and the one this document used to omit entirel
 
 The Figma file for this challenge is a component library rather than a set of screens, so it
 was built as one: **`@ravn/ui-kit`** (https://github.com/f3r21/ravn-ui-kit), a separate repo
-with its own Storybook, tests and CI. This app is its first consumer. `Modal`, `Select`,
-`MultiSelect` and `Menu` come from it today; `Avatar`, `Button`, `Tag`, `Skeleton` and the
-board components are still app-owned and queued to move.
+with its own Storybook, tests and CI. This app is its first consumer. The migration onto it is
+substantially done: `Modal`, `Select`, `MultiSelect` and `Menu` came first, then `Avatar`,
+`Button`, `Tag` and `Skeleton` (#30), then the board itself (#31). What remains app-owned is
+whatever `src/ui/` still holds — today `async-section`, `empty-state`, `error-boundary` and
+`toast`. Read the directory rather than this sentence; it is the list that keeps moving.
+
+**Where the kit falls short, the kit gets fixed.** A gap is filed against `ravn-ui-kit` and
+waited on, not worked around here — no adapter-layer shim, and no keeping a component
+app-owned to avoid the round trip. That costs real time: an app change can end up blocked on a
+kit issue, a kit release and a version bump. It is deliberate, because the alternative is a
+second implementation of something the design system is supposed to own.
 
 **It arrives as a git dependency pinned to a tag, not from npm.** There is no registry to
-publish to, so the dependency is the repository itself:
-`"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#v0.4.0"`. The kit repo is public, so `npm ci`
+publish to, so the dependency is the repository itself, of the form
+`"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#<tag>"`. For the tag actually pinned, read
+`package.json` — `grep ui-kit package.json` — rather than any version written into this
+document, which has already gone stale once. The kit repo is public, so `npm ci`
 clones it anonymously — no token, in CI or on Vercel. A git install runs no build; the kit
 commits its `dist/` and checks its freshness in its own CI. Consequences:
 
@@ -319,9 +329,9 @@ because the design is dark-only, so form controls, scrollbars and focus rings ne
 Colours still reach a component only through a semantic name that says what the colour is
 _for_ (`text-main`, `bg-surface-panel`, `border-subtle`): Tailwind v4 generates utilities only
 for what it finds in `@theme`, so `bg-neutral-4` is not a class that exists in the app's
-output. Icons in `src/ui/icons/` are the design's own SVG exports with `fill` swapped for
-`currentColor`, so their colour comes from the token layer too. The kit exports the same set
-and this one is a duplicate awaiting migration, not a deliberate fork.
+output. Icons come from the kit, and are the design's own SVG exports with `fill` swapped for
+`currentColor`, so their colour comes from the token layer too. The app briefly kept a
+duplicate set in `src/ui/icons/`; #93 deleted it, and that path no longer exists.
 
 ### The browser floor is declared, not inherited
 
