@@ -187,7 +187,13 @@ describe('editing a task', () => {
     const within_ = within(card as HTMLElement)
     expect(within_.getByText('iOS app')).toBeInTheDocument()
     expect(within_.getByText('Android')).toBeInTheDocument()
-    expect(within_.getByText('4 Points')).toBeInTheDocument()
+    // "4 Pts", not "4 Points": the board renders `@ravn/ui-kit`'s `TaskCard`, whose
+    // wording is not configurable. This is the one place in the migration where the *app*
+    // was the thing that was wrong — the kit derives "N Pts" from the Figma card's own
+    // "Timer" row, and the app had been spelling it out. Its `EstimationCell` says
+    // "N Points" in the table, which means the kit disagrees with itself and renders
+    // "1 Pts" for a one-point task; that is ravn-ui-kit#94 and it is the kit's to fix.
+    expect(within_.getByText('4 Pts')).toBeInTheDocument()
     expect(within_.getByText('14 August, 2026')).toBeInTheDocument()
     expect(within_.getByRole('img', { name: 'Alicia Koch' })).toBeInTheDocument()
   })

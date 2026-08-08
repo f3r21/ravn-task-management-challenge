@@ -16,67 +16,87 @@ import { BOARD_STATUSES } from './task-types'
  * avoidable is the board re-rendering *with* it, rebuilding every card's twenty-odd
  * elements for a character that does not reach the API for another 300ms.
  *
- * The instrument is `Avatar`, counted through a module mock rather than a counter
- * added to `TaskCard` itself. That placement is the whole trick: `Avatar` is
- * rendered *inside* `TaskCard`, so it is downstream of the memo boundary. Counting
- * `TaskCard` from the outside would count React's *attempts* to render it, which
- * `memo` does not change — the number would stay flat across exactly the fix this
- * measures, and read as no improvement.
+ * **Two counters, and they are not two independent checks — the second exists because
+ * the first went blind once already.** Both are module mocks rather than counters
+ * added to components, so they sit downstream of the boundary they measure: counting a
+ * memoised component from the outside would count React's *attempts* to render it,
+ * which `memo` does not change.
  *
- * **Card avatars are counted separately from the header's**, and that separation is
- * what makes both assertions sharp rather than merely true:
+ * - `TaskListView` counts **columns**, and it is the assertion that pins
+ *   `memo(BoardColumn)`. Dropping the memo fails it with `expected 5 to be 0`.
+ * - `Menu` counts **cards** — `TaskActionsMenu` is the only thing in the app that
+ *   renders one (`grep -rn --include='*.tsx' '<Menu' src`), exactly one per task, in
+ *   both views.
  *
- * - The closing assertion is `cards === 0`. A count that lumped the two together
- *   would assert `=== 1`, a number the header alone satisfies — so a board that had
- *   stopped rendering cards entirely would pass it. Zero is not reachable that way.
- * - The opening assertion is `cards === 150`, which proves the board really did
- *   mount every card before anything was measured. Without it the test could go
- *   green having measured nothing at all, which is the shape this repo has already
- *   paid for four times — most memorably a Tailwind canary that generated the very
- *   classes it grepped for.
+ * **The closing `cards === 0` cannot fail while `columns === 0` holds, and that is
+ * stated rather than dressed up as a second guarantee.** A memoised column never
+ * re-runs, so the `useMemo` building its card props never recomputes; breaking that
+ * inner memo on its own leaves this test green, which was checked rather than assumed.
+ * The card counter earns its place on the *opening* assertion instead — `cards === 150`
+ * is what proves the board actually mounted — and as the thing that would notice if the
+ * boundary moved somewhere this file does not know about.
  *
- * The header count is deliberately *not* asserted. It is 2 at mount, not 1: the
- * profile query resolves and `AppHeader` renders again. That is timing-dependent,
- * so pinning it would buy nothing and flake.
+ * Worth knowing if you sabotage this yourself: dropping `memo()` leaves the *card*
+ * count at a perfect 0 anyway. The `actions` elements inside the memoised props array
+ * stay referentially identical across the re-render, so React bails out of the menu
+ * subtree specifically while the kit rebuilds all 150 cards around it. A card-only
+ * instrument reports a flawless score for a board that is re-rendering completely.
  *
- * `TaskCard` renders exactly one `Avatar`, unconditionally — it passes
- * `task.assignee?.avatar`, so an unassigned task still gets the initials fallback.
- * The split is on `size`: the header asks for `"md"` (`app-header.tsx`) and every
- * card for `"sm"` (`task-card.tsx`). Both are explicit, and that is load-bearing
- * rather than tidy — app#30 swapped this component for `@ravn/ui-kit`'s, whose
- * default is `md`, so the older rule of "the header names a size and cards take
- * the default" would now count every card as a header and report zero card
- * renders on a board that is re-rendering all of them.
+ * **The instrument used to be `Avatar` alone, and the board migration made it blind.**
+ * Worth recording, because the failure was silent in the dangerous direction: the
+ * board now renders `@ravn/ui-kit`'s `TaskCard`, which calls the kit's *internal*
+ * `Avatar` rather than importing it from the barrel this file mocks. So the mock
+ * stopped intercepting card avatars entirely and the opening count fell to zero —
+ * caught only because that opening assertion exists. Had the test asserted just the
+ * closing `=== 0`, a completely blind instrument would have reported a perfect score.
+ * A mock of a package barrel only ever sees what the *app* imports through it, which
+ * is also why neither counter can reach inside the kit's own card.
  *
- * Both asserted numbers are re-derived by a green run, since the assertions *are*
+ * The label filter on `Menu` is belt-and-braces, so that adding a menu elsewhere in
+ * the app later cannot quietly pollute the card count.
+ *
+ * The opening assertions are what keep the closing ones from passing vacuously:
+ * `cards === 150` and `columns === 5` prove the board really did mount before
+ * anything was measured. Without them the test could go green having measured
+ * nothing at all — which is not hypothetical here, it is precisely what the `Avatar`
+ * instrument started doing.
+ *
+ * All four asserted numbers are re-derived by a green run, since the assertions *are*
  * the numbers:
  *
  *     npx vitest run src/features/board/board-render-cost.test.tsx
  *
- * The unmemoised figure is the one thing CI cannot assert, because asserting it
- * would mean keeping the code broken. Reproduce it by dropping the `memo()` wrapper
- * in `task-card.tsx` and running the same command, which fails
- * `expected 150 to be 0` — 150 cards re-rendering for one character.
+ * The unmemoised figure is the one thing CI cannot assert, because asserting it would
+ * mean keeping the code broken. Reproduce it by dropping the `memo()` wrapper in
+ * `board-column.tsx` and running the same command: `expected 5 to be 0` on columns —
+ * five columns rebuilding all 150 cards for one character.
+ *
+ * **The memo boundary moved** in app#31: it used to sit on each `TaskCard`, and the
+ * kit's `TaskListView` builds its own cards from a props array and memoises none of
+ * them, so the boundary is now the column. One boundary per column instead of one per
+ * card, and it skips the column header too.
  *
  * There is deliberately no `console.log` reporting the counts: Vitest buffers
  * test-side console output and prints it only for failing tests, so on a green run
  * it would emit nothing and the figure would look sourced when it was not.
  */
-const renders = vi.hoisted(() => ({ cards: 0, header: 0 }))
+const renders = vi.hoisted(() => ({ cards: 0, columns: 0 }))
 
 vi.mock('@ravn/ui-kit', async (importOriginal) => {
   const actual = await importOriginal<typeof UiKit>()
   return {
     ...actual,
-    Avatar: (props: ComponentProps<typeof actual.Avatar>) => {
-      // See the header comment: the split is on the two explicit sizes, not on one
-      // caller naming a size while the other takes a default.
-      if (props.size === 'md') {
-        renders.header += 1
-      } else {
+    Menu: (props: ComponentProps<typeof actual.Menu>) => {
+      // Only the per-task menus, named for the task they belong to. Nothing else in
+      // the app renders a `Menu` today; this keeps that from being load-bearing.
+      if (typeof props.label === 'string' && props.label.startsWith('Task options for')) {
         renders.cards += 1
       }
-      return createElement(actual.Avatar, props)
+      return createElement(actual.Menu, props)
+    },
+    TaskListView: (props: ComponentProps<typeof actual.TaskListView>) => {
+      renders.columns += 1
+      return createElement(actual.TaskListView, props)
     },
   }
 })
@@ -133,20 +153,29 @@ describe('board render cost', () => {
     )
 
     // The board really is fully mounted — see the note above on why measuring
-    // nothing must not look like measuring zero.
+    // nothing must not look like measuring zero. One column per status, and one card
+    // per task across all of them.
     expect(renders.cards).toBe(TASK_COUNT)
+    expect(renders.columns).toBe(BOARD_STATUSES.length)
 
     // The board is up. Everything counted from here belongs to the keystroke.
     renders.cards = 0
+    renders.columns = 0
 
     await user.type(
       await screen.findByRole('searchbox', { name: 'Search tasks' }, { timeout: 20_000 }),
       'a',
     )
 
-    // Not one card re-renders. The header's own avatar does — it is inside the
-    // component that owns the input — and is counted separately so it cannot
-    // satisfy this on its own.
+    // Not one column re-renders, so the kit never rebuilds a card. The header does
+    // re-render — it is the component that owns the input — but it renders neither a
+    // `Menu` nor a `TaskListView`, so it cannot satisfy either of these on its own.
+    expect(renders.columns).toBe(0)
+
+    // And not one card. Implied by the line above rather than independent of it — see
+    // the header — so this is a consistency check on the instrument, not a second
+    // guarantee. It is the assertion that would catch the card counter going blind the
+    // way the `Avatar` one did.
     expect(renders.cards).toBe(0)
   }, 30_000)
 })

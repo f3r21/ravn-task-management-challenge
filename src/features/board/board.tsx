@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { BoardColumn } from './board-column'
-import type { TaskCardLayout } from './task-card/task-card'
 import type { BoardView } from './board-toolbar'
 import { BOARD_STATUSES, type Status, type Task } from './task-types'
 
@@ -63,18 +62,13 @@ const VIEW_LAYOUTS = {
   grid: {
     wrapper:
       'flex flex-col gap-8 sm:grid sm:grid-cols-2 xl:flex xl:flex-row xl:overflow-x-auto xl:pb-2',
-    itemLayout: 'card',
     columnClassName: 'xl:w-87 xl:shrink-0',
   },
   list: {
     wrapper: 'flex flex-col gap-8',
-    itemLayout: 'row',
     columnClassName: undefined,
   },
-} as const satisfies Record<
-  BoardView,
-  { wrapper: string; itemLayout: TaskCardLayout; columnClassName: string | undefined }
->
+} as const satisfies Record<BoardView, { wrapper: string; columnClassName: string | undefined }>
 
 export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps) {
   // Memoised to skip the regrouping — a `Map`, five arrays and five `sort()`s —
@@ -94,9 +88,12 @@ export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps
   // same array comes back out of the same cache entry.
   const grouped = useMemo(() => groupByStatus(tasks), [tasks])
 
-  // The two views iterate the same statuses and differ in exactly three values,
-  // so those are what varies — not the loop, which used to be written out twice.
-  const { wrapper, itemLayout, columnClassName } = VIEW_LAYOUTS[view]
+  // The two views iterate the same statuses and differ in exactly two values here,
+  // so those are what varies — not the loop, which used to be written out twice. The
+  // third used to be `itemLayout`, which chose between one component's two branches;
+  // the column now takes `view` itself and picks between two different components,
+  // because the board half renders through the kit and the list half cannot yet.
+  const { wrapper, columnClassName } = VIEW_LAYOUTS[view]
 
   return (
     <div className={wrapper}>
@@ -105,8 +102,8 @@ export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps
           key={status}
           status={status}
           tasks={grouped.get(status) ?? []}
+          view={view}
           now={now}
-          itemLayout={itemLayout}
           className={columnClassName}
           onEditTask={onEditTask}
           onDeleteTask={onDeleteTask}

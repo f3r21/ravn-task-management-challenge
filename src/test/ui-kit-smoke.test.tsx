@@ -1,5 +1,18 @@
 import { render, screen } from '@testing-library/react'
-import { Menu, Modal, MultiSelect, Select } from '@ravn/ui-kit'
+import {
+  Avatar,
+  Button,
+  DUE_DATE_URGENCY_COLOR,
+  Datepicker,
+  Menu,
+  Modal,
+  MultiSelect,
+  Select,
+  Skeleton,
+  Tag,
+  TaskListView,
+  TextButton,
+} from '@ravn/ui-kit'
 import { Item } from 'react-stately'
 import { describe, expect, it } from 'vitest'
 import appManifest from '../../package.json'
@@ -45,13 +58,34 @@ describe('@ravn/ui-kit, as installed', () => {
     // would keep working after the package stopped exporting these names, which is
     // exactly the drift this file exists to catch.
     //
-    // The list is the four the app imports today (`grep -rn "from '@ravn/ui-kit'" src`).
-    // A fifth import belongs here too — a missing entry only under-tests, it cannot
-    // produce a false pass.
+    // The components the app imports today, minus the icons — which are a single
+    // uniform family, so naming one of them proves the same thing as naming fourteen.
+    // A missing entry only under-tests; it cannot produce a false pass.
+    //
+    // Re-derive the full list, icons and types included:
+    //
+    //   grep -rho "import \(type \)\?{[^}]*} from '@ravn/ui-kit'" src | grep -v test
     expect(typeof Menu).toBe('function')
     expect(typeof Modal).toBe('function')
     expect(typeof MultiSelect).toBe('function')
     expect(typeof Select).toBe('function')
+    // Added by the board migration (app#31).
+    expect(typeof Avatar).toBe('function')
+    expect(typeof Button).toBe('function')
+    expect(typeof Datepicker).toBe('function')
+    expect(typeof Skeleton).toBe('function')
+    expect(typeof Tag).toBe('function')
+    expect(typeof TaskListView).toBe('function')
+    expect(typeof TextButton).toBe('function')
+  })
+
+  it('exports the urgency palette the board hands straight to a Tag', () => {
+    // A value rather than a component, so it needs its own shape of check: a `typeof`
+    // test passes on a map that is present but missing a member. The app deleted its own
+    // copy of this table in favour of the kit's, and the board reads all three members,
+    // so a release that dropped one would leave a due-date tag unstyled with nothing
+    // else here failing.
+    expect(Object.keys(DUE_DATE_URGENCY_COLOR).sort()).toEqual(['normal', 'overdue', 'soon'])
   })
 
   it('renders one of them with its accessible name intact', () => {
