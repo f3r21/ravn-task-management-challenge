@@ -770,15 +770,23 @@ Measured here, on paths every one of these rules names:
 | `grep -c … node_modules/@ravn/ui-kit/dist/theme.css` | **refused** |
 | `grep -c … ./package-lock.json`                      | **refused** |
 | `ls -la coverage/<file>`                             | **refused** |
+| `cat ./dist/<file>`                                  | **refused** |
 | `node -e` reading `./package-lock.json`              | allowed     |
 | `node -e` reading a file under `node_modules/`       | allowed     |
 | the **Write** tool, to a path under `coverage/`      | allowed     |
+| the **Write** tool, to a path under `dist/`          | allowed     |
+
+Every row is a probe someone ran, and the four named tools are named because they were the ones
+tried — `cat` is in that table because an earlier draft of this passage asserted it without
+probing it, which is the same defect one paragraph below its own correction. The two `Write`
+rows are two different deny rules, so "does not reach `Write`" rests on two measurements rather
+than one.
 
 So it does stop a shell reader whose command shape it recognises — that half is real, and the
 refusals above are what make the permissions below them meaningful. It does **not** stop a
-program that opens the path itself, and it does not reach `Write` at all, which is the least
-surprising of the three once you notice a _read_-deny rule was being credited with preventing a
-write. `Edit` and `Glob` are untested here and this file no longer claims either way.
+program that opens the path itself, and it does not reach `Write`, which is the least surprising
+of the three once you notice a _read_-deny rule was being credited with preventing a write.
+`Edit` and `Glob` are untested here and this file no longer claims either way.
 
 **The practical consequence is that four recipes in these pages deliberately go around it, and
 they are not violations.** `CLAUDE.md:172` and `.claude/rules/ui-kit.md:42` hand you
