@@ -246,10 +246,24 @@ meant to outlive this app. Weakening a test to match a component is the one refa
 never in scope here.
 
 The corollary is that a migration can be _blocked_ on the kit, and that is a legitimate
-place to stop — see `delete-task-dialog.tsx`, which stays on the app's own `Dialog` because
-the kit's `Modal` drops `useDialog`'s `contentProps` and so cannot describe an
-`alertdialog`. Record the gap and leave the app correct; do not migrate a component into a
+place to stop. Record the gap and leave the app correct; do not migrate a component into a
 regression.
+
+**Nothing here is blocked on the kit today, and the worked example is one where the rule ran
+to completion rather than one that is still waiting.** `delete-task-dialog.tsx` was stopped
+for months — the kit's `Modal` had no `role`, then had one but dropped `useDialog`'s
+`contentProps`, which for an `alertdialog` means the role is announced without the body text
+that is the whole reason for choosing it. The gap was filed against the kit, fixed there
+rather than worked around here, released, re-pinned, and the migration then landed with no
+compensating code in this app. **The arc lives in that file's own doc comment, which is
+where to read it** — beside the code it explains, so it cannot go stale the way this
+paragraph did. It said the migration was still blocked for four releases after it landed,
+and pointed at an app-owned `Dialog` that no longer exists.
+
+Do not go looking for a currently-blocked migration to replace it with; there is none. The
+only other component that ever cited a kit gap — `metaBadges` in
+`task-card/to-kit-props.ts` — records its gap as closed too, and stays omitted for a reason
+the kit cannot fix. `src/ui/`'s survivors are app-owned by design rather than blocked.
 
 ### The data path
 
@@ -745,9 +759,47 @@ that review, `gate` and a test can all see.
 
 `permissions.deny` in `settings.json` keeps `package-lock.json`, `coverage/`, `dist/` and
 `node_modules/` out of context. `.claudeignore`, which used to claim that job, is not a Claude
-Code feature and never excluded anything. Note the reach of a `Read()` rule: it also covers
-Edit, Write, Glob, Grep and the shell's own readers, so reading a dependency's source now takes
-a deliberate change here rather than a `cat`.
+Code feature and never excluded anything.
+
+**A `Read()` rule matches the command, not the file, and this passage used to overstate how far
+that reaches.** It claimed to cover "Edit, Write, Glob, Grep and the shell's own readers".
+Measured here, on paths every one of these rules names:
+
+| probe                                                | result      |
+| ---------------------------------------------------- | ----------- |
+| `grep -c … node_modules/@ravn/ui-kit/dist/theme.css` | **refused** |
+| `grep -c … ./package-lock.json`                      | **refused** |
+| `ls -la coverage/<file>`                             | **refused** |
+| `cat ./dist/<file>`                                  | **refused** |
+| `node -e` reading `./package-lock.json`              | allowed     |
+| `node -e` reading a file under `node_modules/`       | allowed     |
+| the **Write** tool, to a path under `coverage/`      | allowed     |
+| the **Write** tool, to a path under `dist/`          | allowed     |
+
+Every row is a probe someone ran, and the four named tools are named because they were the ones
+tried — `cat` is in that table because an earlier draft of this passage asserted it without
+probing it, which is the same defect one paragraph below its own correction. The two `Write`
+rows are two different deny rules, so "does not reach `Write`" rests on two measurements rather
+than one.
+
+So it does stop a shell reader whose command shape it recognises — that half is real, and the
+refusals above are what make the permissions below them meaningful. It does **not** stop a
+program that opens the path itself, and it does not reach `Write`, which is the least surprising
+of the three once you notice a _read_-deny rule was being credited with preventing a write.
+`Edit` and `Glob` are untested here and this file no longer claims either way.
+
+**The practical consequence is that four recipes in these pages deliberately go around it, and
+they are not violations.** `CLAUDE.md:172` and `.claude/rules/ui-kit.md:42` hand you
+`node -e 'require("./package-lock.json")'` to read the `resolved` field, which is the one field
+that says which kit build is installed; `CLAUDE.md:206` and `ui-kit.md:62` send you to
+`node_modules/@ravn/ui-kit/dist/index.d.ts` as the authoritative local reference for what a kit
+component does. Both are load-bearing and both are the point of the rule's boundary rather than
+a hole in it: the deny list stops a whole dependency tree arriving in context by accident, and a
+named `node -e` reading one field is a deliberate act. That is the distinction the old sentence
+collapsed by promising enforcement instead of friction.
+
+The value is real and worth keeping — it is what stops `cat node_modules/…` and a 300 kB
+lockfile filling a context window. Treat it as friction, not a boundary.
 
 `scripts/new-lane.sh <lane-name> [branch]` provisions a lane worktree, and exists because doing
 it by hand went silently wrong four times: `.claude/skills/` is gitignored so a lane starts with

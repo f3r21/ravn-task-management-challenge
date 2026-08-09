@@ -65,17 +65,27 @@ switch on.
 
 ## What it does
 
-|                                                      |                                                   |
-| ---------------------------------------------------- | ------------------------------------------------- |
-| ![Creating a task](docs/screenshots/create-task.jpg) | ![No results](docs/screenshots/empty-results.jpg) |
-| Creating a task                                      | Filters that match nothing                        |
-| ![Settings](docs/screenshots/settings.jpg)           | ![List layout](docs/screenshots/list-view.jpg)    |
-| The signed-in user — email redacted, see below       | The list layout                                   |
+|                                                       |                                                   |
+| ----------------------------------------------------- | ------------------------------------------------- |
+| ![Creating a task](docs/screenshots/create-task.jpg)  | ![No results](docs/screenshots/empty-results.jpg) |
+| Creating a task — the white date field is a known bug | Filters that match nothing                        |
+| ![Settings](docs/screenshots/settings.jpg)            | ![List layout](docs/screenshots/list-view.jpg)    |
+| The signed-in user — email redacted, see below        | The list layout                                   |
 
 The email field in that screenshot reads `[email redacted]`. The API's seeded profile is a real
 person at RAVN, and this repository is public, so the address is masked in the image rather than
-published in it. Nothing else in any screenshot is altered — they are captures of the deployed
-build against the live API.
+published in it. Nothing else in any screenshot is altered — they are captures of the app running
+against the live API, at one viewport, with no retouching.
+
+**That includes the white date field in the create dialog, which is a defect and is left
+visible.** It is
+[`ravn-ui-kit#130`](https://github.com/f3r21/ravn-ui-kit/issues/130): the kit's `Datepicker`
+hardcodes a white surface, so it is the one light control among the dialog's five pickers — the
+other four are the design's dark chip. It is the same mistake the kit's `Select` trigger already
+fixed, in a component that was never swept when that fix landed. The app does not paint over it, because
+[the standing rule](#the-design-system-is-a-separate-package) is that a kit defect is fixed in the
+kit and never worked around here — and a screenshot edited to hide what the app renders stops
+being a record and becomes a claim.
 
 - **Board** — five status columns, task cards with name, tags, due date, points, assignee
   and an options menu. Loading, error and empty states are three distinct things.
@@ -558,7 +568,7 @@ This repository is heavily instrumented for AI development via [Claude Code](htt
 - **Automated Hooks (`.claude/hooks/`, wired up in `.claude/settings.json`)**: both read their event payload as JSON on stdin, which is the only way a hook is given one.
   - `PostToolUse` → `format-file.sh`: runs this repo's own ESLint and Prettier over the file Claude just saved, so a formatting slip never reaches `npm run gate`.
   - `PreToolUse` → `block-dangerous.sh`: refuses a handful of irreversible bash commands — a recursive forced `rm` aimed at `/` or `$HOME`, a plain force push, a download piped into a shell — by returning a `deny` decision, not by exiting non-zero, which Claude Code treats as a non-blocking error and runs the command anyway. `scripts/hooks.test.mjs` drives both scripts the way Claude Code drives them, because a hook that does nothing exits 0 exactly like a hook that works. Nothing enforces `gate` before a commit — running it is on you. A repository ruleset does enforce it before a merge: `main` and `dev` take changes by pull request only, with CI green against an up-to-date branch, and no force-push or deletion.
-- **Permissions (`.claude/settings.json`)**: Playwright and Chrome DevTools are whitelisted to run headless tests silently without interrupting the agent, and `permissions.deny` keeps `package-lock.json`, `coverage/`, `dist/` and `node_modules/` out of context — through the Read, Edit, Glob and Grep tools and through the shell's own readers alike.
+- **Permissions (`.claude/settings.json`)**: Playwright and Chrome DevTools are whitelisted to run headless tests silently without interrupting the agent, and `permissions.deny` keeps `package-lock.json`, `coverage/`, `dist/` and `node_modules/` out of context. It is friction rather than a boundary, and this bullet used to say otherwise: a `Read()` rule matches the **command**, so it refuses `grep`, `cat` and `ls` against those paths, and does not stop a program that opens them itself — `node -e 'require("./package-lock.json")'` reads straight through, which is exactly how `CLAUDE.md` tells you to check which kit build is installed. Measured both ways rather than assumed; the full matrix is in `CLAUDE.md`'s `permissions.deny` passage. The value is that a dependency tree cannot arrive in a context window by accident, not that it cannot be read.
 - **Lane provisioning (`scripts/new-lane.sh <lane-name> [branch]`)**: work happens in parallel git worktrees, and four of the things a worktree needs are gitignored, so they arrive in none of them — skills, local permissions, `.env`, and an MCP server that can resolve to the wrong scope. Each of those failures leaves a lane that looks fine and is missing a tool, so the script restores them, finishes with `npm run gate` so a lane never inherits a red tree as its own first bug, and prints a checklist read back off the worktree it just made. `scripts/new-lane.test.mjs` pins its pre-flight guards — the checks that keep a lane from landing inside the repo, where Vitest, ESLint and Prettier would all collect a second copy of this source tree.
 
 ## License
