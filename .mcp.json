@@ -13,11 +13,13 @@
       "args": ["-y", "@playwright/mcp@latest"]
     },
     "graphql": {
-      "command": "npx",
-      "args": ["-y", "mcp-graphql"],
+      "command": "sh",
+      "args": [
+        "-c",
+        "set -a; [ -f \"${CLAUDE_PROJECT_DIR:-.}/.env\" ] && . \"${CLAUDE_PROJECT_DIR:-.}/.env\"; set +a; HEADERS=\"{\\\"Authorization\\\":\\\"Bearer $VITE_API_TOKEN\\\"}\" exec npx -y mcp-graphql"
+      ],
       "env": {
-        "ENDPOINT": "https://syn-api-production-e95c.up.railway.app/graphql",
-        "HEADERS": "{\"Authorization\":\"Bearer ${VITE_API_TOKEN}\"}"
+        "ENDPOINT": "https://syn-api-production-e95c.up.railway.app/graphql"
       }
     }
   }

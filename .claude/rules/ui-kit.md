@@ -27,10 +27,29 @@ dependency. This app is its first and only consumer.
 - **Never hand-edit anything under `node_modules/@ravn/ui-kit/`.** It is installed build
   output — a change there is invisible to the kit's own tests and is destroyed by the next
   install. Fix it in the kit repo, release, then bump the tag here.
-- Bumping the tag is its own commit, never mixed into an app change. It is a one-line
-  `package.json` edit plus `npm install`; verify by the resolved commit SHA in
-  `package-lock.json`, not by a version string. The kit ships breaking changes on minor
-  bumps (pre-1.0), so read its `CHANGELOG.md` first.
+- Bumping the tag is its own commit, never mixed into an app change. The kit ships breaking
+  changes on minor bumps (pre-1.0), so read its `CHANGELOG.md` first.
+- **Only `packages['node_modules/@ravn/ui-kit'].resolved` decides which build you have.** This
+  rule used to say "verify by the resolved commit SHA, not by a version string" — which named
+  the trap and left you standing in it, because `package-lock.json`'s **root spec is a version
+  string** (`"github:f3r21/ravn-ui-kit#v0.8.0"`) and so is the `version` field beside
+  `resolved`. All three, plus the packed filename, can claim a tag the installed tree is not:
+  a bare `npm install` after editing `package.json` rewrote the root spec, left `resolved` on
+  the old commit, printed `up to date` and exited 0.
+
+  ```bash
+  npm install '@ravn/ui-kit@github:f3r21/ravn-ui-kit#<tag>'   # the form that actually bumps
+  node -e 'const l=require("./package-lock.json");const p="node_modules/@ravn/ui-kit";
+    console.log(l.packages[p].resolved, "|", l.packages[""].dependencies["@ravn/ui-kit"]);'
+  git ls-remote https://github.com/f3r21/ravn-ui-kit 'refs/tags/<tag>*'
+  ```
+
+  Compare `resolved` to the **`^{}`** line: the kit's tags are annotated, so the bare
+  `refs/tags/<tag>` is the tag object and `resolved` holds the commit. On `dev` at `9ddc8a4`
+  all of them agree, so the disagreement is reproducible rather than currently present.
+  `src/test/ui-kit-smoke.test.tsx` catches the specific case of a pin bumped without an
+  install, because it compares the installed manifest against the pinned tag.
+
 - **`src/test/ui-kit-smoke.test.tsx` guards the seam between the two repos** — the one
   failure neither repository's CI can see. It asserts, from the public barrel rather than a
   deep path, that the components the app imports exist, that one renders with its accessible
