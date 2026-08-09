@@ -44,11 +44,11 @@ describe('toKitCardProps', () => {
     )
 
     expect(props.tags).toEqual([
-      { label: 'iOS app', variant: 'green' },
-      { label: 'Android', variant: 'yellow' },
+      { label: 'iOS app', variant: 'neutral' },
+      { label: 'Android', variant: 'green' },
       { label: 'React', variant: 'blue' },
       { label: 'Rails', variant: 'red' },
-      { label: 'Node js', variant: 'neutral' },
+      { label: 'Node js', variant: 'yellow' },
     ])
   })
 
