@@ -92,11 +92,27 @@ rather than assuming either way. When both `.env` values are present, reads —
 (`createTask`/`updateTask`/`deleteTask`) still call for the same confirmation as any other
 change to shared, live data.
 
-**The `graphql` MCP server (`.mcp.json`) needs `VITE_API_TOKEN` exported into the shell
-before `claude` starts** (e.g. `export $(grep -v '^#' .env | xargs) && claude`), since
-`${VAR}`-style expansion in `.mcp.json` reads the launching shell's environment, not `.env`
-directly. `ALLOW_MUTATIONS` is deliberately left unset, so the tool structurally cannot
-mutate regardless of what this file says.
+**The `graphql` MCP server reads `.env` itself, so start `claude` plainly — do not export
+anything.** `${VAR}` expansion in `.mcp.json` reads the launching shell's environment rather
+than `.env`, which is why this used to say `export $(grep -v '^#' .env | xargs) && claude`.
+The entry now runs through `sh -c`, sources `.env` inside the server's own process and builds
+`HEADERS` there, so the credential exists in that one process and never in your shell.
+`ALLOW_MUTATIONS` is deliberately left unset, so the tool structurally cannot mutate
+regardless of what this file says.
+
+**What that fixes is verification, not exposure, and the difference is worth being exact
+about.** It does **not** stop the token reaching a local `dist/`: Vite reads `.env` from disk
+on its own, so any build in a checkout that has one inlines it, and no shell hygiene changes
+that. Nor does it need to — `dist/` is gitignored and Vercel builds from a clean checkout with
+no `.env`, serving the app in `proxied` mode where the credential lives in `api/graphql.ts`.
+
+The hazard the old recipe created is that **a shell carrying `VITE_*` contaminates any
+clone-equivalent check run from it.** A fresh clone has no `.env`, so Vite falls back to
+`process.env` — and a "does this app work credential-free" run then silently talks to the live
+API and passes for the wrong reason. That happened to a careful run, which nearly reported the
+app as not credential-free. Confirm your shell is clean with `env -i HOME=$HOME PATH=$PATH zsh
+-l -c 'echo ${VITE_API_TOKEN:-UNSET}'`, and note that a plain `zsh -l -c` **inherits** the
+parent's exports, so it answers the wrong question.
 
 **MCP servers can exist in more than one scope with the same name, and the wrong one wins
 silently.** `claude mcp add` writes to a per-project "local" scope in `~/.claude.json`,
@@ -143,10 +159,32 @@ clones it anonymously — no token, in CI or on Vercel. A git install runs no bu
 commits its `dist/` and checks its freshness in its own CI. Consequences:
 
 - **A tag, never a branch.** A branch re-resolves on every `npm ci` behind an unchanged
-  lockfile entry. Bumping the kit means editing the tag in `package.json` and running
-  `npm install`, which rewrites the resolved commit SHA in `package-lock.json` — check that
-  SHA rather than the packed filename, which does not distinguish `v0.4.0` from
-  `v0.4.0-rc.1`.
+  lockfile entry.
+- **Exactly one field says which build you have: `packages['node_modules/@ravn/ui-kit'].resolved`
+  in `package-lock.json`.** The root spec, the `version` beside it and the packed filename are
+  all claims about _intent_, and every one of them can say `v0.8.0` over an installed `v0.7.0`.
+  That is not hypothetical — a bare `npm install` after editing `package.json` rewrote the root
+  spec, left `resolved` on the previous tag's commit, printed `up to date` and exited 0. Use the
+  form that actually performs the bump:
+
+  ```bash
+  npm install '@ravn/ui-kit@github:f3r21/ravn-ui-kit#<tag>'   # this bumps; bare `npm install` may not
+  node -e 'const l=require("./package-lock.json");const p="node_modules/@ravn/ui-kit";
+    console.log("resolved  ", l.packages[p].resolved);
+    console.log("root spec ", l.packages[""].dependencies["@ravn/ui-kit"]);
+    console.log("version   ", l.packages[p].version);'
+  git ls-remote https://github.com/f3r21/ravn-ui-kit 'refs/tags/<tag>*'
+  ```
+
+  **Compare `resolved` against the `^{}` line of that last command, not the bare tag line.** The
+  kit's tags are annotated, so `refs/tags/v0.8.0` is the _tag object_ and `refs/tags/v0.8.0^{}`
+  is the commit — and `resolved` holds the commit. Comparing against the bare ref makes a
+  perfectly correct lockfile look wrong, which is a third decoy on top of the two above.
+
+  On `dev` at `9ddc8a4` all four agree on `v0.8.0` (`resolved` = `18e5908…` =
+  `refs/tags/v0.8.0^{}`), so the disagreement is **reproducible rather than currently present** —
+  do not read the agreement as proof the trap is gone.
+
 - **`src/test/ui-kit-smoke.test.tsx` is the only check that spans the two repos.** Nothing
   else can see the seam: `gate` typechecks against whatever `dist/` is already installed, and
   the kit's CI tests its source tree rather than the artifact a consumer installs — so a tag
