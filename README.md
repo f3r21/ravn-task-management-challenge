@@ -65,17 +65,27 @@ switch on.
 
 ## What it does
 
-|                                                      |                                                   |
-| ---------------------------------------------------- | ------------------------------------------------- |
-| ![Creating a task](docs/screenshots/create-task.jpg) | ![No results](docs/screenshots/empty-results.jpg) |
-| Creating a task                                      | Filters that match nothing                        |
-| ![Settings](docs/screenshots/settings.jpg)           | ![List layout](docs/screenshots/list-view.jpg)    |
-| The signed-in user — email redacted, see below       | The list layout                                   |
+|                                                       |                                                   |
+| ----------------------------------------------------- | ------------------------------------------------- |
+| ![Creating a task](docs/screenshots/create-task.jpg)  | ![No results](docs/screenshots/empty-results.jpg) |
+| Creating a task — the white date field is a known bug | Filters that match nothing                        |
+| ![Settings](docs/screenshots/settings.jpg)            | ![List layout](docs/screenshots/list-view.jpg)    |
+| The signed-in user — email redacted, see below        | The list layout                                   |
 
 The email field in that screenshot reads `[email redacted]`. The API's seeded profile is a real
 person at RAVN, and this repository is public, so the address is masked in the image rather than
-published in it. Nothing else in any screenshot is altered — they are captures of the deployed
-build against the live API.
+published in it. Nothing else in any screenshot is altered — they are captures of the app running
+against the live API, at one viewport, with no retouching.
+
+**That includes the white date field in the create dialog, which is a defect and is left
+visible.** It is
+[`ravn-ui-kit#130`](https://github.com/f3r21/ravn-ui-kit/issues/130): the kit's `Datepicker`
+hardcodes a white surface, so it renders as a light control among four dark ones. It is the same
+mistake the kit's `Select` trigger already fixed, in a component that was never swept when that
+fix landed. The app does not paint over it, because
+[the standing rule](#the-design-system-is-a-separate-package) is that a kit defect is fixed in the
+kit and never worked around here — and a screenshot edited to hide what the app renders stops
+being a record and becomes a claim.
 
 - **Board** — five status columns, task cards with name, tags, due date, points, assignee
   and an options menu. Loading, error and empty states are three distinct things.
