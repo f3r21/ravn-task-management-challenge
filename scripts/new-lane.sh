@@ -225,29 +225,37 @@ printf 'env       %s\n' "$env_line"
 printf 'gate      exit %s%s\n' "$gate_status" "$([ "$gate_status" -eq 0 ] && echo '' || echo '   <-- RED BEFORE YOU TOUCHED ANYTHING')"
 printf '===========================================\n'
 
-# What copying `.env` does NOT buy, stated where it will be read. The file is
-# what the APP reads; `.mcp.json` is not the app, and it expands
-# `${VITE_API_TOKEN}` from the environment of the shell that launched `claude`.
-# A server with no token still starts and still reports "connected", so nothing
-# about the lane looks wrong until a query comes back Unauthorized — which reads
-# as a broken endpoint rather than a missing export. Printed rather than left to
-# be rediscovered.
+# What copying `.env` does and does not buy, stated where it will be read.
 #
-# A heredoc rather than printf: the text contains `$(...)` and single quotes
-# verbatim, and every way of spelling that inside a printf format string is
-# either wrong or unreadable. `\$` escapes the expansions that must not happen;
-# `$TARGET` is the one that must.
+# It used to buy less. `.mcp.json` interpolated `${VITE_API_TOKEN}`, which is
+# expanded from the environment of the shell that launches `claude` and not from
+# any file, so this script told every lane to export the whole of `.env` before
+# starting a session. #123 removed the need: the `graphql` entry now runs through
+# `sh -c`, sources `.env` inside the server's own process and builds `HEADERS`
+# there. The copy above is therefore all of it, and the credential exists in one
+# process instead of in an interactive shell that then contaminates everything
+# started from it.
+#
+# The message stays, shorter, because the failure it warns about is unchanged and
+# is invisible: a `graphql` server with no credential still starts and still
+# reports "connected", so nothing looks wrong until a query comes back
+# Unauthorized — which reads as a broken endpoint rather than a missing config.
+# The only remaining cause of that is the shadowing above, which no file copy can
+# fix.
+#
+# A heredoc rather than printf: `$TARGET` must expand and nothing else here needs
+# escaping now that the recipe is gone.
 cat <<EOF
 
-The .env copy is what the APP needs. The graphql MCP server needs something no
-file copy can supply: .mcp.json expands \${VITE_API_TOKEN} from the environment
-of the shell that launches claude. Start the session with
+The .env copy is all the credential handling a lane needs. Nothing to export:
+.mcp.json runs the graphql server through sh -c, which sources .env in that
+server's own process — so start the session plainly.
 
-    cd $TARGET && export \$(grep -v '^#' .env | xargs) && claude
+    cd $TARGET && claude
 
-and then read the mcp line above. If it says SHADOWED, the exported token is
-being handed to an entry that never runs, and nothing changes until that is
-cleared in the main checkout.
+Then read the mcp line above. If it says SHADOWED, a local-scope entry is
+winning over the tracked one and the tracked one never runs, whatever .env
+holds. That is cleared in the main checkout, not here.
 EOF
 
 if [ "$skills_present" != "$skills_expected" ]; then

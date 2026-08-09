@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { accessSync, constants } from 'node:fs'
+import { accessSync, constants, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -59,6 +59,31 @@ describe('new-lane.sh guards', () => {
     const r = run([lane])
     expect(r.status).toBe(1)
     expect(r.stderr).toMatch(/single path segment|usage:/)
+  })
+
+  // The closing message is the only part of this script a human is guaranteed to
+  // read, and for a while it told every lane to `export $(grep -v '^#' .env |
+  // xargs)` before starting a session. That stopped being necessary in #123, when
+  // `.mcp.json` began sourcing `.env` inside the server's own process — and a
+  // shell carrying `VITE_*` is not merely redundant, it contaminates any
+  // credential-free check run from it, which `CLAUDE.md` records nearly costing a
+  // wrong conclusion.
+  //
+  // Asserted against the source text rather than the printed output, because the
+  // message prints only after a full provisioning run — a worktree and an
+  // `npm ci` — which no unit suite should do. That means matching what is
+  // *written*, not what is rendered: the recipe lived inside a heredoc with its
+  // expansion escaped, so `grep "export \$("` over the source found nothing and
+  // the absence read as the text being gone. `xargs` survives any spelling of the
+  // escaping and is the token to anchor on.
+  it('does not tell a lane to export .env into its shell', () => {
+    const source = readFileSync(script, 'utf8')
+    // Positive control: a read that silently returned nothing would satisfy every
+    // assertion below, and the shadowing warning is the part that must survive
+    // any rewrite of this passage.
+    expect(source).toContain('SHADOWED')
+    expect(source).not.toMatch(/xargs/)
+    expect(source).not.toMatch(/export\s+\\?\$\(/)
   })
 
   // Not a style preference. `readonly x="$(cmd)"` masks cmd's exit status, so a
