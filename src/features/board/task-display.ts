@@ -65,22 +65,55 @@ export function tagLabel(tag: TaskTag): string {
  * Green, Blue, Yellow, Red — and the API defines exactly five tags, so this is
  * a one-to-one assignment with nothing invented.
  *
- * Two are fixed by the mockup, which draws `iOS app` in green and `Android` in
- * yellow. The remaining three fall out naturally: React and Rails take the blue
- * and red of their own brands, leaving Node js on the neutral chip.
+ * **The assignment is brand-derived, and that is a deliberate deviation from the
+ * mockup rather than a mistake.** The repo owner was shown the trade-off in
+ * writing and chose colours that mean something, so Android takes the green of
+ * its own brand and iOS takes the neutral chip, whose grey is within a shade of
+ * Apple's silver. React and Rails were already their own blue and red and do not
+ * move.
+ *
+ * What was deviated *from* is recorded here so a reader comparing this against
+ * Figma finds the deviation rather than discovering it: the mockup draws
+ * `iOS app` in green and `Android` in yellow. **That sentence is inherited from
+ * the comment this replaces and no command here re-derives it** — the Figma
+ * exports are in neither checkout — so it is a record, not a measurement.
+ *
+ * **Node js on yellow is a forced choice, not a brand match.** Node's `#8CC84B`
+ * is a green, and the palette has exactly one green, which Android has taken.
+ * Yellow is the nearest remaining chip only because `#8CC84B` is a yellow-green
+ * — it is chosen by elimination, and nothing here claims `#E5B454` resembles it.
+ * A second green in the palette is what would reopen this.
+ *
+ * The palette values behind those comparisons, from a clone of the kit, which is
+ * where they were actually read:
+ *
+ *     git show v0.8.0:dist/theme.css | grep -E 'secondary-4|tertiary-4|neutral-2:'
+ *     #   --color-neutral-2: #94979a;      (the neutral chip)
+ *     #   --color-secondary-4: #70b252;    (green)
+ *     #   --color-tertiary-4: #e5b454;     (yellow)
+ *
+ * The same three lines are in `node_modules/@ravn/ui-kit/dist/theme.css` locally,
+ * which is the shorter path for anyone who has the install rather than the repo.
+ *
+ * Against brand: Android `#3DDC84`, Apple `#A2AAAD`, Node `#8CC84B`. Those are
+ * quoted from the brands' own guidelines and no command here re-derives them.
+ *
+ * Nothing is missing from the kit here. `AccentColor` is documented there as
+ * "a categorical accent colour … with no meaning attached to the choice", so
+ * deciding what the colours mean is this app's job by design.
  */
 export function tagAccent(tag: TaskTag): AccentColor {
   switch (tag) {
     case 'IOS':
-      return 'green'
+      return 'neutral'
     case 'ANDROID':
-      return 'yellow'
+      return 'green'
     case 'REACT':
       return 'blue'
     case 'RAILS':
       return 'red'
     case 'NODE_JS':
-      return 'neutral'
+      return 'yellow'
     default:
       return assertNever(tag, 'tag')
   }

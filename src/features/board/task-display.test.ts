@@ -38,7 +38,7 @@ describe('tagAccent', () => {
     // `pointValue`'s already use — the whole mapping, in order, in one comparison.
     // In `ALL_TAGS` order — ANDROID, IOS, NODE_JS, RAILS, REACT — the same shape
     // `tagLabel`'s test above uses, so the two read alike.
-    expect(ALL_TAGS.map(tagAccent)).toEqual(['yellow', 'green', 'neutral', 'red', 'blue'])
+    expect(ALL_TAGS.map(tagAccent)).toEqual(['green', 'neutral', 'yellow', 'red', 'blue'])
   })
 })
 
