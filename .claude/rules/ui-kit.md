@@ -62,5 +62,11 @@ dependency. This app is its first and only consumer.
 - The kit's source is not in this checkout. `node_modules/@ravn/ui-kit/dist/index.d.ts`
   keeps the doc comments through the build and is the authoritative local reference for what
   a component does and why.
+- **A shell reader is refused there and that is not this instruction being wrong.**
+  `permissions.deny` in `.claude/settings.json` carries `Read(./node_modules/**)`, so
+  `grep`/`cat` against that path comes back denied. The rule matches the command rather than
+  the file, so `node -e` reads it — which is also how the `resolved` check above gets at
+  `package-lock.json`, under the same deny rule. Deliberate friction, not a boundary; see
+  `CLAUDE.md`'s `permissions.deny` passage for what it does and does not stop.
 - Component and icon counts are derived from that file, not remembered — capitalized
   `export declare`s, minus the ones typed `IconProps`, minus the `const` exports.
