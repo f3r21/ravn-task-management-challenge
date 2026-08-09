@@ -69,19 +69,61 @@
 // Reports; it does not enforce. There is no correct comment ratio, and a threshold
 // here would be a number nobody chose applied to the one part of this codebase that
 // is deliberately unusual. Exit status is 0 unless the scan itself failed.
+import { execFileSync } from 'node:child_process'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
-const SRC = join(ROOT, 'src')
 const EXCLUDED = /(\.test\.tsx?$)|(^src[/\\]test[/\\])|(^src[/\\]graphql[/\\]generated[/\\])/
+
+// `--root <dir>` scans somewhere other than this project's `src/`. It exists so
+// `count-comments.test.mjs` can point the real script at a fixture corpus, rather
+// than the alternatives — adding hazard files under `src/` (which would ship dead
+// code and move every figure this script reports) or re-implementing the walk in
+// the test (which would then be testing a copy). Paths are still reported relative
+// to the repository root, so ordinary runs read exactly as before.
+const rootFlag = process.argv.indexOf('--root')
+const SRC = rootFlag === -1 ? join(ROOT, 'src') : resolve(process.argv[rootFlag + 1] ?? '')
 
 const showBlocks = process.argv.includes('--blocks')
 const includeAll = process.argv.includes('--all')
 const showCompare = process.argv.includes('--compare')
 const showScopes = process.argv.includes('--scopes')
+
+/**
+ * The tree this reading describes, printed beside the ratio.
+ *
+ * A figure quoted without its ref is the shape this project keeps getting caught
+ * by: correct when taken, then outrun. This ratio moved 81.3% → 81.7% inside one
+ * pull request, on a comment fix, and both numbers were pasted into places that
+ * named no commit — so a reader meeting either had no way to tell a disagreement
+ * from a change.
+ *
+ * `+dirty` is not decoration. A reading taken over uncommitted edits is not a
+ * reading of that commit, and it is the common case: you run this *because* you
+ * just changed something.
+ */
+function describeTree() {
+  try {
+    const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+    const dirty = execFileSync('git', ['status', '--porcelain', '--', 'src'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+    return dirty === '' ? head : `${head}+dirty`
+  } catch {
+    // Not a git checkout, or no git. The count is still valid; it just cannot say
+    // what it counted, and saying so is better than printing a ref that is a guess.
+    return 'unknown tree'
+  }
+}
 
 /** Every `.ts`/`.tsx` file under `dir`, recursively. */
 function sourceFiles(dir, found = []) {
@@ -96,12 +138,25 @@ function sourceFiles(dir, found = []) {
 /**
  * Every comment range in one file, as `{ pos, end, kind }`.
  *
- * Two mechanisms, because TypeScript models the two kinds of comment differently.
+ * Three queries, because TypeScript models comments in more ways than is obvious.
+ *
  * An ordinary comment is *trivia*: it has no node of its own and is reachable only
- * as the leading trivia of whatever token follows it. Walking to the leaf tokens
- * and asking each for its leading trivia therefore reaches every one, including a
- * trailing `// why`, which is leading trivia of the *next* line's first token
- * rather than anything attached to the line it appears on.
+ * by asking a token about the text around it. Walking to the leaf tokens and asking
+ * each for its **leading** trivia reaches every comment that begins a line.
+ *
+ * It does not reach a **trailing** `// why`, and an earlier version of this comment
+ * claimed it did — on the plausible reasoning that the comment must be leading
+ * trivia of the next line's first token. It is not:
+ * `getLeadingCommentRanges` returns `null` there, because a leading range has to be
+ * preceded by a line break. Only `getTrailingCommentRanges`, asked at the end of the
+ * token the comment sits behind, finds it. Both are asked, and positions are
+ * deduplicated because the same span can be reachable from either side.
+ *
+ * That omission cost nothing in the ratio and would have cost the census. By the
+ * definitions above, `foo() // why` is one *code* line contributing zero comment
+ * lines either way — so the headline could not move — but the block count, the kind
+ * and attachment tables and the "also carry code" figure were all silently missing
+ * a category the header said they covered.
  *
  * A JSX comment is not trivia. It is a `JsxExpression` node with no `expression`,
  * and the comment inside it is reachable as trivia of the closing brace — but
@@ -110,14 +165,43 @@ function sourceFiles(dir, found = []) {
  * subtree is not descended into, which is also what stops the inner range being
  * counted twice.
  *
- * Nothing here looks at `JsxText`, and it must not: `// not a comment` written
- * between two tags is text the browser renders.
+ * `JsxText` is looked at exactly once, to *exclude* it, and that is the sharp edge
+ * of adding the trailing query. `getTrailingCommentRanges` is a raw forward scan
+ * over the text: asked at the end of a `<div>`, it happily reads the `// text` in
+ * `<div>// text</div>` as a trailing comment and swallows the closing tag with it.
+ * The leading query never had this problem, because `JsxText` is itself a token, so
+ * the closing element's trivia begins after it. Trailing ranges are therefore
+ * rejected where they start inside a `JsxText` span — an exact test rather than
+ * "skip trailing inside JSX", which would also lose the legitimate
+ * `const x = <div /> // why`.
+ *
+ * This was caught by `count-comments.test.mjs`'s hazard corpus on the first run
+ * after the trailing query was added, which is the entire argument for that file
+ * existing: the line count stayed correct — the line has code either way — so only
+ * the block census moved, and nothing else here would have noticed.
  */
 function commentsIn(source, text) {
   const ranges = []
 
-  const addTrivia = (fullStart) => {
-    for (const range of ts.getLeadingCommentRanges(text, fullStart) ?? []) {
+  const isJsxText = new Uint8Array(text.length)
+  ;(function markJsxText(node) {
+    if (node.kind === ts.SyntaxKind.JsxText) {
+      isJsxText.fill(1, node.getFullStart(), node.getEnd())
+      return
+    }
+    node.getChildren(source).forEach(markJsxText)
+  })(source)
+
+  // Positions already recorded, because the two trivia queries below can be asked
+  // about the same span from either side and a comment counted twice is a comment
+  // that inflates every table it appears in.
+  const seen = new Set()
+
+  const addTrivia = (found, insideJsxTextIsFatal = false) => {
+    for (const range of found ?? []) {
+      if (seen.has(range.pos)) continue
+      if (insideJsxTextIsFatal && isJsxText[range.pos]) continue
+      seen.add(range.pos)
       const isLine = range.kind === ts.SyntaxKind.SingleLineCommentTrivia
       ranges.push({
         pos: range.pos,
@@ -133,8 +217,12 @@ function commentsIn(source, text) {
       return
     }
     const children = node.getChildren(source)
-    if (children.length === 0) addTrivia(node.getFullStart())
-    else children.forEach(walk)
+    if (children.length === 0) {
+      addTrivia(ts.getLeadingCommentRanges(text, node.getFullStart()))
+      addTrivia(ts.getTrailingCommentRanges(text, node.getEnd()), true)
+    } else {
+      children.forEach(walk)
+    }
   }
 
   walk(source)
@@ -369,7 +457,7 @@ console.log(
   `\n${total.comment} comment lines / ${total.code} code lines = ` +
     `${percent(total.comment, total.code)}  (${total.blank} blank, ` +
     `${total.comment + total.code + total.blank} total, ${scanned.length} files` +
-    `${includeAll ? '' : ', shipped source only'})`,
+    `${includeAll ? '' : ', shipped source only'})  at ${describeTree()}`,
 )
 
 const commentLines = blocks.reduce((sum, block) => sum + block.lines, 0)
