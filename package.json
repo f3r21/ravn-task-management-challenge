@@ -31,6 +31,7 @@
     "schema:check": "node scripts/check-schema.mjs",
     "css:canary": "node scripts/check-source-canary.mjs",
     "assertions": "node scripts/count-assertions.mjs",
+    "comments": "node scripts/count-comments.mjs",
     "gate": "npm run typecheck && npm run lint && npm run format:check && npm run coverage"
   },
   "msw": {

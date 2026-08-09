@@ -156,8 +156,12 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
-    // Guards the *other* way `@ravn/ui-kit` gets consumed. As committed, the
-    // dependency is `github:f3r21/ravn-ui-kit#v0.4.0` and this list is a no-op:
+    // Guards the *other* way `@ravn/ui-kit` gets consumed. As committed the
+    // dependency is a git tag — `grep ui-kit package.json` for which one, never a
+    // version written here, which is not a style rule: this comment claimed
+    // `v0.4.0` was the installed tag long after it was not, and every release since
+    // is one `git ls-remote --tags https://github.com/f3r21/ravn-ui-kit` would have
+    // shown. Against a tag, however it is spelled, this list is a no-op:
     // npm packs only what the kit's `files: ["dist"]` names and installs only its
     // `dependencies`, never its devDependencies, so `node_modules/@ravn/ui-kit`
     // has no `node_modules` of its own. Every bare specifier the kit's build emits
