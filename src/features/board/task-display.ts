@@ -66,13 +66,17 @@ export function tagLabel(tag: TaskTag): string {
  * a one-to-one assignment with nothing invented.
  *
  * **The assignment is brand-derived, and that is a deliberate deviation from the
- * mockup rather than a mistake.** The mockup draws `iOS app` in green and
- * `Android` in yellow. The repo owner was shown that trade-off in writing and
- * chose colours that mean something, so those two swap: Android takes the green
- * of its own brand, and iOS takes the neutral chip, which is close enough to
- * Apple's silver to read as intended. React and Rails were already their own
- * blue and red and do not move. Recorded here because a reader comparing this
- * against the Figma file should find the deviation, not discover it.
+ * mockup rather than a mistake.** The repo owner was shown the trade-off in
+ * writing and chose colours that mean something, so Android takes the green of
+ * its own brand and iOS takes the neutral chip, whose grey is within a shade of
+ * Apple's silver. React and Rails were already their own blue and red and do not
+ * move.
+ *
+ * What was deviated *from* is recorded here so a reader comparing this against
+ * Figma finds the deviation rather than discovering it: the mockup draws
+ * `iOS app` in green and `Android` in yellow. **That sentence is inherited from
+ * the comment this replaces and no command here re-derives it** — the Figma
+ * exports are in neither checkout — so it is a record, not a measurement.
  *
  * **Node js on yellow is a forced choice, not a brand match.** Node's `#8CC84B`
  * is a green, and the palette has exactly one green, which Android has taken.
