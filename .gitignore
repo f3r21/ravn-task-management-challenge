@@ -79,3 +79,19 @@ UI_KIT_MIGRATION_NEXT_PROMPT.md
 # not as a PNG nobody can diff.
 .playwright-mcp/
 /*.png
+
+# Agent scratch that lands in the working tree and is not this project's content:
+# the `promptify` skill writes `promptify-<epoch>.md` to the repo root, and
+# `superpowers` writes its plans under `docs/superpowers/plans/`. Three such files
+# accumulated before anyone noticed, including a 983-line plan for a migration that
+# had already shipped in #31.
+#
+# Ignored rather than left to be tidied by hand, because untracked scratch is
+# discovered by someone who then has to decide whether it matters. It is also the
+# more dangerous of the two states: `git add -A` sweeps an untracked file into a
+# commit and cannot sweep an ignored one.
+#
+# `docs/superpowers/` is anchored so it cannot swallow `docs/screenshots/`, which
+# the README embeds and which must stay tracked.
+/promptify-*.md
+/docs/superpowers/
