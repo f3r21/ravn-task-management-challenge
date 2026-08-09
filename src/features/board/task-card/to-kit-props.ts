@@ -109,10 +109,23 @@ export function toKitCardProps(task: Task, now: Date, options: CardOptions = {})
     // than an omission. The card's attachment / subtask / comment counters were hardcoded
     // — the schema has no fields behind any of them — and the app hid them with
     // `aria-hidden` on the reasoning that announcing counts that are not real is worse
-    // than silence. `@ravn/ui-kit@v0.5.3` renders each badge's label into an `sr-only`
-    // node (kit#19), so passing them now would read invented numbers aloud, and the kit
-    // offers no way to render a badge silently. Dropping them is the app owner's call;
-    // ravn-ui-kit#93 tracks the missing decorative mode.
+    // than silence.
+    //
+    // **The kit gap that used to be the second reason is closed, and the decision does not
+    // move.** Through v0.7.0 each badge's label went into an `sr-only` node (kit#19) with no
+    // way to render one silently, so passing them would have read invented numbers aloud.
+    // v0.8.0 adds the `decorative: true` arm ravn-ui-kit#93 tracked — a badge with no
+    // accessible name, typed so that `decorative` and `label` cannot both be given:
+    //
+    //     git show v0.8.0:dist/index.d.ts | grep -c TaskMetaBadgeDecorative   # 3
+    //     git show v0.7.0:dist/index.d.ts | grep -c TaskMetaBadgeDecorative   # 0
+    //     git show v0.7.0:dist/index.d.ts | grep -c TaskMetaBadge             # 10 — control,
+    //         so the 0 above is the type being absent and not a pattern that never matched
+    //
+    // That only ever removed the accessibility objection. These are omitted because the
+    // numbers are invented, which no kit release can change, and showing invented data
+    // silently is still showing invented data. Restoring them needs schema fields behind
+    // them, not a prop.
     //
     // No `onClick` either: the app has never had a click-to-open card, and providing one
     // is what turns the kit's title into a `<button>`. Omitted, it stays a plain heading,
