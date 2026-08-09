@@ -23,7 +23,14 @@
  * This lives here rather than inside `Avatar` because the component is not wrong:
  * it renders the `src` it is handed. The defect is that the app hands it a URL it
  * knows is dead, so the correction belongs at the boundary where a GraphQL `User`
- * becomes component props — the call sites of `Avatar`.
+ * becomes component props.
+ *
+ * That boundary used to be every `Avatar` call site, and app#31 moved most of it one
+ * step earlier: the board's cards are `@ravn/ui-kit`'s now, so the app never renders
+ * their `Avatar` and has no call site to guard — `task-card/to-kit-props.ts` applies
+ * this while building the props instead, which is also what makes one call cover both
+ * the board and the list view. The header and the profile page still call `Avatar`
+ * directly and still guard at the call site.
  */
 
 /**

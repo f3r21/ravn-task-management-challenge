@@ -126,13 +126,19 @@ The second load-bearing decision, and the one this document used to omit entirel
 
 The Figma file for this challenge is a component library rather than a set of screens, so it
 was built as one: **`@ravn/ui-kit`** (https://github.com/f3r21/ravn-ui-kit), a separate repo
-with its own Storybook, tests and CI. This app is its first consumer. `Modal`, `Select`,
-`MultiSelect` and `Menu` come from it today; `Avatar`, `Button`, `Tag`, `Skeleton` and the
-board components are still app-owned and queued to move.
+with its own Storybook, tests and CI. This app is its first consumer. The migration onto it is
+substantially done: `Modal`, `Select`, `MultiSelect` and `Menu` came first, then `Avatar`,
+`Button`, `Tag` and `Skeleton` (#30), then the board itself (#31). What remains app-owned is
+what this app still implements rather than imports: `src/ui/` holds the shared primitives that
+have not moved, and individual components elsewhere stay app-owned for reasons recorded beside
+them — see the corollary below on a migration blocked by a kit gap. Read the imports rather
+than this sentence; it is the list that keeps moving.
 
 **It arrives as a git dependency pinned to a tag, not from npm.** There is no registry to
-publish to, so the dependency is the repository itself:
-`"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#v0.4.0"`. The kit repo is public, so `npm ci`
+publish to, so the dependency is the repository itself, of the form
+`"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#<tag>"`. For the tag actually pinned, read
+`package.json` — `grep ui-kit package.json` — rather than any version written into this
+document, which has already gone stale once. The kit repo is public, so `npm ci`
 clones it anonymously — no token, in CI or on Vercel. A git install runs no build; the kit
 commits its `dist/` and checks its freshness in its own CI. Consequences:
 
@@ -255,6 +261,53 @@ exercise route matching. `AppLayout` wraps each element instead of being a paren
 `<Outlet />`: a parent would keep the shell mounted across navigations, which would put the
 not-found page inside chrome implying the app is fine.
 
+**That layering is lint-enforced since #40, having been prose until then — and prose does not
+fail a build.** `no-restricted-imports` in `eslint.config.js` bans `@/features/*` and
+`@/features/*/**` across `src/`, so no feature reaches into another and no lower layer
+(`mocks/`, `lib/`, `ui/`, `graphql/`) reaches up into any of them.
+
+What forced it: `User` is `UserFieldsFragment`, returned by the `Users`, `Profile` **and** `Tasks`
+queries and belonging to none of them — yet it lived in `features/board/task-types.ts`, so
+`features/profile` and every MSW handler imported `@/features/board` to learn what a user is, and
+deleting `features/board` would have stopped the mocks compiling. `Task` and `User` now live in
+`src/graphql/domain.ts` and `grep -rn "task-types" src | grep -v features/board` returns nothing.
+`task-types.ts` keeps the three `exhaustiveList` orderings — those are board policy rather than API
+vocabulary, since column order is the workflow's and the schema lists its members alphabetically —
+and re-exports the types for its own 20 modules
+(`grep -rl "task-types" src/features/board | grep -v '\.test\.' | wc -l`). That re-export is the
+one concession: #40 asked for `task-types.ts` to be left board-only, which meant editing 23 files
+in a feature another lane was actively rewriting, so the edge was cut at one file instead.
+`@/graphql/domain` is the canonical path; anything outside `features/board` must use it.
+
+**Two directories override the ban and neither is cleanup debt.** `src/app/` composes features
+because that is the routing layer's entire job — the rule as first drafted would have failed on
+`routes.tsx` itself. `src/features/navigation/` is the shell in everything but its directory,
+mounted once by `AppLayout` rather than by any feature, and its `useBoardFilters` edge is
+load-bearing: the `name` URL parameter had two independent writers until `FILTER_PARAMS`
+collapsed them, so renaming the key broke the header's search box with no type error and no
+failing test. Re-derive that rather than taking it from here:
+
+```bash
+git log -S 'FILTER_PARAMS' --oneline          # f683cb0 is the fix; later hits only mention it
+git show f683cb0 -- src/features/navigation/app-header.tsx | grep -E '^[-+].*(URLSearchParams|setFilter)'
+```
+
+The second command prints the `- const next = new URLSearchParams(current)` the header used to
+build for itself against the `+ setFilter('name', …)` that replaced it — that diff is the claim.
+Banning the import and re-exporting the hook would satisfy the linter and restore the defect.
+
+**The generated barrel is banned by `paths`, not deleted, and the spelling is the trap.**
+`src/graphql/generated/index.ts` is a one-line `export * from "./gql"` that nothing imports, and it
+does contradict the no-barrels rule — but it is codegen output the `client` preset cannot be told
+to skip, so deleting it buys one clean commit and a dirty diff on every `npm run codegen` after.
+A `patterns` entry is a gitignore-style glob, in which a bare directory name also matches
+everything beneath it: spelled `{ group: ['@/graphql/generated'] }` it flagged the 13 imports of
+`@/graphql/generated/graphql`, which is the correct path every consumer already uses. `paths`
+matches the specifier exactly. Note that grep answers **14** there
+(`grep -rl "from '@/graphql/generated/graphql'" src | wc -l`) — the fourteenth is that string
+inside a test fixture's string literal, not an import, which is the same parser-versus-grep gap
+the assertion count runs into under "Conventions".
+
 ### The token layer
 
 **The app defines no tokens.** `src/styles/base.css` is the only stylesheet here, and it
@@ -272,9 +325,9 @@ because the design is dark-only, so form controls, scrollbars and focus rings ne
 Colours still reach a component only through a semantic name that says what the colour is
 _for_ (`text-main`, `bg-surface-panel`, `border-subtle`): Tailwind v4 generates utilities only
 for what it finds in `@theme`, so `bg-neutral-4` is not a class that exists in the app's
-output. Icons in `src/ui/icons/` are the design's own SVG exports with `fill` swapped for
-`currentColor`, so their colour comes from the token layer too. The kit exports the same set
-and this one is a duplicate awaiting migration, not a deliberate fork.
+output. Icons come from the kit, and are the design's own SVG exports with `fill` swapped for
+`currentColor`, so their colour comes from the token layer too. The app briefly kept a
+duplicate set in `src/ui/icons/`; #93 deleted it, and that path no longer exists.
 
 ### The browser floor is declared, not inherited
 
@@ -370,8 +423,35 @@ jsdom, faster and more precisely, and each extra flow is more live mutation.
 - **Comments explain why.** A stale comment is worse than no comment, because a reader trusts
   it. If you change behaviour, grep for comments describing the old one — several rounds of
   that have already been needed.
-- **Zero `any`, zero `@ts-ignore`.** Both are lint _errors_. The one unavoidable assertion sits
-  at the transport boundary in `client.ts`, so nothing downstream repeats it.
+- **Zero `any`, zero `@ts-ignore`.** Both are lint _errors_, so `npm run lint` is what holds
+  them at zero. **Type assertions are one as of #110** — the transport boundary, and nothing
+  downstream — plus zero non-null `!`: `npm run assertions`, which lists each one and prints
+  both totals. Like the count below it, that is a reading at a commit rather than a floor;
+  re-run it rather than quoting this sentence.
+
+  Count them with a parser, never a regex. Comment density here is deliberately high, so `as`
+  is overwhelmingly prose: `grep -rn ' as ' src | wc -l` answers 191, and tightening it to
+  `grep -rnE ' as (readonly |[A-Z])' src | wc -l` only gets to 26 — that still matches
+  `import type * as UiKit`, and still matches comments, which is now most of what it finds: the
+  three downstream assertions are gone and the sentences explaining why they went quote the code
+  that replaced them. Grep also counts lines rather than expressions, which is how it missed that
+  `use-board-filters.ts` once carried **two** assertions on one line. The non-null half cannot be
+  grepped at all, `!` being negation and JSX punctuation far more often than an assertion.
+
+  `client.ts:101` is the one that remains, and it is genuinely unavoidable: `response.json()` is
+  `Promise<any>` and something has to name the shape.
+
+  The other three went the way `select-option.tsx:44` describes — a lookup returns a value that
+  is _already_ typed, so nothing is asserted and an unknown key is simply absent. It replaced six
+  call sites in #40; `readMember` and `board-toolbar.tsx` followed in #110, and both are worth
+  reading for what the change costs rather than what it saves. `readMember` collapsed to
+  `allowed.find((member) => member === raw)` with nothing left over. `board-toolbar.tsx` did not:
+  a lookup can miss, and `onViewChange: (view: BoardView) => void` cannot accept
+  `BoardView | undefined`, so the guard is **type-required** and its else-branch is unreachable
+  through the UI. That file sits at 75% branch coverage as a result, deliberately — the
+  alternatives were reinstating the assertion, or `.filter().forEach()`, which reports 100% by
+  emitting no branch for the metric to miss.
+
 - **`date-fns` for `isValid` / `parseISO` only.** All formatting is `Intl` with an explicit
   `timeZone: 'UTC'` — see the trap below for what a date library reading local fields did.
 - **React Aria _hooks_ only.** Never `react-aria-components`.

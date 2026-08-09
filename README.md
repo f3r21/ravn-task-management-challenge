@@ -142,8 +142,8 @@ a style guide, per-component specs and variant states. Building those components
 `src/ui/` would have meant a design system that only existed as a side effect of one app.
 
 So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 46
-components and 21 icons built from the Figma export, with Storybook stories for all but one
-component, its own test suite and its own CI.
+components and 21 icons built from the Figma export, with Storybook stories for all but two
+components, its own test suite and its own CI.
 **[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)** to see every component, its
 props and its states without cloning anything.
 
@@ -157,9 +157,18 @@ grep -E '^export declare function [A-Z]' $f | grep -vc IconProps   # 46 componen
 grep -E '^export declare function [A-Z]' $f | grep -c  IconProps   # 21 icons
 ```
 
-"All but one" is `popover.tsx`, which ships a test and no stories at the pinned `v0.4.0`
-while its sibling `FloatingPopover` has both — 1 of 40 component source files, from
-`gh api 'repos/f3r21/ravn-ui-kit/git/trees/v0.4.0?recursive=1'`.
+"All but two" is `popover.tsx`, which ships a test and no stories while its sibling
+`FloatingPopover` has both, and `due-date-urgency-state.tsx`, added with the overdue fix — 2 of
+41 component source files. Re-derive at whatever tag is actually pinned rather than a written
+one, since this sentence said "1 of 40 at the pinned `v0.4.0`" for three releases after that
+stopped being true:
+
+```bash
+t=$(grep -oE 'ravn-ui-kit#v[0-9.]+' package.json | cut -d'#' -f2)
+gh api "repos/f3r21/ravn-ui-kit/git/trees/$t?recursive=1" --jq '[.tree[].path|select(test("^src/components/.*\\.tsx$"))]'
+# component sources = paths ending .tsx that are not .test.tsx or .stories.tsx
+# without stories  = those with no matching .stories.tsx sibling
+```
 
 This app is its first consumer, and consuming it is what proves the package
 works: several real defects (a popover that could not escape an `overflow: hidden` ancestor,
@@ -197,7 +206,10 @@ migration land would throw away the only signal a second consumer-shaped repo pr
 ### Why the dependency is a git tag
 
 `@ravn/ui-kit` has no npm registry to publish to, so the dependency is the repository
-itself, pinned: `"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#v0.4.0"`. The kit repo is public,
+itself, pinned to a tag: `"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#<tag>"`. For the tag
+actually installed, read `package.json` — `grep ui-kit package.json` — rather than any
+version written into prose, which named `v0.4.0` here for three releases after it stopped
+being true. The kit repo is public,
 so `npm ci` clones it anonymously — no cross-repo token, in CI or on Vercel. A git install
 runs no build; the kit commits its `dist/` and guards its freshness in its own CI, so what
 installs here is the tagged artifact rather than a rebuild.

@@ -15,26 +15,14 @@ import type { PointEstimate, Status, TaskTag } from './task-types'
  * `text-transform` in CSS. Keeping the strings in natural case means a test can
  * query by the text a user would say, and a screen reader does not spell out
  * capitals letter by letter.
+ *
+ * **The CSS is `@ravn/ui-kit`'s now, not this app's.** `TaskCard` and `TagCell`
+ * uppercase their own chips since `v0.7.0` (ravn-ui-kit#102), which is why the
+ * `TAG_TEXT` constant that used to live here is gone — every one of its call sites
+ * went with the app-owned card and row. The kit's fix is a class and never
+ * `label.toUpperCase()`, for exactly the reason above, so the contract these labels
+ * rely on is unchanged and is now stated in two repositories instead of one.
  */
-
-/**
- * The two things `@ravn/ui-kit`'s `Tag` does not do that this app's chips need.
- *
- * `uppercase` is load-bearing rather than cosmetic, and the paragraph above is
- * why: the labels are deliberately stored in natural case *because* CSS
- * uppercases them. Drop this and the chips read "iOS app" instead of "IOS APP" —
- * the design's casing, gone, with every test still passing because they query the
- * stored text.
- *
- * `whitespace-nowrap` is for the due-date badge, whose content is a spelled-out
- * date: without it "Yesterday" and friends break across as many as three lines in
- * a narrow column.
- *
- * Applied at both call sites rather than one, so the chips and the badge keep
- * rendering identically to the component they replaced. The kit's `Tag` merges
- * `className` last, which is what makes this work at all.
- */
-export const TAG_TEXT = 'uppercase whitespace-nowrap'
 
 export function statusLabel(status: Status): string {
   switch (status) {

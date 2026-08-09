@@ -18,8 +18,10 @@ dependency. This app is its first and only consumer.
 
 ## The dependency is a git tag
 
-- `"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#v0.4.0"`. The kit repo is public, so `npm ci`
-  clones it anonymously — no token needed in CI or on Vercel.
+- `"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#<tag>"`. **Read the tag from `package.json`**
+  (`grep ui-kit package.json`), never from prose — this line named `v0.4.0` for three
+  releases after that stopped being true. The kit repo is public, so `npm ci` clones it
+  anonymously — no token needed in CI or on Vercel.
 - **A tag, never a branch.** A branch re-resolves on every `npm ci` behind an unchanged
   lockfile entry, which is exactly the moving target the pin exists to close.
 - **Never hand-edit anything under `node_modules/@ravn/ui-kit/`.** It is installed build

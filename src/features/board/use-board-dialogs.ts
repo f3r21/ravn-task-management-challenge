@@ -44,15 +44,23 @@ export interface BoardDialogs {
  *
  * One `useState` is the source of truth; the three `OverlayTriggerState`s are
  * *derived views* of it, driven in React Aria's controlled mode. They exist
- * because `Modal` and `Dialog` take that shape — not because the board has three
- * independent pieces of state. Only one can report `isOpen` at a time, by
- * construction, so the illegal combinations are no longer expressible.
+ * because `@ravn/ui-kit`'s `Modal` takes that shape — not because the board has
+ * three independent pieces of state. Only one can report `isOpen` at a time, by
+ * construction, so the illegal combinations are no longer expressible. (It named
+ * the app's own `Dialog` alongside it until app#105; that component no longer
+ * exists — app#30 moved the delete dialog onto `Modal` and deleted it.)
  *
  * The three openers are `useCallback`s with empty dependency arrays, and that is
- * load-bearing rather than habitual: `openEdit` and `openDelete` reach every
- * `TaskCard` as `onEdit`/`onDelete`, where `memo()` compares them by identity, and
- * this page re-renders on every keystroke in the header's search box.
+ * load-bearing rather than habitual: `openEdit` and `openDelete` are handed to every
+ * `BoardColumn`, which is `memo()`ed and compares them by identity, and this page
+ * re-renders on every keystroke in the header's search box.
  * `board-render-cost.test.tsx` is what notices if they stop being stable.
+ *
+ * **That boundary moved in app#31 and the reason survived the move**, which is why
+ * this paragraph is edited rather than deleted: the memo used to sit on each
+ * `TaskCard`, and the board now renders the kit's `TaskListView`, which builds its
+ * own cards and memoises none of them. One boundary per column instead of one per
+ * card — the stability requirement on these callbacks is identical either way.
  *
  * This also retires a workaround. Those two callbacks previously closed over
  * `useOverlayTriggerState`'s object, which is rebuilt on every render, so they had

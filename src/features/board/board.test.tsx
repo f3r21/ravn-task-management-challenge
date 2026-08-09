@@ -99,21 +99,28 @@ describe('Board', () => {
   })
 
   it('lays a task out differently in each view, so the switcher does something', () => {
-    // Asserting the same heading renders in both views — which is all the test
-    // above did — passes even when the two branches are byte-identical. It was:
-    // below the `sm` breakpoint the board is already a single stacked column, so
-    // the switcher had no effect at all on a phone.
+    // Asserting the same heading renders in both views — which is all the test above
+    // does — passes even when the two branches are byte-identical. It was: below the
+    // `sm` breakpoint the board is already a single stacked column, so the switcher had
+    // no effect at all on a phone.
+    //
+    // **The anchor changed with the migration and is now stronger than it was.** It used
+    // to compare the two `<article>` class strings, which is a proxy — two different
+    // strings prove only that something differs. The views are now structurally distinct
+    // components: the board is per-status `region` landmarks holding `article` cards, the
+    // list is one `table`. Asserting the roles says what the switcher actually does, and
+    // it cannot pass on a cosmetic difference.
     const task = makeTask({ id: 't1', name: 'Slack', status: 'TODO' })
 
     const grid = renderWithProviders(<Board tasks={[task]} view="grid" now={now} />)
-    const gridCard = grid.container.querySelector('article')?.className
+    expect(screen.getAllByRole('article')).toHaveLength(1)
+    expect(screen.getAllByRole('region', { name: /todo/i })).toHaveLength(1)
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
     grid.unmount()
 
-    const list = renderWithProviders(<Board tasks={[task]} view="list" now={now} />)
-    const listCard = list.container.querySelector('article')?.className
-
-    expect(gridCard).toBeDefined()
-    expect(listCard).toBeDefined()
-    expect(listCard).not.toBe(gridCard)
+    renderWithProviders(<Board tasks={[task]} view="list" now={now} />)
+    expect(screen.getAllByRole('table').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: /todo/i })).not.toBeInTheDocument()
   })
 })

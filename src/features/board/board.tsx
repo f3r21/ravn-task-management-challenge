@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { BoardColumn } from './board-column'
-import type { TaskCardLayout } from './task-card/task-card'
+import { BoardListTable } from './board-list-table'
 import type { BoardView } from './board-toolbar'
 import { BOARD_STATUSES, type Status, type Task } from './task-types'
 
@@ -43,9 +43,10 @@ function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
 }
 
 /**
- * What each view changes, and nothing else does.
+ * What the board view's layout does. The list view has no entry here, because it is a
+ * single `TaskTable` that owns its own layout — see `board-list-table.tsx`.
  *
- * `grid`: mobile first — one column, then two, then the board proper. At the
+ * Mobile first — one column, then two, then the board proper. At the
  * widest breakpoint the columns are pinned to the 348px the design draws them at
  * and the row scrolls sideways, rather than being divided into five equal shares
  * of the viewport. The brief asks for five statuses where the mockup shows three,
@@ -54,27 +55,13 @@ function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
  * the card stops resembling the design at all. Sideways scrolling is also what a
  * board is expected to do.
  *
- * `list`: not the board stacked — that is what the board already does at narrow
- * widths, so a switcher between the two would do nothing on a phone. Each status
- * becomes a full-width section and each task a single row, so the fields line up
- * down the page and far more tasks fit on screen.
+ * The list view is deliberately not the board stacked — that is what the board already
+ * does at narrow widths, so a switcher between the two would do nothing on a phone. It is
+ * a table: the fields line up down the page and far more tasks fit on screen.
  */
-const VIEW_LAYOUTS = {
-  grid: {
-    wrapper:
-      'flex flex-col gap-8 sm:grid sm:grid-cols-2 xl:flex xl:flex-row xl:overflow-x-auto xl:pb-2',
-    itemLayout: 'card',
-    columnClassName: 'xl:w-87 xl:shrink-0',
-  },
-  list: {
-    wrapper: 'flex flex-col gap-8',
-    itemLayout: 'row',
-    columnClassName: undefined,
-  },
-} as const satisfies Record<
-  BoardView,
-  { wrapper: string; itemLayout: TaskCardLayout; columnClassName: string | undefined }
->
+const GRID_WRAPPER =
+  'flex flex-col gap-8 sm:grid sm:grid-cols-2 xl:flex xl:flex-row xl:overflow-x-auto xl:pb-2'
+const GRID_COLUMN = 'xl:w-87 xl:shrink-0'
 
 export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps) {
   // Memoised to skip the regrouping — a `Map`, five arrays and five `sort()`s —
@@ -94,20 +81,31 @@ export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps
   // same array comes back out of the same cache entry.
   const grouped = useMemo(() => groupByStatus(tasks), [tasks])
 
-  // The two views iterate the same statuses and differ in exactly three values,
-  // so those are what varies — not the loop, which used to be written out twice.
-  const { wrapper, itemLayout, columnClassName } = VIEW_LAYOUTS[view]
+  // The two views no longer share a loop, and that is the shape of the kit rather than a
+  // choice here: `TaskListView` is one column, so the board maps five of them, while
+  // `TaskTable` takes every group at once because the design draws one shared column-header
+  // row above all of them. An earlier version branched inside the column on an `itemLayout`
+  // prop; there is nothing left for that prop to switch between.
+  if (view === 'list') {
+    return (
+      <BoardListTable
+        grouped={grouped}
+        now={now}
+        onEditTask={onEditTask}
+        onDeleteTask={onDeleteTask}
+      />
+    )
+  }
 
   return (
-    <div className={wrapper}>
+    <div className={GRID_WRAPPER}>
       {BOARD_STATUSES.map((status) => (
         <BoardColumn
           key={status}
           status={status}
           tasks={grouped.get(status) ?? []}
           now={now}
-          itemLayout={itemLayout}
-          className={columnClassName}
+          className={GRID_COLUMN}
           onEditTask={onEditTask}
           onDeleteTask={onDeleteTask}
         />

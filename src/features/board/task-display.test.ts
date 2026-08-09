@@ -25,16 +25,20 @@ describe('tagLabel', () => {
 })
 
 describe('tagAccent', () => {
-  it('uses the two accents the design specifies', () => {
-    expect(tagAccent('IOS')).toBe('green')
-    expect(tagAccent('ANDROID')).toBe('yellow')
-  })
-
-  it('resolves every remaining tag to a palette accent rather than undefined', () => {
-    const accents = ALL_TAGS.map(tagAccent)
-
-    expect(accents).toHaveLength(5)
-    expect(accents.every((accent) => accent !== undefined)).toBe(true)
+  it('assigns each tag the accent the design gives it', () => {
+    // **One table rather than two tests, because the pair it replaces left three of the
+    // five assigned nowhere.** The first pinned `IOS` and `ANDROID`; the second mapped all
+    // five and asserted `accents.every((a) => a !== undefined)` — which asserts that
+    // TypeScript works. `tagAccent` returns `AccentColor`, `undefined` is not in that
+    // union, and the `switch` closes with `assertNever`, so the only way to produce
+    // `undefined` is a value the compiler already rejects.
+    //
+    // What that cost: `REACT`, `RAILS` and `NODE_JS` were asserted by nothing, so swapping
+    // any two of them left the suite green. This is the shape `statusLabel`'s test and
+    // `pointValue`'s already use — the whole mapping, in order, in one comparison.
+    // In `ALL_TAGS` order — ANDROID, IOS, NODE_JS, RAILS, REACT — the same shape
+    // `tagLabel`'s test above uses, so the two read alike.
+    expect(ALL_TAGS.map(tagAccent)).toEqual(['yellow', 'green', 'neutral', 'red', 'blue'])
   })
 })
 
