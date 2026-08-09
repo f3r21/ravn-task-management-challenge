@@ -74,9 +74,20 @@ export function tagLabel(tag: TaskTag): string {
  *
  * What was deviated *from* is recorded here so a reader comparing this against
  * Figma finds the deviation rather than discovering it: the mockup draws
- * `iOS app` in green and `Android` in yellow. **That sentence is inherited from
- * the comment this replaces and no command here re-derives it** — the Figma
- * exports are in neither checkout — so it is a record, not a measurement.
+ * `iOS app` in green and `Android` in yellow. **Checked, in the design vault
+ * that is not part of this repo** — `UI-Kit/Mockups/Dashboard Default View/`,
+ * whose embedded board image shows every card carrying `IOS APP` green and
+ * `ANDROID` amber. Those are also the only two tags the mockup draws, which is
+ * why the original mapping described exactly two as fixed by it.
+ *
+ * **No grep re-derives that, and the reason is worth knowing before you try.**
+ * The tag exports are Figma CSS dumps naming only the component's five variant
+ * types — `Type=Green`, `Type=Yellow` — and they never bind a label to one; the
+ * pairing exists solely in the pasted raster beside them. A search for `rails`
+ * across the whole corpus returns 0 while `3 Pts` returns 25, so the grep reads
+ * fine and the labels are genuinely not there as text. Open the image. Do not
+ * search for it, and do not conclude from a silent search that nothing was
+ * drawn.
  *
  * **Node js on yellow is a forced choice, not a brand match.** Node's `#8CC84B`
  * is a green, and the palette has exactly one green, which Android has taken.
