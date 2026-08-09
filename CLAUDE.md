@@ -246,10 +246,24 @@ meant to outlive this app. Weakening a test to match a component is the one refa
 never in scope here.
 
 The corollary is that a migration can be _blocked_ on the kit, and that is a legitimate
-place to stop — see `delete-task-dialog.tsx`, which stays on the app's own `Dialog` because
-the kit's `Modal` drops `useDialog`'s `contentProps` and so cannot describe an
-`alertdialog`. Record the gap and leave the app correct; do not migrate a component into a
+place to stop. Record the gap and leave the app correct; do not migrate a component into a
 regression.
+
+**Nothing here is blocked on the kit today, and the worked example is one where the rule ran
+to completion rather than one that is still waiting.** `delete-task-dialog.tsx` was stopped
+for months — the kit's `Modal` had no `role`, then had one but dropped `useDialog`'s
+`contentProps`, which for an `alertdialog` means the role is announced without the body text
+that is the whole reason for choosing it. The gap was filed against the kit, fixed there
+rather than worked around here, released, re-pinned, and the migration then landed with no
+compensating code in this app. **The arc lives in that file's own doc comment, which is
+where to read it** — beside the code it explains, so it cannot go stale the way this
+paragraph did. It said the migration was still blocked for four releases after it landed,
+and pointed at an app-owned `Dialog` that no longer exists.
+
+Do not go looking for a currently-blocked migration to replace it with; there is none. The
+only other component that ever cited a kit gap — `metaBadges` in
+`task-card/to-kit-props.ts` — records its gap as closed too, and stays omitted for a reason
+the kit cannot fix. `src/ui/`'s survivors are app-owned by design rather than blocked.
 
 ### The data path
 
