@@ -187,12 +187,16 @@ describe('editing a task', () => {
     const within_ = within(card as HTMLElement)
     expect(within_.getByText('iOS app')).toBeInTheDocument()
     expect(within_.getByText('Android')).toBeInTheDocument()
-    // "4 Pts", not "4 Points": the board renders `@ravn/ui-kit`'s `TaskCard`, whose
-    // wording is not configurable. This is the one place in the migration where the *app*
-    // was the thing that was wrong — the kit derives "N Pts" from the Figma card's own
-    // "Timer" row, and the app had been spelling it out. Its `EstimationCell` says
-    // "N Points" in the table, which means the kit disagrees with itself and renders
-    // "1 Pts" for a one-point task; that is ravn-ui-kit#94 and it is the kit's to fix.
+    // "4 Pts", not "4 Points": the board renders `@ravn/ui-kit`'s `TaskCard`, and this is
+    // the one place in the migration where the *app* was the thing that was wrong — the kit
+    // derives "N Pts" from the Figma card's own "Timer" row, and the app had been spelling
+    // it out. The table's `EstimationCell` still says "N Points"; that difference is the
+    // kit's reading of the design, not the drift ravn-ui-kit#94 reported, which was the
+    // missing singular and is fixed as of v0.8.0.
+    //
+    // The wording *is* configurable now — v0.8.0 added a `formatPoints` prop — and this app
+    // deliberately does not pass one, so these strings are the kit's defaults. Overriding
+    // them here would put the app back to spelling out a wording the design owns.
     expect(within_.getByText('4 Pts')).toBeInTheDocument()
     expect(within_.getByText('14 August, 2026')).toBeInTheDocument()
     expect(within_.getByRole('img', { name: 'Alicia Koch' })).toBeInTheDocument()

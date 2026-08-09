@@ -108,38 +108,31 @@ describe('the board column, in either view', () => {
     },
   )
 
-  it('says a task is unassigned rather than showing an empty avatar (board view)', () => {
-    renderColumn([makeTask({ assignee: null })])
+  it.each<BoardView>(['grid', 'list'])(
+    'says a task is unassigned rather than showing an empty avatar (%s view)',
+    (view) => {
+      // Both views, which they were not between the migration and ravn-ui-kit#111.
+      // `TaskCard` has always rendered `<Avatar>` unconditionally, so the board carried
+      // `fallbackLabel`'s "Unassigned"; `TaskTableRow` rendered its assignee cell only
+      // `{assigneeName ? … }`, so the same task was silent in the list — no indication in
+      // the accessibility tree that the column was even about an assignee. The app could
+      // not close that from here: passing `assigneeName: 'Unassigned'` puts a false name
+      // into the data, and this app's own filtering reads that field as a person.
+      //
+      // A case pinning the gap stood here, written to fail the moment it closed. v0.8.0
+      // closed it and it failed, so it is deleted rather than adjusted — that was the
+      // whole construction, and adjusting it into passing would have kept a test that
+      // asserts the defect.
+      //
+      // **The name is the kit's `unassignedLabel`/`fallbackLabel` default, not a string
+      // this app passes.** So a kit that changes the default breaks this, which is the
+      // correct failure and the reason the assertion is the accessible name rather than
+      // the `?` glyph the avatar happens to draw.
+      renderColumn([makeTask({ assignee: null })], view)
 
-    expect(screen.getByRole('img', { name: 'Unassigned' })).toBeInTheDocument()
-  })
-
-  it('leaves the list view’s assignee column empty for an unassigned task', () => {
-    // **The two views disagree here, and it is the kit's doing rather than the app's.**
-    // `TaskCard` renders `<Avatar>` unconditionally, so the `fallbackLabel` announces
-    // "Unassigned"; `TaskTableRow` renders its assignee cell only `{assigneeName ? … }`, so
-    // the state is silent. Filed as ravn-ui-kit#111.
-    //
-    // Not blocked on: an empty cell is a defensible table idiom and the row still carries
-    // the task, which is why this migrated rather than stopping. Pinned as the difference it
-    // is, so the day the kit closes it this goes red and the case above absorbs both views
-    // again — the same shape as the overdue tripwire, with the positive control adjacent
-    // rather than absent: the case above is the same query and fixture in the other view.
-    //
-    // **It is keyed to `'Unassigned'`, which is `Avatar`'s `fallbackLabel` default and not a
-    // promise about what `TaskTableRow` will render.** If #111 ships a different string this
-    // stays green through the fix — silently, at exactly the moment it is supposed to flip.
-    // That is precisely how the overdue tripwire nearly failed: it matched ` (overdue)`, the
-    // app's old wording, while the kit shipped `, overdue`. A tripwire keyed to a string it
-    // does not control is a tripwire only until the other side chooses differently, so
-    // **re-read this against the kit's implementation on the bump rather than trusting the
-    // red**. `queryByRole('img')` with no name filter is the fallback if the string moves.
-    renderColumn([makeTask({ assignee: null })], 'list')
-
-    expect(screen.queryByRole('img', { name: 'Unassigned' })).not.toBeInTheDocument()
-    // Not passing because the row vanished.
-    expect(screen.getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
-  })
+      expect(screen.getByRole('img', { name: 'Unassigned' })).toBeInTheDocument()
+    },
+  )
 
   it.each<BoardView>(['grid', 'list'])(
     'lists every tag on the task, in the design’s own casing (%s view)',
@@ -228,11 +221,29 @@ describe('the board view', () => {
   it('spells the points out in the kit’s wording, not the app’s', () => {
     // "4 Pts". This is the one assertion in the migration that changed because the *app*
     // was wrong: the kit derives "N Pts" from the Figma card's own "Timer" row, and the app
-    // had been spelling it out. See ravn-ui-kit#94 for the kit disagreeing with itself
-    // ("N Points" in its table) and rendering "1 Pts" for a one-point task.
+    // had been spelling it out.
+    //
+    // The card's short wording and the table's long one still differ, and that is the kit's
+    // deliberate reading of the design rather than the drift ravn-ui-kit#94 reported — no
+    // export file mixes the two. What #94 fixed is the singular; see the two one-point
+    // cases below, one per view.
     renderColumn([makeTask({ pointEstimate: 'FOUR' })])
 
     expect(screen.getByText('4 Pts')).toBeInTheDocument()
+  })
+
+  it('uses the card’s singular for a one-point task', () => {
+    // Unpinned until this bump, and the gap was invisible: `TaskCard` wrote `${points} Pts`
+    // with no singular at all, so a one-point card read "1 Pts" while the table beside it
+    // read "1 Point" — the same datum, two spellings, one of them ungrammatical.
+    // ravn-ui-kit#94 gave both a shared rule in v0.8.0.
+    //
+    // Asserted here because *nothing in this app failed when that string changed*. The
+    // suite went 455 green on the bump with only the #111 tripwire red, so a user-visible
+    // wording change on the board's own card passed through with no witness at all.
+    renderColumn([makeTask({ pointEstimate: 'ONE' })])
+
+    expect(screen.getByText('1 Pt')).toBeInTheDocument()
   })
 
   it('counts the tasks in the heading, zero-padded like the design', () => {
@@ -277,9 +288,10 @@ describe('the list view', () => {
     expect(screen.getByText('4 Points')).toBeInTheDocument()
   })
 
-  it('uses the singular for a one-point task', () => {
-    // The table pluralises; the card does not, and renders "1 Pts" — ravn-ui-kit#94, still
-    // open. So the two views disagree on this one string by the kit's own doing.
+  it('uses the table’s singular for a one-point task', () => {
+    // The table has always pluralised; the card did not until ravn-ui-kit#94 shipped in
+    // v0.8.0. Both read one shared rule now, so the views can differ in wording — "Point"
+    // here, "Pt" on the card — without differing on whether one is singular.
     renderColumn([makeTask({ pointEstimate: 'ONE' })], 'list')
 
     expect(screen.getByText('1 Point')).toBeInTheDocument()
