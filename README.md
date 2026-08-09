@@ -80,9 +80,9 @@ against the live API, at one viewport, with no retouching.
 **That includes the white date field in the create dialog, which is a defect and is left
 visible.** It is
 [`ravn-ui-kit#130`](https://github.com/f3r21/ravn-ui-kit/issues/130): the kit's `Datepicker`
-hardcodes a white surface, so it renders as a light control among four dark ones. It is the same
-mistake the kit's `Select` trigger already fixed, in a component that was never swept when that
-fix landed. The app does not paint over it, because
+hardcodes a white surface, so it is the one light control among the dialog's five pickers — the
+other four are the design's dark chip. It is the same mistake the kit's `Select` trigger already
+fixed, in a component that was never swept when that fix landed. The app does not paint over it, because
 [the standing rule](#the-design-system-is-a-separate-package) is that a kit defect is fixed in the
 kit and never worked around here — and a screenshot edited to hide what the app renders stops
 being a record and becomes a claim.
