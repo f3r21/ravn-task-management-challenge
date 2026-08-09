@@ -76,6 +76,12 @@ describe('new-lane.sh guards', () => {
   // expansion escaped, so `grep "export \$("` over the source found nothing and
   // the absence read as the text being gone. `xargs` survives any spelling of the
   // escaping and is the token to anchor on.
+  //
+  // **The guard is file-scoped**, and deliberately so — do not infer repository-wide
+  // coverage from a repository-wide problem. `CLAUDE.md` also mentions the recipe,
+  // correctly, as history ("which is why this used to say …"), so a sweep over the
+  // repo would fail on a sentence that should stay. If the instruction is ever
+  // reintroduced somewhere other than this script, nothing here catches it.
   it('does not tell a lane to export .env into its shell', () => {
     const source = readFileSync(script, 'utf8')
     // Positive control: a read that silently returned nothing would satisfy every
