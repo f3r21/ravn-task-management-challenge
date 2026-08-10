@@ -1,21 +1,46 @@
 import { render, screen } from '@testing-library/react'
+import * as kit from '@ravn/ui-kit'
 import {
   Avatar,
   Button,
   DUE_DATE_URGENCY_COLOR,
   Datepicker,
+  LogoMark,
   Menu,
   Modal,
   MultiSelect,
   Select,
   Skeleton,
-  Tag,
   TaskListView,
+  TaskTable,
   TextButton,
+  TopNav,
+  ViewSwitcher,
 } from '@ravn/ui-kit'
 import { Item } from 'react-stately'
 import { describe, expect, it } from 'vitest'
 import appManifest from '../../package.json'
+
+/**
+ * The names the test below asserts, as data rather than as a reading of the code.
+ * Keeping it beside the assertions is what lets the derived check compare the two.
+ */
+const ASSERTED = new Set([
+  'Avatar',
+  'Button',
+  'Datepicker',
+  'LogoMark',
+  'Menu',
+  'Modal',
+  'MultiSelect',
+  'Select',
+  'Skeleton',
+  'TaskListView',
+  'TaskTable',
+  'TextButton',
+  'TopNav',
+  'ViewSwitcher',
+])
 // The only path in this repo that reaches into `node_modules` on purpose, and it has
 // to: the kit's `exports` map does not list `./package.json`, so the specifier
 // `@ravn/ui-kit/package.json` fails to resolve at all. A relative path is a file read,
@@ -74,9 +99,53 @@ describe('@ravn/ui-kit, as installed', () => {
     expect(typeof Button).toBe('function')
     expect(typeof Datepicker).toBe('function')
     expect(typeof Skeleton).toBe('function')
-    expect(typeof Tag).toBe('function')
     expect(typeof TaskListView).toBe('function')
     expect(typeof TextButton).toBe('function')
+    // The list view and the app shell. Absent here until now, which left the one guard
+    // covering this seam checking the wrong components: `Tag` was asserted long after
+    // the last non-test module stopped importing it, while these three were imported on
+    // every route and never checked.
+    expect(typeof LogoMark).toBe('function')
+    expect(typeof TaskTable).toBe('function')
+    expect(typeof TopNav).toBe('function')
+    expect(typeof ViewSwitcher).toBe('function')
+  })
+
+  it('asserts every kit component the app actually imports', () => {
+    // The list above was hand-maintained and went stale in both directions at once: it
+    // asserted `Tag` after the last non-test module stopped importing it, and omitted
+    // `TaskTable`, `TopNav` and `ViewSwitcher` while every route rendered them. Nothing
+    // noticed, because a hand-written list has no relationship to the imports it claims
+    // to mirror — so this derives the imports from source and compares.
+    //
+    // Icons and types are excluded deliberately: the icons are one uniform family, and a
+    // type has no runtime export to check.
+    // `import.meta.glob` rather than `node:fs`: this is a browser app and its tsconfig
+    // carries no Node types, so a `readFileSync` here fails the typecheck while passing
+    // the test — green locally, red in `gate`.
+    const sources = import.meta.glob('/src/**/*.{ts,tsx}', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    })
+    const imported = new Set<string>()
+    for (const [path, text] of Object.entries(sources)) {
+      if (path.endsWith('ui-kit-smoke.test.tsx')) continue
+      const pattern = /import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+'@ravn\/ui-kit'/g
+      for (const match of text.matchAll(pattern)) {
+        for (const raw of match[1].split(',')) {
+          const name = raw.replace(/\btype\b/, '').trim()
+          if (/^[A-Z]/.test(name) && !name.endsWith('Icon') && !name.endsWith('Props')) {
+            imported.add(name)
+          }
+        }
+      }
+    }
+
+    // Values only — `AccentColor`, `DueDateUrgency` and `TaskTableGroup` are types.
+    const runtime = [...imported].filter((name) => name in kit).sort()
+
+    expect(runtime.filter((name) => !ASSERTED.has(name))).toEqual([])
   })
 
   it('exports the urgency palette the board hands straight to a Tag', () => {

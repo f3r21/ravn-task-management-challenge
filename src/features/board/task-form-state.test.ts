@@ -76,23 +76,35 @@ describe('validateTaskForm', () => {
   })
 
   it('rejects an empty name', () => {
-    expect(validateTaskForm({ ...fields, name: '' })).toMatch(/name/i)
+    expect(validateTaskForm({ ...fields, name: '' })).toEqual({
+      field: 'name',
+      message: expect.stringMatching(/name/i),
+    })
   })
 
   it('rejects a name that is only whitespace', () => {
     // Otherwise a task called "   " reaches the API and renders as a blank card.
-    expect(validateTaskForm({ ...fields, name: '   ' })).toMatch(/name/i)
+    expect(validateTaskForm({ ...fields, name: '   ' })).toEqual({
+      field: 'name',
+      message: expect.stringMatching(/name/i),
+    })
   })
 
   it('rejects a missing due date', () => {
-    expect(validateTaskForm({ ...fields, dueDate: '' })).toMatch(/due date/i)
+    expect(validateTaskForm({ ...fields, dueDate: '' })).toEqual({
+      field: 'dueDate',
+      message: expect.stringMatching(/due date/i),
+    })
   })
 
   it('accepts a task with no tags and no assignee, both of which are optional', () => {
     expect(validateTaskForm({ ...fields, tags: [], assigneeId: null })).toBeUndefined()
   })
   it('rejects a position that is not a number', () => {
-    expect(validateTaskForm({ ...fields, position: 'abc' })).toMatch(/position/i)
+    expect(validateTaskForm({ ...fields, position: 'abc' })).toEqual({
+      field: 'position',
+      message: expect.stringMatching(/position/i),
+    })
   })
 
   it('accepts an empty position, since the server assigns one', () => {
@@ -102,6 +114,6 @@ describe('validateTaskForm', () => {
   it('reports the missing name before the bad position, so the first error is the first field', () => {
     // Ordering matters: a position check that ran first would change the message
     // every existing name/due-date test asserts on.
-    expect(validateTaskForm({ ...fields, name: '', position: 'abc' })).toMatch(/name/i)
+    expect(validateTaskForm({ ...fields, name: '', position: 'abc' })?.field).toBe('name')
   })
 })
