@@ -96,22 +96,21 @@ its own. The mock banner disappears. There is no separate "live mode" switch.
 
 ## Stack, and why
 
-| Choice                                                     | Why                                                                                                                                                                                                                                                                                    |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** | The Figma file for this challenge is a component library. So the team built it as one: a separate package with its own Storybook, tests, and CI. This app consumes that package. See [The design system is a separate package](docs/design-system.md).                                 |
-| **React 19 + TypeScript (strict)**                         | `any` and `@ts-ignore` are lint errors. They are not warnings.                                                                                                                                                                                                                         |
-| **Vite 8**                                                 | Vite gives a fast dev server. The build runs `tsc --noEmit`, then bundles. So type errors block the build.                                                                                                                                                                             |
-| **Tailwind v4**                                            | This is RAVN's published frontend standard. Tailwind v4 reads configuration from CSS custom properties in `@theme`. So the Figma palette becomes semantic design tokens, not a JS config object.                                                                                       |
-| **TanStack Query v5**                                      | Server state needs different handling than client state: caching, deduplication, invalidation. RAVN's `state-server-vs-client` rule requires this separation. RAVN's own examples use this library.                                                                                    |
-| **A hand-written `fetch` GraphQL client**                  | React Query already owns caching. A GraphQL client with its own normalized cache would add a second source of truth. It would also add a second place to check when the board looks wrong. This app needed one typed function instead.                                                 |
-| **graphql-codegen**                                        | Codegen types each operation from the schema. So reading a field a query did not select causes a compile error.                                                                                                                                                                        |
-| **React Aria (hooks)**                                     | Modals, menus, selects, radio groups, and toasts are easy to get subtly wrong on accessibility: focus containment, focus restoration, the Escape key, inerting the page behind, roving tabindex, typeahead. RAVN's `aria-use-react-aria-hooks` rule requires these hooks specifically. |
-| **MSW v2**                                                 | RAVN's `mock-msw-external-apis` rule requires MSW. MSW intercepts requests at the network layer. So tests exercise the real client code, not a stubbed module. The same handlers let the app run without credentials.                                                                  |
-| **Vitest + Testing Library**                               | Vitest and Testing Library query by role and label. They never query by test id.                                                                                                                                                                                                       |
-| **react-router 8**                                         | §1 requires routing. This app pins the version instead of using a caret range: every 7.x release falls inside at least one published security advisory. The route table is a plain array. So tests mount the real route table and navigate for real.                                   |
-| **date-fns**                                               | This app uses date-fns to parse and validate API dates. It uses `Intl` with an explicit `timeZone` to format dates. See the UTC note below. It explains why a date library that reads local fields was the wrong tool for formatting.                                                  |
-| **react-stately**                                          | react-stately provides the state half of the React Aria hooks: collections, overlay triggers, radio groups, the toast queue.                                                                                                                                                           |
-| **clsx + tailwind-merge**                                  | Together they give one `cn` helper. A component's own class can then override a variant's class. Without this, both classes would land in the output, and source order alone would decide which one wins.                                                                              |
+| Choice                                                     | Why                                                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** | The Figma file for this challenge is a component library. So the team built it as one: a separate package with its own Storybook, tests, and CI. This app consumes that package. See [The design system is a separate package](docs/design-system.md).                                                                                                                                        |
+| **React 19 + TypeScript (strict)**                         | `any` and `@ts-ignore` are lint errors. They are not warnings.                                                                                                                                                                                                                                                                                                                                |
+| **Vite 8**                                                 | Vite gives a fast dev server. The build runs `tsc --noEmit`, then bundles. So type errors block the build.                                                                                                                                                                                                                                                                                    |
+| **Tailwind v4**                                            | This is RAVN's published frontend standard. Tailwind v4 reads configuration from CSS custom properties in `@theme`. So the Figma palette becomes semantic design tokens, not a JS config object.                                                                                                                                                                                              |
+| **TanStack Query v5**                                      | Server state needs different handling than client state: caching, deduplication, invalidation. RAVN's `state-server-vs-client` rule requires this separation. RAVN's own examples use this library.                                                                                                                                                                                           |
+| **A hand-written `fetch` GraphQL client**                  | React Query already owns caching. A GraphQL client with its own normalized cache would add a second source of truth. It would also add a second place to check when the board looks wrong. This app needed one typed function instead.                                                                                                                                                        |
+| **graphql-codegen**                                        | Codegen types each operation from the schema. So reading a field a query did not select causes a compile error.                                                                                                                                                                                                                                                                               |
+| **React Aria (hooks) + react-stately**                     | Modals, menus, selects, radio groups, and toasts are easy to get subtly wrong on accessibility: focus containment, focus restoration, the Escape key, inerting the page behind, roving tabindex, typeahead. RAVN's `aria-use-react-aria-hooks` rule requires these hooks specifically. react-stately provides their state half: collections, overlay triggers, radio groups, the toast queue. |
+| **MSW v2**                                                 | RAVN's `mock-msw-external-apis` rule requires MSW. MSW intercepts requests at the network layer. So tests exercise the real client code, not a stubbed module. The same handlers let the app run without credentials.                                                                                                                                                                         |
+| **Vitest + Testing Library**                               | Queries by role and label, never by test id.                                                                                                                                                                                                                                                                                                                                                  |
+| **react-router 8**                                         | §1 requires routing. This app pins the version instead of using a caret range: every 7.x release falls inside at least one published security advisory. The route table is a plain array. So tests mount the real route table and navigate for real.                                                                                                                                          |
+| **date-fns**                                               | This app uses date-fns to parse and validate API dates. It uses `Intl` with an explicit `timeZone` to format dates. See the UTC note below. It explains why a date library that reads local fields was the wrong tool for formatting.                                                                                                                                                         |
+| **clsx + tailwind-merge**                                  | One `cn` helper, so a component's class can override a variant's class instead of both landing in the output.                                                                                                                                                                                                                                                                                 |
 
 RAVN publishes these rules at [`ravnhq/ai-toolkit`](https://github.com/ravnhq/ai-toolkit):
 `platform-frontend`, `tech-react`, `design-frontend`, `tech-vitest`, `lang-typescript`.
@@ -202,19 +201,12 @@ the design's own SVG exports. Each one has its baked `fill` value swapped for
 4.5:1. The selected state measures 2.83:1. No colour in the palette fixes this. The darkest
 label colour, `neutral-5` (#222528), only reaches 4.02:1. `primary-4` is already the
 darkest red in the ramp. The only fix is a darker red. That is a brand change, not one this
-challenge can make. The kit's
-[`.storybook/a11y-allowlist.ts`](https://github.com/f3r21/ravn-ui-kit/blob/v0.4.0/.storybook/a11y-allowlist.ts)
-allowlists sixteen nodes across fourteen stories. Each entry states its reason. This file is
-pinned to the tag this app installs. So the allowlist stays checkable. The kit's CI enforces
-this file. A new violation fails the build, unless someone adds it to the allowlist on
-purpose.
+challenge can make.
 
 **The board shows five columns. The mockup shows three.** The brief lists five statuses.
-The mockup predates the schema. Five equal columns on a 1440px viewport would leave each
-card about 200px wide. At that width, the points label, the date badge, and the tag row all
-wrap. The card would stop matching the design. So each column keeps the 348px width the
-design draws. The row scrolls sideways instead. On smaller screens, the row collapses to
-two columns, then to one.
+The mockup predates the schema. Five equal columns on a 1440px viewport would break the
+card layout. So each column keeps the 348px width the design draws. The row scrolls
+sideways instead. On smaller screens, the row collapses to two columns, then to one.
 
 **Search is a text field, not the button Figma draws.** The mockup renders the whole search
 bar as a `<button>` element containing the word "Search". That is only a mockup convention.
@@ -238,13 +230,11 @@ as a plain date. Each value it returns sits at midnight UTC. Reading that value 
 viewer's local zone would shift it. West of Greenwich, a task due tomorrow would then
 render as "Yesterday", in overdue red. So the whole test suite runs at **UTC+14**. Any code
 that reads a local calendar field instead of UTC fails a test, instead of shipping a bug.
-
-This `TZ` pin is necessary, but not sufficient. A real bug taught this team that. UTC+14 is
-a _fixed_ offset. It cannot catch a bug that depends on daylight saving. The original code
-reconstructed a UTC clock by writing date fields into a local `Date` object. On a day that
-skips an hour, that produces a time that does not exist in any time zone. Formatting now
-goes through `Intl`, with an explicit `timeZone`. Tests also switch time zone on purpose, to
-cover this case.
+That pin is not enough on its own. UTC+14 is a _fixed_ offset. It cannot catch a bug that
+depends on daylight saving. The original code reconstructed a UTC clock by writing date
+fields into a local `Date` object. On a day that skips an hour, that produces a time that
+does not exist in any time zone. Formatting now goes through `Intl`, with an explicit
+`timeZone`. Tests also switch time zone on purpose, to cover this case.
 
 **A failure a user can fix is different from one they cannot fix.** GraphQL always answers
 `200 OK`, even on failure. It reports failure through an `errors` array instead. So "did
