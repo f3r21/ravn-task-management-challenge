@@ -4,7 +4,7 @@ The Figma file for this challenge is not a set of screens — it is a component 
 a style guide, per-component specs and variant states. Building those components inline in
 `src/ui/` would have meant a design system that only existed as a side effect of one app.
 
-So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 46
+So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 49
 components and 21 icons built from the Figma export, with Storybook stories for all but two
 components, its own test suite and its own CI.
 **[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)** to see every component, its
@@ -16,7 +16,7 @@ exports too and grepping for those instead returns 132:
 
 ```bash
 f=node_modules/@ravn/ui-kit/dist/index.d.ts
-grep -E '^export declare function [A-Z]' $f | grep -vc IconProps   # 46 components
+grep -E '^export declare function [A-Z]' $f | grep -vc IconProps   # 49 components
 grep -E '^export declare function [A-Z]' $f | grep -c  IconProps   # 21 icons
 ```
 
@@ -39,28 +39,30 @@ a focus ring that computed a colour and painted nothing, `onAction` firing twice
 pick) were found only by wiring it into something real, and were fixed in the kit rather
 than patched around here.
 
-The migration is deliberately incomplete and tracked as such. `Modal`, `Select`,
-`MultiSelect` and `Menu` come from the kit today; `Avatar`, `Button`, `Tag`, `Skeleton` and
-the board components are still app-owned and queued to move.
+The migration is complete through the board. `Modal`, `Select`, `MultiSelect` and `Menu`
+came first; then `Avatar`, `Button`, `Tag` and `Skeleton`; then the board itself. `src/ui/`
+now holds only what has no reason to move.
 
-`EmptyState`, the toast system and the icon set are also still app-owned, and the reason is
-worth stating precisely because it is the opposite of the obvious one: the kit has all
-three, and it has them **because this app wrote them first**. Its `EmptyState` and
-`ToastProvider` are both marked "No Figma source" in the kit and were ported from here — the
-design file draws neither, and the accessibility lessons behind them (an empty state that
-must not be a live region, a toast region that has to be portalled _and_ exempted) were paid
-for in this repo. So they are duplicates awaiting deletion, not gaps: the kit's versions are
-supersets, and swapping to them is queued work with no user-visible change to show for it.
+`EmptyState`, the toast system and the icon set are app-owned by design, not queued
+migrations, and the reason is worth stating precisely because it is the opposite of the
+obvious one: the kit has all three, and it has them **because this app wrote them first**.
+Its `EmptyState` and `ToastProvider` are both marked "No Figma source" in the kit and were
+ported from here — the design file draws neither, and the accessibility lessons behind them
+(an empty state that must not be a live region, a toast region that has to be portalled _and_
+exempted) were paid for in this repo. So they stay duplicated on purpose: the kit's versions
+are supersets, but nothing in the app still reaches for the app-owned ones to swap.
 
-**`ErrorBoundary` is the only one of the four the original claim still holds for.** The kit
-genuinely has no equivalent, and arguably should not: it renders nothing designed, and its
-whole surface is an `onError` seam for wiring up crash reporting in a host application.
+**`ErrorBoundary` is the one component the kit still has no equivalent for, and arguably
+should not:** it renders nothing designed, and its whole surface is an `onError` seam for
+wiring up crash reporting in a host application.
 
-One migration is blocked rather than queued, which is a different thing. The delete
-confirmation stays on the app's own `Dialog` because the kit's `Modal` accepts
-`role="alertdialog"` but drops React Aria's `contentProps`, so the body text it exists to
-announce is never wired to `aria-describedby` — a test here asserts that description, and
-per the rule below the fix belongs in the kit rather than in the assertion.
+The delete confirmation was the one migration blocked rather than queued, and it is worth
+reading as a worked example of the rule below rather than a live caveat. The kit's `Modal`
+accepted `role="alertdialog"` but dropped React Aria's `contentProps`, so the body text it
+exists to announce was never wired to `aria-describedby` — a test here asserts that
+description. The gap was filed against the kit, fixed there, released, and re-pinned; the
+migration then landed with no compensating code in this app. `delete-task-dialog.tsx` now
+imports the kit's `Modal` like everything else.
 
 That rule is the whole point of the arrangement: **when a kit component fails an assertion
 in this app, the fix goes in the kit, not in the test.** Weakening a test to make a

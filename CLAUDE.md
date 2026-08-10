@@ -55,7 +55,7 @@ PR needs checks most, because its base has not landed yet. Two more workflows si
 The load-bearing decision in the project; most confusion traces back to it.
 
 `src/lib/env.ts` is the app's only read of `import.meta.env`, and `readApiConfig` resolves to
-**three** states, not two (`src/lib/env.ts:87-104`):
+**three** states, not two (`src/lib/env.ts:18-19`):
 
 ```ts
 export type ApiConfig =
@@ -483,7 +483,7 @@ jsdom, faster and more precisely, and each extra flow is more live mutation.
   `{/* … */}` comment and a multi-line `/* */` block both defeat a reader that classifies a
   line by its first character, and `--compare` runs that cruder reader over the same tree and
   prints where the two disagree, so the parser's advantage is demonstrated rather than assumed.
-  Reading at `9e723b2`: 2219 comment lines / 2624 code lines = 84.6% —
+  Reading at `1eac7f9`: 2307 comment lines / 2625 code lines = 87.9% —
   `npm run comments 2>&1 | tail -3`.
 - **Zero `any`, zero `@ts-ignore`.** Both are lint _errors_, so `npm run lint` is what holds
   them at zero. **Type assertions are one as of #110** — the transport boundary, and nothing
