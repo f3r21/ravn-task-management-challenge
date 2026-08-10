@@ -1,17 +1,18 @@
 # Task Management Challenge
 
-A task management dashboard built for the RAVN frontend code challenge: browse tasks on a
-status board, create them, edit them, delete them, search and filter them, and view the
-signed-in user's profile.
+This is a task management dashboard for the RAVN frontend code challenge. You can browse
+tasks on a status board. You can create, edit, and delete tasks. You can search and filter
+tasks. You can view the signed-in user's profile.
 
-**[Live app](https://ravn-task-management-challenge.vercel.app)** — deployed on Vercel and
-running against the real API. How it does that without publishing RAVN's token is under
-[Deployment](docs/deployment.md).
+**[Live app](https://ravn-task-management-challenge.vercel.app)** — this app runs on Vercel.
+It connects to the real API. [Deployment](docs/deployment.md) explains how it does this
+without publishing RAVN's token.
 
-Every checkbox in the brief's six sections is implemented but one: §6 asks the settings page
-to show a `Position`, and `User` has no such field. That gap, and two places where the brief's
-wording and the schema's simply differ without costing anything, are spelled out under
-[Things the brief asks for that the API cannot do](#things-the-brief-asks-for-that-the-api-cannot-do).
+This app meets every checkbox in the brief's six sections except one. §6 asks the settings
+page to show a `Position` field. The `User` type has no such field.
+[Things the brief asks for that the API cannot do](#things-the-brief-asks-for-that-the-api-cannot-do)
+explains this gap. It also explains two places where the brief's wording differs from the
+schema's wording, at no cost.
 
 ![The dashboard](docs/screenshots/dashboard.jpg)
 
@@ -24,45 +25,49 @@ wording and the schema's simply differ without costing anything, are spelled out
 | ![Settings](docs/screenshots/settings.jpg)           | ![List layout](docs/screenshots/list-view.jpg)    |
 | The signed-in user — email redacted, see below       | The list layout                                   |
 
-The email field in that screenshot reads `[email redacted]`. The API's seeded profile is a real
-person at RAVN, and this repository is public, so the address is masked in the image rather than
-published in it. Nothing else in any screenshot is altered — they are captures of the deployed
-build against the live API.
+The email field in that screenshot reads `[email redacted]`. The API's seeded profile
+belongs to a real person at RAVN. This repository is public, so the screenshot masks the
+address instead of publishing it. No other screenshot is altered. Each one is a direct
+capture of the deployed build against the live API.
 
-- **Board** — five status columns, task cards with name, tags, due date, points, assignee
-  and an options menu. Loading, error and empty states are three distinct things.
-- **Create / edit / delete** — a modal for create and edit, a confirmation for delete, and
-  a notification for each outcome.
-- **Search and filter** — all six filters the brief lists, sent to the API rather than
-  applied to a loaded list. Filters live in the URL.
-- **My task** (`/settings`) — the signed-in user, from the `profile` query. The label is
-  the design's; the route is the one §6 asks for.
-- **Calendar, Team, Messages** — sample pages. §2 asks the sidebar for a list of menu items
-  "most of them" leading to a placeholder, which needs more destinations than the brief's
-  six sections build. They are real routes inside the app shell rather than the not-found
-  page: a working menu item that lands on "this page does not exist" reads as a broken link.
+- **Board** — five status columns. Each task card shows a name, tags, a due date, points,
+  an assignee, and an options menu. Loading, error, and empty states are three separate
+  states.
+- **Create, edit, delete** — one modal handles create and edit. A confirmation dialog
+  handles delete. Each action shows a notification.
+- **Search and filter** — the app supports all six filters the brief lists. The app sends
+  each filter to the API. It does not filter an already-loaded list. Filters live in the
+  URL.
+- **My task** (`/settings`) — this page shows the signed-in user from the `profile` query.
+  The design sets the label. §6 asks for this route.
+- **Calendar, Team, Messages** — these are sample pages. §2 asks the sidebar to list menu
+  items. Most of them should lead to a placeholder page. The brief's six sections do not
+  build that many destinations. These three are real routes inside the app shell. They are
+  not the not-found page. A working menu item that lands on "this page does not exist"
+  looks like a broken link.
 
 ## Setup
 
-Requires Node on the 22 line, floored at 22.13.0 — `engines` in `package.json` is `^22.13.0`
-and `.nvmrc` pins `22`. CI installs straight from `.nvmrc`, so those two files are the
-authority rather than this sentence.
+This app requires Node 22, at or above 22.13.0. `engines` in `package.json` sets
+`^22.13.0`. `.nvmrc` pins `22`. CI installs Node straight from `.nvmrc`. Trust those two
+files, not this sentence.
 
 ```bash
 npm install
 npm run dev          # http://localhost:5173
 ```
 
-Browsers: **Chrome 111, Edge 111, Firefox 128, Safari 16.4, iOS Safari 16.4**, declared in
-`package.json`'s `browserslist` — `node -p "require('./package.json').browserslist.join(', ')"`.
-That one list is converted into the Vite build target and into a lint over `src/`, so the floor
-the build compiles for and the floor the code is checked against cannot disagree. Firefox is 128
-rather than Vite's default 114 because that is what Tailwind v4 requires — the lower number was a
-claim the stylesheet could not honour.
+Supported browsers: **Chrome 111, Edge 111, Firefox 128, Safari 16.4, iOS Safari 16.4**.
+`package.json`'s `browserslist` declares this list — run
+`node -p "require('./package.json').browserslist.join(', ')"` to print it. Vite converts
+this same list into its build target. ESLint converts it into a lint over `src/`. So the
+build target and the lint floor always agree. Firefox is 128, not Vite's default of 114,
+because Tailwind v4 requires 128. The lower number did not match what the stylesheet needs.
 
-**It runs with no configuration.** Until the API is configured — which is the state a fresh
-clone is in, and the one a half-filled `.env` is still in — the app serves its own mocked data
-and says so on screen, so you can clone this and see a working board immediately.
+**This app runs with no configuration.** A fresh clone has no API configured. A half-filled
+`.env` file also counts as unconfigured. In both cases, the app serves its own mock data. It
+shows a banner that says so on screen. So you can clone this app and see a working board
+right away.
 
 To point it at the real API instead:
 
@@ -71,10 +76,9 @@ cp .env.example .env
 # paste your token after VITE_API_TOKEN= and restart the dev server
 ```
 
-The token is the one RAVN issues by email. `.env` is gitignored and no token appears
-anywhere in this repository. Once both values are filled in, `npm run dev` connects to the
-live API automatically and the mock banner disappears — there is no separate "live mode" to
-switch on.
+RAVN issues this token by email. `.gitignore` excludes `.env`. No token appears anywhere in
+this repository. Once you fill in both values, `npm run dev` connects to the live API on
+its own. The mock banner disappears. There is no separate "live mode" switch.
 
 ### Commands
 
@@ -92,31 +96,30 @@ switch on.
 
 ## Stack, and why
 
-| Choice                                                     | Why                                                                                                                                                                                                                                                                              |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** | The Figma file for this challenge is a component library, so it was built as one — a separate package with its own Storybook, tests and CI, consumed here. See [The design system is a separate package](docs/design-system.md).                                                 |
-| **React 19 + TypeScript (strict)**                         | `any` and `@ts-ignore` are lint errors, not warnings.                                                                                                                                                                                                                            |
-| **Vite 8**                                                 | Fast dev server; the build is `tsc --noEmit` then bundle, so types gate the build.                                                                                                                                                                                               |
-| **Tailwind v4**                                            | RAVN's published frontend standard. Tailwind v4 configures through CSS custom properties in `@theme`, so the Figma palette becomes semantic design tokens rather than a JS config object.                                                                                        |
-| **TanStack Query v5**                                      | Server state has different needs from client state — caching, deduplication, invalidation. RAVN's `state-server-vs-client` rule says to separate them, and this is the library its own examples use.                                                                             |
-| **A hand-written `fetch` GraphQL client**                  | React Query already owns caching. A GraphQL client with its own normalised cache underneath it would put two sources of truth under the same task, and two places to look when the board disagrees with itself. What was actually needed is one typed function.                  |
-| **graphql-codegen**                                        | Operations are typed from the schema, so reading a field a query did not select is a compile error.                                                                                                                                                                              |
-| **React Aria (hooks)**                                     | Modals, menus, selects, radio groups and toasts are where accessibility is easy to get subtly wrong — focus containment and restoration, Escape, inerting the page behind, roving tabindex, typeahead. RAVN's `aria-use-react-aria-hooks` rule calls for the hooks specifically. |
-| **MSW v2**                                                 | RAVN's `mock-msw-external-apis` rule. It intercepts at the network layer, so tests exercise the real client code rather than a stubbed module — and the same handlers let the app run without credentials.                                                                       |
-| **Vitest + Testing Library**                               | Queries by role and label, never by test id.                                                                                                                                                                                                                                     |
-| **react-router 8**                                         | §1's routing requirement. Pinned rather than caret-ranged: every 7.x release falls inside at least one published advisory range. The route table is a plain array so tests mount the real thing and navigate for real.                                                           |
-| **date-fns**                                               | Parsing and validating API dates. Formatting is `Intl` with an explicit `timeZone` — see the UTC note below for why a date library reading local fields was the wrong tool for that half.                                                                                        |
-| **react-stately**                                          | The state half of the React Aria hooks: collections, overlay triggers, radio groups, the toast queue.                                                                                                                                                                            |
-| **clsx + tailwind-merge**                                  | One `cn` helper, so a component's own class can override a variant's instead of both landing in the output and letting source order decide.                                                                                                                                      |
+| Choice                                                     | Why                                                                                                                                                                                                                                                                                    |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** | The Figma file for this challenge is a component library. So the team built it as one: a separate package with its own Storybook, tests, and CI. This app consumes that package. See [The design system is a separate package](docs/design-system.md).                                 |
+| **React 19 + TypeScript (strict)**                         | `any` and `@ts-ignore` are lint errors. They are not warnings.                                                                                                                                                                                                                         |
+| **Vite 8**                                                 | Vite gives a fast dev server. The build runs `tsc --noEmit`, then bundles. So type errors block the build.                                                                                                                                                                             |
+| **Tailwind v4**                                            | This is RAVN's published frontend standard. Tailwind v4 reads configuration from CSS custom properties in `@theme`. So the Figma palette becomes semantic design tokens, not a JS config object.                                                                                       |
+| **TanStack Query v5**                                      | Server state needs different handling than client state: caching, deduplication, invalidation. RAVN's `state-server-vs-client` rule requires this separation. RAVN's own examples use this library.                                                                                    |
+| **A hand-written `fetch` GraphQL client**                  | React Query already owns caching. A GraphQL client with its own normalized cache would add a second source of truth. It would also add a second place to check when the board looks wrong. This app needed one typed function instead.                                                 |
+| **graphql-codegen**                                        | Codegen types each operation from the schema. So reading a field a query did not select causes a compile error.                                                                                                                                                                        |
+| **React Aria (hooks)**                                     | Modals, menus, selects, radio groups, and toasts are easy to get subtly wrong on accessibility: focus containment, focus restoration, the Escape key, inerting the page behind, roving tabindex, typeahead. RAVN's `aria-use-react-aria-hooks` rule requires these hooks specifically. |
+| **MSW v2**                                                 | RAVN's `mock-msw-external-apis` rule requires MSW. MSW intercepts requests at the network layer. So tests exercise the real client code, not a stubbed module. The same handlers let the app run without credentials.                                                                  |
+| **Vitest + Testing Library**                               | Vitest and Testing Library query by role and label. They never query by test id.                                                                                                                                                                                                       |
+| **react-router 8**                                         | §1 requires routing. This app pins the version instead of using a caret range: every 7.x release falls inside at least one published security advisory. The route table is a plain array. So tests mount the real route table and navigate for real.                                   |
+| **date-fns**                                               | This app uses date-fns to parse and validate API dates. It uses `Intl` with an explicit `timeZone` to format dates. See the UTC note below. It explains why a date library that reads local fields was the wrong tool for formatting.                                                  |
+| **react-stately**                                          | react-stately provides the state half of the React Aria hooks: collections, overlay triggers, radio groups, the toast queue.                                                                                                                                                           |
+| **clsx + tailwind-merge**                                  | Together they give one `cn` helper. A component's own class can then override a variant's class. Without this, both classes would land in the output, and source order alone would decide which one wins.                                                                              |
 
-Those RAVN rules are published at
-[`ravnhq/ai-toolkit`](https://github.com/ravnhq/ai-toolkit) — `platform-frontend`,
-`tech-react`, `design-frontend`, `tech-vitest`, `lang-typescript`.
+RAVN publishes these rules at [`ravnhq/ai-toolkit`](https://github.com/ravnhq/ai-toolkit):
+`platform-frontend`, `tech-react`, `design-frontend`, `tech-vitest`, `lang-typescript`.
 
 ### Structure
 
-Organised by feature, not by type, with named exports and no barrel files — all three from
-RAVN's `platform-frontend` rules.
+This app organizes code by feature, not by type. It uses named exports. It has no barrel
+files. RAVN's `platform-frontend` rules require all three.
 
 ```
 src/
@@ -132,136 +135,149 @@ src/
 └── test/        the one render helper every test goes through
 ```
 
-A component lives inside the feature that uses it, and moves to `ui/` only once something
-else needs it.
+A component lives inside the feature that uses it. It moves to `ui/` only when another
+feature needs it too.
 
 ## Bonus items
 
-Of the brief's five, these are built:
+The brief lists five bonus items. This app builds three:
 
-- **Task count per column** — the design draws it (`In Progress (03)`), zero-padded.
-- **Due-date colour by urgency** — all three tiers the brief lists: green while the deadline
-  is more than a day out, amber when it is today or tomorrow, red once it is past. Colour is
-  never the only signal — the badge spells the date out in every tier, and the overdue one
-  adds "(overdue)" for anyone who does not receive colour at all.
-- **A list layout as well as the board** — each status becomes a full-width section and
-  each task a single row, rather than the same card stacked. Worth being precise about why
-  that distinction matters: the board is _already_ one stacked column at narrow widths, so
-  a list view built by stacking would have been a switcher that did nothing on a phone.
+- **Task count per column** — the design shows this as `In Progress (03)`. The count is
+  zero-padded.
+- **Due-date colour by urgency** — this app builds all three tiers the brief lists. The
+  badge is green when the deadline is more than a day away. It is amber when the deadline
+  is today or tomorrow. It is red once the deadline has passed. Colour is never the only
+  signal. The badge always spells out the date too. The overdue badge also adds the word
+  "(overdue)", for anyone who cannot see colour.
+- **A list layout, in addition to the board** — each status becomes a full-width section.
+  Each task becomes a single row, not a stacked card. This distinction matters for a
+  specific reason. The board already collapses to one stacked column at narrow widths. A
+  list view built the same way would do nothing new on a phone.
 
-Drag-and-drop was left out for scope, not difficulty — and it is worth being precise about
-that, because the easy excuse would be accessibility. The installed React Aria ships the
-whole accessible drag story: a keyboard mode, drop-target navigation and localised screen
-reader announcements. The obstacle was the collection layer each column would need, not the
-keyboard. A task's status and its position within a column can both be changed from the
-options menu, which exercises the same `updateTask` mutation a drop would.
+This app leaves out drag-and-drop for scope reasons, not difficulty. Accessibility is not
+the reason, and it matters to be precise about that. The installed React Aria library ships
+the whole accessible drag story already: a keyboard mode, drop-target navigation, and
+localized screen-reader announcements. The real obstacle was the collection layer each
+column would need, not the keyboard. You can change a task's status from the options menu.
+You can also change its position within a column from the same menu. Both actions call the
+same `updateTask` mutation a drop would call.
 
 ## Things the brief asks for that the API cannot do
 
-- **§6 asks the settings page to show `Position`.** `User` has no such field. It exposes
-  `id`, `fullName`, `email`, `avatar`, `type`, `createdAt` and `updatedAt` —
-  `awk '/^type User /,/^}/' schema.graphql` prints exactly those seven, and
-  `npm run schema:check` re-introspects the live endpoint to prove that file has not drifted
-  from it. The other five requested fields are all shown. Inventing a sixth seemed worse
-  than saying this.
+- **§6 asks the settings page to show a `Position` field.** The `User` type has no such
+  field. It exposes only `id`, `fullName`, `email`, `avatar`, `type`, `createdAt`, and
+  `updatedAt`. Run `awk '/^type User /,/^}/' schema.graphql` to print exactly those seven
+  fields. Run `npm run schema:check` to confirm the live endpoint still matches. This app
+  shows the other five requested fields. Inventing a sixth field seemed worse than stating
+  this gap.
 
-  Worth separating from the other `Position`: **§4's editable position is a different
-  field and it does exist.** `Task.position` is a `Float!` and `UpdateTaskInput` accepts it
-  as a nullable `Float`, so the edit modal sets it. Only `User.position` is missing.
+  **§4's editable position is a different field, and it does exist.** Do not confuse it
+  with the field above. `Task.position` is a `Float!` field. `UpdateTaskInput` accepts it
+  as a nullable `Float`. The edit modal sets this field. Only `User.position` is missing.
 
-That is the only checkbox the API's shape prevents. Two further differences are listed here
-because they are the same kind of surprise, but neither costs anything:
+This is the only checkbox the API's shape prevents. Two more differences follow. Both are
+the same kind of surprise. Neither one costs anything:
 
-- **§5 calls the points filter `EstimatedPoints`.** The field is `pointEstimate`. The
-  schema wins, and the filter itself works exactly as asked — only the name differs.
+- **§5 calls the points filter `EstimatedPoints`.** The schema names this field
+  `pointEstimate` instead. This app follows the schema's name. The filter itself works
+  exactly as the brief asks. Only the name differs.
 
-- **`CreateTaskInput` has no `position`, and the brief never asks for one on create.** The
-  server assigns it, so the field appears in the edit modal only — which is where §4 does
-  ask for it. A control on create would collect a value with nowhere to send it.
+- **`CreateTaskInput` has no `position` field, and the brief never asks for one on
+  create.** The server assigns this value automatically. So the field appears only in the
+  edit modal, which is where §4 asks for it. A control on the create modal would collect a
+  value with nowhere to send it.
 
 ## Decisions worth explaining
 
-**Design tokens are read out of Figma, not eyeballed.** They live in the kit
-(`@ravn/ui-kit/theme.css`), which this app imports as its single token layer — the app
-defines none of its own. Colours reach a component only through a semantic name that says
-what the colour is _for_ (`text-main`, `bg-surface-panel`, `border-subtle`), so a component
-cannot quietly reach past the system for a raw hex. Icons are the design's own SVG exports
-with the baked `fill` swapped for `currentColor`, so colour still comes from the token layer.
+**Design tokens come from Figma directly. No one eyeballs them.** They live in the kit, at
+`@ravn/ui-kit/theme.css`. This app imports that file as its only token layer. The app
+defines no tokens of its own. A colour reaches a component only through a semantic name.
+That name states what the colour is for, such as `text-main`, `bg-surface-panel`, or
+`border-subtle`. So a component cannot reach past the system for a raw hex value. Icons are
+the design's own SVG exports. Each one has its baked `fill` value swapped for
+`currentColor`. So icon colour also comes from the token layer.
 
-**The brand's own call-to-action fails WCAG AA, and it ships that way.** `text-main` (#FFFFFF)
-on `bg-primary-4` (#DA584B) measures 3.83:1 against 1.4.3's 4.5:1, and the selected state
-2.83:1. They are accepted rather than fixed because there is nowhere to move: no label colour
-in the palette clears it — the darkest, `neutral-5` (#222528), reaches only 4.02:1 — and
-`primary-4` is already the red ramp's darkest step. The only remedy is a darker red, which is
-a brand change and not this challenge's to make. Sixteen nodes across fourteen stories are
-allowlisted, each with its reason, in the kit's
+**The brand's call-to-action button fails WCAG AA. It ships this way on purpose.**
+`text-main` (#FFFFFF) on `bg-primary-4` (#DA584B) measures 3.83:1. WCAG 1.4.3 requires
+4.5:1. The selected state measures 2.83:1. No colour in the palette fixes this. The darkest
+label colour, `neutral-5` (#222528), only reaches 4.02:1. `primary-4` is already the
+darkest red in the ramp. The only fix is a darker red. That is a brand change, not one this
+challenge can make. The kit's
 [`.storybook/a11y-allowlist.ts`](https://github.com/f3r21/ravn-ui-kit/blob/v0.4.0/.storybook/a11y-allowlist.ts)
-— pinned to the tag this app installs, so it stays checkable. The kit's CI enforces that file:
-a new violation fails the build unless it is added deliberately.
-**The board shows five columns where the mockup shows three.** The brief lists five
-statuses; the mockup predates the schema. Five equal shares of a 1440px viewport leaves
-each card around 200px, at which point the points label, date badge and tag row all wrap
-and the card stops resembling the design — so columns keep the 348px width they are drawn
-at and the row scrolls sideways, collapsing to two columns and then one on smaller screens.
+allowlists sixteen nodes across fourteen stories. Each entry states its reason. This file is
+pinned to the tag this app installs. So the allowlist stays checkable. The kit's CI enforces
+this file. A new violation fails the build, unless someone adds it to the allowlist on
+purpose.
+
+**The board shows five columns. The mockup shows three.** The brief lists five statuses.
+The mockup predates the schema. Five equal columns on a 1440px viewport would leave each
+card about 200px wide. At that width, the points label, the date badge, and the tag row all
+wrap. The card would stop matching the design. So each column keeps the 348px width the
+design draws. The row scrolls sideways instead. On smaller screens, the row collapses to
+two columns, then to one.
 
 **Search is a text field, not the button Figma draws.** The mockup renders the whole search
-bar as a `<button>` containing the word "Search". That is a mockup convention; a button
-would not accept typing.
+bar as a `<button>` element containing the word "Search". That is only a mockup convention.
+A real button cannot accept typed text.
 
-**Filters live in the URL.** A filtered board can be linked and bookmarked, and a reload
-does not silently reset to "everything" while the controls still look set. It is also what
-lets the search box in the app shell drive a query on the page without either side importing
-the other. Every value read back out is validated first — enums against their member list,
-`due` as a real calendar date, `owner` against the directory — because a hand-edited
-`?status=nonsense` or `?due=nonsense` would otherwise reach the API and be rejected, turning
-a typo in a shared link into an error screen.
+**Filters live in the URL.** So you can link or bookmark a filtered board. A reload does
+not silently reset the board to "everything" while the controls still look set. This design
+also lets the search box in the app shell drive a query on the board page, without either
+side importing the other. This app validates every value it reads back from the URL. It
+checks each enum against its member list. It checks `due` as a real calendar date. It checks
+`owner` against the user directory. Without this check, a hand-edited `?status=nonsense` or
+`?due=nonsense` would reach the API and get rejected. A typo in a shared link would then
+turn into an error screen.
 
-Filter changes _replace_ the history entry rather than pushing one, so a single back press
-leaves the board instead of retracing every keystroke. That is a deliberate trade: the
-board is linkable but the back button is not a filter undo.
+Each filter change replaces the current history entry. It does not push a new one. So one
+back-button press leaves the board, instead of retracing every keystroke. This is a
+deliberate trade-off. The board stays linkable, but the back button does not undo a filter.
 
-**Dates are read in UTC.** The API types `dueDate` as a `DateTime` but uses it as a date:
-the values it returns sit at midnight UTC. Interpreting those in the viewer's local zone
-moves them — west of Greenwich a task due tomorrow renders as "Yesterday", in overdue red.
-The whole test suite therefore runs at **UTC+14**, so any code reaching for a local calendar
-field fails a test rather than shipping.
+**This app reads dates in UTC.** The API types `dueDate` as a `DateTime` field, but uses it
+as a plain date. Each value it returns sits at midnight UTC. Reading that value in the
+viewer's local zone would shift it. West of Greenwich, a task due tomorrow would then
+render as "Yesterday", in overdue red. So the whole test suite runs at **UTC+14**. Any code
+that reads a local calendar field instead of UTC fails a test, instead of shipping a bug.
 
-That pin is necessary and not sufficient, which took a bug to learn. UTC+14 is a _fixed_
-offset, so it cannot catch anything that depends on daylight saving — and the original
-implementation reconstructed the UTC clock by writing those fields into a local `Date`,
-which lands on a time that does not exist in any zone that skips an hour. Formatting now
-goes through `Intl` at an explicit `timeZone`, and the tests switch zone deliberately to
-cover it.
+This `TZ` pin is necessary, but not sufficient. A real bug taught this team that. UTC+14 is
+a _fixed_ offset. It cannot catch a bug that depends on daylight saving. The original code
+reconstructed a UTC clock by writing date fields into a local `Date` object. On a day that
+skips an hour, that produces a time that does not exist in any time zone. Formatting now
+goes through `Intl`, with an explicit `timeZone`. Tests also switch time zone on purpose, to
+cover this case.
 
-**The failure a user can act on is different from the one they cannot.** GraphQL answers
-`200 OK` with an `errors` array, so "did this work" is not a status code. A rejected token
-is called out specifically and offers no retry button, because retrying cannot fix it;
-anything else can be retried.
+**A failure a user can fix is different from one they cannot fix.** GraphQL always answers
+`200 OK`, even on failure. It reports failure through an `errors` array instead. So "did
+this work" is never a status code. This app calls out a rejected token specifically. It
+shows no retry button for that error, because retrying cannot fix it. Every other error
+shows a retry button.
 
 ## Deeper reading
 
-Three areas have more detail than a first read needs. Each is its own file:
+Three topics need more detail than a first read gives them. Each one has its own file:
 
-- **[The design system](docs/design-system.md)** — why the components are a separate package
-  (`@ravn/ui-kit`), what it ships, and how the boundary is enforced.
+- **[The design system](docs/design-system.md)** — why the components are a separate
+  package (`@ravn/ui-kit`), what it ships, and how the boundary is enforced.
 - **[Deployment](docs/deployment.md)** — Vercel, and why a static SPA needs one serverless
   function to keep RAVN's token out of the bundle.
-- **[Testing](docs/testing.md)** — what `npm run gate` checks, what the suite covers, and the
-  conventions behind it.
+- **[Testing](docs/testing.md)** — what `npm run gate` checks, what the suite covers, and
+  the conventions behind it.
 
 ## Notes
 
-- **The schema is pinned, not fetched.** `schema.graphql` is committed and
-  `npm run schema:check` re-introspects the API to prove it has not drifted. Codegen reads
-  the file, so neither it nor CI needs network access or a credential.
-- **History** is one branch and one pull request per unit of work, throughout. The brief
-  itself shipped as eight stacked branches — §1, §2, §3 read, §3 create, §4, §5, §6, and
-  the README — eight for six sections, because §3 is large enough to split and the README
-  is a graded deliverable of its own. Each was revised after an adversarial review; the
-  fixes are in the commit messages. Everything since has arrived the same way and the
-  count keeps climbing, so `gh pr list --state all` is the answer rather than a number
-  written here: work now branches off `dev` and merges back by pull request with CI green,
-  which a repository ruleset enforces rather than trusting to habit.
+- **This app pins the schema. It does not fetch it at build time.** `schema.graphql` is
+  committed to the repository. `npm run schema:check` re-introspects the live API, to prove
+  the file has not drifted. Codegen reads this committed file. So neither codegen nor CI
+  needs network access or a credential.
+- **This project's history is one branch and one pull request per unit of work,
+  throughout.** The brief itself shipped as eight stacked branches: §1, §2, §3 read, §3
+  create, §4, §5, §6, and the README. That is eight branches for six sections. §3 is large
+  enough to split in two. The README counts as its own graded deliverable. Each branch was
+  revised after an adversarial review. The fixes are in the commit messages. Every change
+  since has arrived the same way, and the count keeps climbing. Run `gh pr list --state all`
+  for the current count, instead of trusting a number written here. All work now branches
+  off `dev`. It merges back through a pull request with a green CI run. A repository
+  ruleset enforces this, instead of relying on habit.
 
 ## License
 
