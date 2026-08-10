@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { TextButton } from '@ravn/ui-kit'
 import { isUsingMockApi } from '@/lib/env'
+import { useCurrentDay } from '@/lib/use-current-day'
 import { AsyncSection } from '@/ui/async-section/async-section'
 import { EmptyState } from '@/ui/empty-state/empty-state'
 import { Board } from './board'
@@ -42,6 +43,10 @@ const NO_TASKS: Task[] = []
 
 export function BoardPage() {
   const [view, setView] = useState<BoardView>('grid')
+  // Passed down so due-date tone is decided against the current day rather than the
+  // day the tab happened to be opened. `BoardColumn` memoises on this value, and the
+  // hook returns the same object until the day rolls over, so the memos still hold.
+  const today = useCurrentDay()
   // `status` as well as `data`, because the three outcomes need telling apart. An
   // errored `Users` query and a still-loading one both leave `data` undefined, and
   // treating them alike is what let a failed directory disable owner validation
@@ -108,6 +113,7 @@ export function BoardPage() {
         <TaskFormDialog
           state={createState}
           users={users ?? NO_USERS}
+          directoryUnavailable={usersStatus === 'error'}
           onSubmit={create}
           title="Create task"
           submitLabel="Create"
@@ -118,6 +124,7 @@ export function BoardPage() {
         <TaskFormDialog
           state={editState}
           users={users ?? NO_USERS}
+          directoryUnavailable={usersStatus === 'error'}
           onSubmit={(fields) => edit(dialog.task, fields)}
           mode="edit"
           title={`Edit ${dialog.task.name}`}
@@ -137,6 +144,10 @@ export function BoardPage() {
       <AsyncSection
         status={status}
         error={error}
+        // A failed background refetch must not throw away a board the reader is
+        // using. `refetchOnWindowFocus` is on, so a tab switch during a blip is
+        // the common path into `error` with `tasks` still cached.
+        hasData={tasks !== undefined}
         loadingLabel="Loading tasks"
         readyLabel={
           loaded.length === 0 ? 'No tasks to show' : `${String(loaded.length)} tasks loaded`
@@ -175,7 +186,13 @@ export function BoardPage() {
             />
           )
         ) : (
-          <Board tasks={loaded} view={view} onEditTask={openEdit} onDeleteTask={openDelete} />
+          <Board
+            tasks={loaded}
+            view={view}
+            now={today}
+            onEditTask={openEdit}
+            onDeleteTask={openDelete}
+          />
         )}
       </AsyncSection>
     </main>

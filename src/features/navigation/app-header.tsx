@@ -1,3 +1,4 @@
+import { useLocation, useNavigate } from 'react-router'
 import { Avatar, Skeleton, TopNav } from '@ravn/ui-kit'
 import { useBoardFilters } from '@/features/board/use-board-filters'
 import { useProfile } from '@/features/profile/use-profile'
@@ -53,15 +54,35 @@ export function AppHeader() {
   // cannot disagree about who it is.
   const { data: profile, status: profileStatus } = useProfile()
   const { filters, setFilter } = useBoardFilters()
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  // The board is the only route that reads `?name=`.
+  const onBoard = pathname === '/'
 
   return (
     <TopNav
-      searchValue={filters.name}
+      // Blank away from the board, so the field does not show a term that is filtering
+      // nothing. `filters.name` reads the *current* route's URL, which on /settings is a
+      // leftover rather than an active search.
+      searchValue={onBoard ? filters.name : ''}
       // `setFilter` drops the parameter when the value is empty and replaces rather than
       // pushes, so a back press leaves the board instead of retracing the search one
       // character at a time. The kit hands over the value itself, not an event.
+      //
+      // **Away from the board it navigates instead.** The bar is rendered by `AppLayout` on
+      // every route, but only `BoardPage` consumes the filter — so typing on /settings or a
+      // placeholder route used to write `?name=` onto a URL nobody read, leaving a live
+      // control that filtered nothing. This app's own rule, stated a few lines up about the
+      // notification bell, is that "a button that does nothing is its own defect". The kit's
+      // `TopNav` renders the search unconditionally, so it cannot be hidden the way the bell
+      // is; taking the user to the results is the better answer anyway, and it is what a
+      // header search implies.
       onSearchChange={(name) => {
-        setFilter('name', name)
+        if (onBoard) {
+          setFilter('name', name)
+          return
+        }
+        void navigate(name === '' ? '/' : `/?name=${encodeURIComponent(name)}`)
       }}
       searchLabel="Search tasks"
       searchPlaceholder="Search"

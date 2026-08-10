@@ -75,18 +75,35 @@ export function taskFormReducer(state: TaskFormFields, action: TaskFormAction): 
  * Returns a message rather than a boolean so the caller has something to show;
  * a `isValid: false` would leave the component inventing its own wording.
  */
-export function validateTaskForm(fields: TaskFormFields): string | undefined {
+/** Which control the message is about, so the dialog can move focus to it. */
+export type TaskFormField = 'name' | 'dueDate' | 'position'
+
+export interface TaskFormProblem {
+  field: TaskFormField
+  message: string
+}
+
+/**
+ * The first problem with the form, and **which field it belongs to**.
+ *
+ * The field is the load-bearing addition. This used to return a bare string, so the
+ * dialog had nothing to aim focus at and sent it to the title input on every failure
+ * — including "Pick a due date." and "Position has to be a number.", which are about
+ * other controls. A keyboard or screen-reader user was told what was wrong and then
+ * moved away from the thing that was wrong.
+ */
+export function validateTaskForm(fields: TaskFormFields): TaskFormProblem | undefined {
   if (fields.name.trim() === '') {
-    return 'Give the task a name.'
+    return { field: 'name', message: 'Give the task a name.' }
   }
   if (fields.dueDate === '') {
-    return 'Pick a due date.'
+    return { field: 'dueDate', message: 'Pick a due date.' }
   }
   // Checked last on purpose. Each of these returns the *first* problem, so moving
   // this above the two required fields would answer "what is wrong with this form"
   // with a note about ordering while the name was still blank.
   if (fields.position !== '' && !Number.isFinite(Number(fields.position))) {
-    return 'Position has to be a number.'
+    return { field: 'position', message: 'Position has to be a number.' }
   }
   return undefined
 }

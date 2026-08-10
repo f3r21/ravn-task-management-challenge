@@ -67,10 +67,8 @@ export type ApiConfig =
   `apiUrl` falls back to `MOCK_API_URL` (`https://mock.local/graphql`) and `main.tsx` _awaits_
   MSW's worker before the first render.
 
-So "requires both together" is true only of the _absolute_ shape. An earlier revision of this
-paragraph described the two-state version and was therefore wrong about the mode production
-actually runs in. Re-derive with `grep -n "mode: '" src/lib/env.ts` → `:98` proxied, `:103`
-direct.
+So "requires both together" is true only of the _absolute_ shape. Re-derive with
+`grep -n "mode: '" src/lib/env.ts` → `:98` proxied, `:103` direct.
 
 So there is no "mock mode" branch inside the app. `src/graphql/client.ts` always performs a
 real `fetch` against a real URL and MSW intercepts at the network layer, which means the
@@ -138,7 +136,7 @@ is all a provisioner should do: clearing it means deleting configuration a human
 
 ### The UI layer is somebody else's package
 
-The second load-bearing decision, and the one this document used to omit entirely.
+The second load-bearing decision.
 
 The Figma file for this challenge is a component library rather than a set of screens, so it
 was built as one: **`@ravn/ui-kit`** (https://github.com/f3r21/ravn-ui-kit), a separate repo

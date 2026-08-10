@@ -44,13 +44,23 @@ export function useBoardActions(): BoardActions {
   const toast = useToast()
 
   async function create(fields: TaskFormFields) {
-    await createTask.mutateAsync(toCreateInput(fields))
-    toast.show('success', 'Task created')
+    try {
+      await createTask.mutateAsync(toCreateInput(fields))
+      toast.show('success', 'Task created')
+    } catch (error) {
+      // Same rule as `edit` below, and this path was the one still missing it: a
+      // success toast with no failure toast tells the user something happened only
+      // when it worked. The dialog's inline alert leaves with the dialog, so
+      // dismissing a failed create left no record at all and the likeliest reading
+      // was "it was created and the board is stale".
+      toast.show('error', error instanceof Error ? error.message : 'Could not create the task.')
+      throw error
+    }
   }
 
   async function edit(task: Task, fields: TaskFormFields) {
     try {
-      await updateTask.mutateAsync(toUpdateInput(task.id, fields))
+      await updateTask.mutateAsync(toUpdateInput(task, fields))
       toast.show('success', 'Task updated')
     } catch (error) {
       // The brief asks for a notification whether the request succeeded *or*

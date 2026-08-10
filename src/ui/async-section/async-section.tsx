@@ -23,6 +23,16 @@ interface AsyncSectionProps {
   onRetry: () => void
   /** Layout for the error block, which differs by page. */
   errorClassName?: string
+  /**
+   * Whether the caller still holds usable data from an earlier successful fetch.
+   *
+   * React Query reports `error` for a failed *background* refetch while `data` stays
+   * intact, so status alone cannot tell "we never loaded" from "we loaded and the
+   * refresh failed". Without this the second case threw away a fully rendered board:
+   * `refetchOnWindowFocus` is on, so switching tabs during a network blip replaced the
+   * screen with "Could not load" while the tasks sat in the cache.
+   */
+  hasData?: boolean
   children: ReactNode
 }
 
@@ -58,9 +68,14 @@ export function AsyncSection({
   skeleton,
   onRetry,
   errorClassName,
+  hasData = false,
   children,
 }: AsyncSectionProps) {
   const message = error instanceof ApiError ? error.message : errorFallback
+  // A refresh that failed over data already on screen. The failure is worth reporting
+  // and the data is worth keeping, so this is a notice beside the content rather than
+  // the full-page error block that replaces it.
+  const isStale = status === 'error' && hasData
   // A rejected token is not worth retrying — the request will fail identically
   // until someone changes the configuration, and a button that cannot work is
   // worse than no button.
@@ -76,7 +91,21 @@ export function AsyncSection({
 
       {status === 'pending' ? skeleton : null}
 
-      {status === 'error' ? (
+      {isStale ? (
+        <div
+          role="alert"
+          className="border-subtle text-body-m mb-4 flex flex-wrap items-center gap-3 rounded border px-4 py-3"
+        >
+          <span className="text-muted">{message}</span>
+          {isUnauthenticated ? null : (
+            <TextButton variant="secondary" onPress={onRetry}>
+              Try again
+            </TextButton>
+          )}
+        </div>
+      ) : null}
+
+      {status === 'error' && !hasData ? (
         <div role="alert" className={cn('flex flex-col gap-4', errorClassName)}>
           <p className="text-body-l font-semibold">{errorTitle}</p>
           <p className="text-muted text-body-m max-w-md">{message}</p>
@@ -88,7 +117,9 @@ export function AsyncSection({
         </div>
       ) : null}
 
-      {status === 'success' ? children : null}
+      {/* Kept on screen through a failed refresh. `isStale` above says the data is
+          older than it looks; throwing it away would be a worse answer than showing it. */}
+      {status === 'success' || isStale ? children : null}
     </>
   )
 }

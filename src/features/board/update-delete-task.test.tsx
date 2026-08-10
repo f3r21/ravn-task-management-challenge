@@ -157,9 +157,16 @@ describe('editing a task', () => {
       expect(refetchesAnswered).toBe(refetches - 1)
     })
 
-    // The second save carried the name the first one established, not the one the
-    // board was still painting.
-    expect(namesSent).toEqual(['Slack integration', 'Slack integration'])
+    // The second save carried **no name at all**, which is a stronger guarantee than
+    // the one this test originally asserted.
+    //
+    // It used to expect `['Slack integration', 'Slack integration']` — the second save
+    // resending the name the first established, correct only because the cache write
+    // had refreshed the seed. `toUpdateInput` now sends only the fields the user
+    // actually edited, so a status-only edit cannot carry a name to be stale about.
+    // The race the comment at the top describes is still real; it just has nothing
+    // left to corrupt on this field.
+    expect(namesSent).toEqual(['Slack integration', undefined])
     await waitFor(() => {
       expect(screen.queryByRole('heading', { name: 'Slack' })).not.toBeInTheDocument()
     })

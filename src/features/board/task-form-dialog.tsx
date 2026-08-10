@@ -18,6 +18,16 @@ import {
 interface TaskFormDialogProps {
   state: OverlayTriggerState
   users: User[]
+  /**
+   * The `Users` query failed, so `users` is empty because nobody could be loaded
+   * rather than because nobody exists.
+   *
+   * `BoardFiltersBar` has been told this since it was written; this dialog had not,
+   * so the assignee picker degraded to a bare "Unassigned" with no explanation and
+   * the reasonable conclusion was that there was nobody to assign. That is a wrong
+   * value written to the server, not just a missing control.
+   */
+  directoryUnavailable?: boolean
   /** Rejects with the API's message so the dialog can show it inline. */
   onSubmit: (fields: TaskFormFields) => Promise<void>
   /** Title and confirm wording, so the edit flow can reuse this dialog. */
@@ -75,6 +85,7 @@ type SubmitState =
 export function TaskFormDialog({
   state,
   users,
+  directoryUnavailable = false,
   onSubmit,
   title,
   submitLabel,
@@ -104,8 +115,20 @@ export function TaskFormDialog({
     // Validation runs on submit, not on every keystroke: telling someone the
     // name is required while they are still typing it is noise.
     if (validationError) {
-      setSubmitState({ status: 'error', message: validationError })
-      nameRef.current?.focus()
+      setSubmitState({ status: 'error', message: validationError.message })
+      // Focus only the field the message is actually about.
+      //
+      // This used to focus the title on every failure, so "Pick a due date." moved a
+      // keyboard user away from the date control and onto a field that was already
+      // valid. Only `name` has a ref to aim at: the kit's `Datepicker` and this app's
+      // `IconField` do not forward one (`ravn-ui-kit#11` — no component in the kit
+      // does), so for those two the choice is between moving focus somewhere wrong and
+      // leaving it where the user put it. Leaving it is correct — the message carries
+      // `role="alert"`, so it is announced either way, and the user is still standing
+      // on the control they were editing.
+      if (validationError.field === 'name') {
+        nameRef.current?.focus()
+      }
       return
     }
 
@@ -182,6 +205,14 @@ export function TaskFormDialog({
               dispatch({ type: 'set-assignee', assigneeId })
             }}
           />
+
+          {/* Says why the list is empty. Without it the picker is indistinguishable
+              from a team with no members, and the user assigns nobody on purpose. */}
+          {directoryUnavailable ? (
+            <p role="status" className="text-muted text-body-s -mt-2">
+              Could not load the team directory, so this task can only be left unassigned.
+            </p>
+          ) : null}
 
           <TagMultiSelect
             label="Tags"

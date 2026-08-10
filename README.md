@@ -6,7 +6,7 @@ signed-in user's profile.
 
 **[Live app](https://ravn-task-management-challenge.vercel.app)** — deployed on Vercel and
 running against the real API. How it does that without publishing RAVN's token is under
-[Deployment](#deployment).
+[Deployment](docs/deployment.md).
 
 Every checkbox in the brief's six sections is implemented but one: §6 asks the settings page
 to show a `Position`, and `User` has no such field. That gap, and two places where the brief's
@@ -14,6 +14,33 @@ wording and the schema's simply differ without costing anything, are spelled out
 [Things the brief asks for that the API cannot do](#things-the-brief-asks-for-that-the-api-cannot-do).
 
 ![The dashboard](docs/screenshots/dashboard.jpg)
+
+## What it does
+
+|                                                      |                                                   |
+| ---------------------------------------------------- | ------------------------------------------------- |
+| ![Creating a task](docs/screenshots/create-task.jpg) | ![No results](docs/screenshots/empty-results.jpg) |
+| Creating a task                                      | Filters that match nothing                        |
+| ![Settings](docs/screenshots/settings.jpg)           | ![List layout](docs/screenshots/list-view.jpg)    |
+| The signed-in user — email redacted, see below       | The list layout                                   |
+
+The email field in that screenshot reads `[email redacted]`. The API's seeded profile is a real
+person at RAVN, and this repository is public, so the address is masked in the image rather than
+published in it. Nothing else in any screenshot is altered — they are captures of the deployed
+build against the live API.
+
+- **Board** — five status columns, task cards with name, tags, due date, points, assignee
+  and an options menu. Loading, error and empty states are three distinct things.
+- **Create / edit / delete** — a modal for create and edit, a confirmation for delete, and
+  a notification for each outcome.
+- **Search and filter** — all six filters the brief lists, sent to the API rather than
+  applied to a loaded list. Filters live in the URL.
+- **My task** (`/settings`) — the signed-in user, from the `profile` query. The label is
+  the design's; the route is the one §6 asks for.
+- **Calendar, Team, Messages** — sample pages. §2 asks the sidebar for a list of menu items
+  "most of them" leading to a placeholder, which needs more destinations than the brief's
+  six sections build. They are real routes inside the app shell rather than the not-found
+  page: a working menu item that lands on "this page does not exist" reads as a broken link.
 
 ## Setup
 
@@ -63,48 +90,11 @@ switch on.
 | `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted  |
 | `npm run css:canary`   | Fail if kit-only Tailwind classes did not reach the built CSS   |
 
-## What it does
-
-|                                                       |                                                   |
-| ----------------------------------------------------- | ------------------------------------------------- |
-| ![Creating a task](docs/screenshots/create-task.jpg)  | ![No results](docs/screenshots/empty-results.jpg) |
-| Creating a task — the white date field is a known bug | Filters that match nothing                        |
-| ![Settings](docs/screenshots/settings.jpg)            | ![List layout](docs/screenshots/list-view.jpg)    |
-| The signed-in user — email redacted, see below        | The list layout                                   |
-
-The email field in that screenshot reads `[email redacted]`. The API's seeded profile is a real
-person at RAVN, and this repository is public, so the address is masked in the image rather than
-published in it. Nothing else in any screenshot is altered — they are captures of the app running
-against the live API, at one viewport, with no retouching.
-
-**That includes the white date field in the create dialog, which is a defect and is left
-visible.** It is
-[`ravn-ui-kit#130`](https://github.com/f3r21/ravn-ui-kit/issues/130): the kit's `Datepicker`
-hardcodes a white surface, so it is the one light control among the dialog's five pickers — the
-other four are the design's dark chip. It is the same mistake the kit's `Select` trigger already
-fixed, in a component that was never swept when that fix landed. The app does not paint over it, because
-[the standing rule](#the-design-system-is-a-separate-package) is that a kit defect is fixed in the
-kit and never worked around here — and a screenshot edited to hide what the app renders stops
-being a record and becomes a claim.
-
-- **Board** — five status columns, task cards with name, tags, due date, points, assignee
-  and an options menu. Loading, error and empty states are three distinct things.
-- **Create / edit / delete** — a modal for create and edit, a confirmation for delete, and
-  a notification for each outcome.
-- **Search and filter** — all six filters the brief lists, sent to the API rather than
-  applied to a loaded list. Filters live in the URL.
-- **My task** (`/settings`) — the signed-in user, from the `profile` query. The label is
-  the design's; the route is the one §6 asks for.
-- **Calendar, Team, Messages** — sample pages. §2 asks the sidebar for a list of menu items
-  "most of them" leading to a placeholder, which needs more destinations than the brief's
-  six sections build. They are real routes inside the app shell rather than the not-found
-  page: a working menu item that lands on "this page does not exist" reads as a broken link.
-
 ## Stack, and why
 
 | Choice                                                     | Why                                                                                                                                                                                                                                                                              |
 | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** | The Figma file for this challenge is a component library, so it was built as one — a separate package with its own Storybook, tests and CI, consumed here. See [The design system is a separate package](#the-design-system-is-a-separate-package).                              |
+| **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** | The Figma file for this challenge is a component library, so it was built as one — a separate package with its own Storybook, tests and CI, consumed here. See [The design system is a separate package](docs/design-system.md).                                                 |
 | **React 19 + TypeScript (strict)**                         | `any` and `@ts-ignore` are lint errors, not warnings.                                                                                                                                                                                                                            |
 | **Vite 8**                                                 | Fast dev server; the build is `tsc --noEmit` then bundle, so types gate the build.                                                                                                                                                                                               |
 | **Tailwind v4**                                            | RAVN's published frontend standard. Tailwind v4 configures through CSS custom properties in `@theme`, so the Figma palette becomes semantic design tokens rather than a JS config object.                                                                                        |
@@ -145,182 +135,49 @@ src/
 A component lives inside the feature that uses it, and moves to `ui/` only once something
 else needs it.
 
-## The design system is a separate package
+## Bonus items
 
-The Figma file for this challenge is not a set of screens — it is a component library, with
-a style guide, per-component specs and variant states. Building those components inline in
-`src/ui/` would have meant a design system that only existed as a side effect of one app.
+Of the brief's five, these are built:
 
-So it is its own package: **[`@ravn/ui-kit`](https://github.com/f3r21/ravn-ui-kit)** — 46
-components and 21 icons built from the Figma export, with Storybook stories for all but two
-components, its own test suite and its own CI.
-**[Browse the Storybook](https://f3r21.github.io/ravn-ui-kit/)** to see every component, its
-props and its states without cloning anything.
+- **Task count per column** — the design draws it (`In Progress (03)`), zero-padded.
+- **Due-date colour by urgency** — all three tiers the brief lists: green while the deadline
+  is more than a day out, amber when it is today or tomorrow, red once it is past. Colour is
+  never the only signal — the badge spells the date out in every tier, and the overdue one
+  adds "(overdue)" for anyone who does not receive colour at all.
+- **A list layout as well as the board** — each status becomes a full-width section and
+  each task a single row, rather than the same card stacked. Worth being precise about why
+  that distinction matters: the board is _already_ one stacked column at narrow widths, so
+  a list view built by stacking would have been a switcher that did nothing on a phone.
 
-Both counts are re-derived from the installed artifact rather than trusted here — note that
-it is the _function_ exports that are counted, since interfaces and types are capitalized
-exports too and grepping for those instead returns 132:
+Drag-and-drop was left out for scope, not difficulty — and it is worth being precise about
+that, because the easy excuse would be accessibility. The installed React Aria ships the
+whole accessible drag story: a keyboard mode, drop-target navigation and localised screen
+reader announcements. The obstacle was the collection layer each column would need, not the
+keyboard. A task's status and its position within a column can both be changed from the
+options menu, which exercises the same `updateTask` mutation a drop would.
 
-```bash
-f=node_modules/@ravn/ui-kit/dist/index.d.ts
-grep -E '^export declare function [A-Z]' $f | grep -vc IconProps   # 46 components
-grep -E '^export declare function [A-Z]' $f | grep -c  IconProps   # 21 icons
-```
+## Things the brief asks for that the API cannot do
 
-"All but two" is `popover.tsx`, which ships a test and no stories while its sibling
-`FloatingPopover` has both, and `due-date-urgency-state.tsx`, added with the overdue fix — 2 of
-41 component source files. Re-derive at whatever tag is actually pinned rather than a written
-one, since this sentence said "1 of 40 at the pinned `v0.4.0`" for three releases after that
-stopped being true:
+- **§6 asks the settings page to show `Position`.** `User` has no such field. It exposes
+  `id`, `fullName`, `email`, `avatar`, `type`, `createdAt` and `updatedAt` —
+  `awk '/^type User /,/^}/' schema.graphql` prints exactly those seven, and
+  `npm run schema:check` re-introspects the live endpoint to prove that file has not drifted
+  from it. The other five requested fields are all shown. Inventing a sixth seemed worse
+  than saying this.
 
-```bash
-t=$(grep -oE 'ravn-ui-kit#v[0-9.]+' package.json | cut -d'#' -f2)
-gh api "repos/f3r21/ravn-ui-kit/git/trees/$t?recursive=1" --jq '[.tree[].path|select(test("^src/components/.*\\.tsx$"))]'
-# component sources = paths ending .tsx that are not .test.tsx or .stories.tsx
-# without stories  = those with no matching .stories.tsx sibling
-```
+  Worth separating from the other `Position`: **§4's editable position is a different
+  field and it does exist.** `Task.position` is a `Float!` and `UpdateTaskInput` accepts it
+  as a nullable `Float`, so the edit modal sets it. Only `User.position` is missing.
 
-This app is its first consumer, and consuming it is what proves the package
-works: several real defects (a popover that could not escape an `overflow: hidden` ancestor,
-a focus ring that computed a colour and painted nothing, `onAction` firing twice per menu
-pick) were found only by wiring it into something real, and were fixed in the kit rather
-than patched around here.
+That is the only checkbox the API's shape prevents. Two further differences are listed here
+because they are the same kind of surprise, but neither costs anything:
 
-The migration is deliberately incomplete and tracked as such. `Modal`, `Select`,
-`MultiSelect` and `Menu` come from the kit today; `Avatar`, `Button`, `Tag`, `Skeleton` and
-the board components are still app-owned and queued to move.
+- **§5 calls the points filter `EstimatedPoints`.** The field is `pointEstimate`. The
+  schema wins, and the filter itself works exactly as asked — only the name differs.
 
-`EmptyState`, the toast system and the icon set are also still app-owned, and the reason is
-worth stating precisely because it is the opposite of the obvious one: the kit has all
-three, and it has them **because this app wrote them first**. Its `EmptyState` and
-`ToastProvider` are both marked "No Figma source" in the kit and were ported from here — the
-design file draws neither, and the accessibility lessons behind them (an empty state that
-must not be a live region, a toast region that has to be portalled _and_ exempted) were paid
-for in this repo. So they are duplicates awaiting deletion, not gaps: the kit's versions are
-supersets, and swapping to them is queued work with no user-visible change to show for it.
-
-**`ErrorBoundary` is the only one of the four the original claim still holds for.** The kit
-genuinely has no equivalent, and arguably should not: it renders nothing designed, and its
-whole surface is an `onError` seam for wiring up crash reporting in a host application.
-
-One migration is blocked rather than queued, which is a different thing. The delete
-confirmation stays on the app's own `Dialog` because the kit's `Modal` accepts
-`role="alertdialog"` but drops React Aria's `contentProps`, so the body text it exists to
-announce is never wired to `aria-describedby` — a test here asserts that description, and
-per the rule below the fix belongs in the kit rather than in the assertion.
-
-That rule is the whole point of the arrangement: **when a kit component fails an assertion
-in this app, the fix goes in the kit, not in the test.** Weakening a test to make a
-migration land would throw away the only signal a second consumer-shaped repo produces.
-
-### Why the dependency is a git tag
-
-`@ravn/ui-kit` has no npm registry to publish to, so the dependency is the repository
-itself, pinned to a tag: `"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#<tag>"`. For the tag
-actually installed, read `package.json` — `grep ui-kit package.json` — rather than any
-version written into prose, which named `v0.4.0` here for three releases after it stopped
-being true. The kit repo is public,
-so `npm ci` clones it anonymously — no cross-repo token, in CI or on Vercel. A git install
-runs no build; the kit commits its `dist/` and guards its freshness in its own CI, so what
-installs here is the tagged artifact rather than a rebuild.
-
-**A tag, not a branch, and that is the whole point.** A branch re-resolves on every `npm ci`
-behind an unchanged lockfile entry. A tag resolves once, and `package-lock.json` records the
-commit it resolved to — so the installed bytes are identified rather than described.
-
-This app used to hold a built copy at `vendor/ravn-ui-kit/` instead, because the kit repo was
-private and reaching it from CI would have needed a PAT secret. Two things that cost, both
-worth knowing if the idea ever comes back: minified output reflows on any change, so a kit
-contrast fix touching a handful of hex values produced a 1,300-line diff here, and by the time
-the directory was deleted it accounted for more of this repository's line churn than every
-hand-written file combined — `git log --format='' --numstat -- vendor/ravn-ui-kit | awk '$1!="-"{a+=$1+$2}END{print a}'`
-against the same command without the pathspec. And the lockfile entry for a `file:` link
-is `{"resolved": "vendor/ravn-ui-kit", "link": true}`, carrying no version and no integrity
-hash, so `@ravn/ui-kit@0.3.0` named four mutually different `dist/` trees over this repo's
-history with nothing able to detect it.
-
-The alternative was a monorepo. It was not chosen because the kit is meant to outlive this
-app, and a package that can only be built from inside its one consumer is not really a
-package.
-
-## Deployment
-
-Vercel, at **[ravn-task-management-challenge.vercel.app](https://ravn-task-management-challenge.vercel.app)**,
-with a preview deployment per pull request.
-
-**Why a static SPA has a serverless function.** Vite replaces `import.meta.env.VITE_*` at
-build time, which means a deployed build configured the way local development is configured
-would ship RAVN's access token as a readable string in `dist/` — findable with devtools, or
-with `grep`, on a public URL. There is no browser-side fix for that: the token has to reach
-the API, and everything the browser can read is public. So it never reaches the browser.
-`api/graphql.ts` runs on Vercel, reads `API_TOKEN` from the deployment's environment — no
-`VITE_` prefix, which is exactly what would put it back in the bundle — and forwards the
-query. The app posts to `/api/graphql` on its own origin carrying no credential at all.
-
-**What that cost.** `readApiConfig` in `src/lib/env.ts` had two states, and it required a
-URL and a token together — so a deployment pointed at `/api/graphql` with the token held
-server-side read as "not configured", fell back to the MSW mock, and would have served
-seeded data under a banner telling the visitor to edit a `.env` file they do not have. It
-now has three:
-
-|             | `VITE_API_URL` | Token    | Where                                               |
-| ----------- | -------------- | -------- | --------------------------------------------------- |
-| **mock**    | unset          | —        | a clone with no credentials; MSW serves seeded data |
-| **direct**  | absolute       | required | local development with a filled-in `.env`           |
-| **proxied** | `/api/graphql` | none     | the deployment; the server holds it                 |
-
-The rule that a URL needs a token is unchanged rather than relaxed. It exists because an
-absolute URL reaches a server that answers every query `UNAUTHENTICATED` — the app looks
-broken rather than unconfigured — and a same-origin path cannot fail that way, because it
-reaches this app's own origin. `//host/path` is excluded by name: it starts with a slash
-and resolves somewhere else entirely.
-
-**The endpoint is intentionally open, which is a trade rather than an oversight.** The app
-has no concept of a user, so there is nothing to authenticate a caller against; anyone who
-finds the URL can post a query through it. Checking `Origin` would stop nothing, since a
-header is trivially set outside a browser. What the proxy does buy is that the credential
-itself stays unreadable and can be rotated in one place — the difference between a misused
-endpoint and a leaked token.
-
-The rest is small. `vercel.json` rewrites everything that is not a static file or a function
-to `index.html`, because `createBrowserRouter` serves `/settings` from JavaScript and a
-direct hit on it would otherwise ask the host for a file that does not exist; `/api/` is
-excluded so a mistyped function path 404s instead of being answered with the app's HTML.
-`VITE_API_URL` is pinned in that file rather than in the dashboard, because forgetting it is
-silent — the deployed board would quietly show mock data. `API_TOKEN` is the only secret,
-and it only exists in Vercel's environment.
-
-The proxy is exported as `POST`, not as a default handler. Vercel reads a default export as
-Node's `(req, res) => void` and ignores what it returns, so the first deploy answered
-nothing at all and hung until the platform timed it out. The export name doubles as the
-method restriction: anything that is not a POST is refused before the function runs.
-
-**Two response headers, and no Content-Security-Policy.** `vercel.json` sends
-`X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`.
-Neither can break this app — nothing here is served with a content type a browser would want
-to second-guess — and the referrer policy does something real: task cards load avatars from
-whatever host the API names, and without it every one of those requests carries the board's
-full URL, filters and search term included, to a third party.
-
-There is deliberately no CSP, and `frame-ancestors` is deliberately not set. A CSP would be
-about eight lines and it is the thing reviewers grep for, so the reasoning matters more than
-the answer. Two parts:
-
-- **It cannot be verified before it ships.** Header rules do not apply to `vite preview` or
-  `npm run dev`; the first time a policy is real is on a deployment, and a policy that is one
-  directive short takes the app down in a way no local check can see beforehand. Against
-  that, what a CSP defends is script injection, and this app has no `dangerouslySetInnerHTML`,
-  no `eval`, no user-supplied markup and no third-party scripts — React escapes every string
-  that reaches the DOM. The trade is a real outage risk against a hypothetical one.
-- **Framing buys an attacker nothing here.** `frame-ancestors` stops clickjacking, and the
-  action worth clickjacking is deleting a task. But `/api/graphql` is intentionally open —
-  the app has no users to authenticate, so anyone who wants to delete a task can simply post
-  the mutation. There is no privilege a framed click could borrow that a `curl` does not
-  already have.
-
-Both would change the moment this app grew a login. The e2e spec against the deployment (see
-[Testing](#testing)) is what would catch a CSP that broke the board, so the ordering is:
-users first, then the policy, with a check that can prove it.
+- **`CreateTaskInput` has no `position`, and the brief never asks for one on create.** The
+  server assigns it, so the field appears in the edit modal only — which is where §4 does
+  ask for it. A control on create would collect a value with nowhere to send it.
 
 ## Decisions worth explaining
 
@@ -331,42 +188,16 @@ what the colour is _for_ (`text-main`, `bg-surface-panel`, `border-subtle`), so 
 cannot quietly reach past the system for a raw hex. Icons are the design's own SVG exports
 with the baked `fill` swapped for `currentColor`, so colour still comes from the token layer.
 
-**The brand's own call-to-action fails WCAG AA, and it ships that way.** Three revisions of
-this paragraph each fixed the previous one's arithmetic and introduced a new error, so it now
-quotes the file the kit's CI enforces —
+**The brand's own call-to-action fails WCAG AA, and it ships that way.** `text-main` (#FFFFFF)
+on `bg-primary-4` (#DA584B) measures 3.83:1 against 1.4.3's 4.5:1, and the selected state
+2.83:1. They are accepted rather than fixed because there is nowhere to move: no label colour
+in the palette clears it — the darkest, `neutral-5` (#222528), reaches only 4.02:1 — and
+`primary-4` is already the red ramp's darkest step. The only remedy is a darker red, which is
+a brand change and not this challenge's to make. Sixteen nodes across fourteen stories are
+allowlisted, each with its reason, in the kit's
 [`.storybook/a11y-allowlist.ts`](https://github.com/f3r21/ravn-ui-kit/blob/v0.4.0/.storybook/a11y-allowlist.ts)
-— instead of re-summarising it. The link is pinned to `v0.4.0`, the tag this app installs, so
-the quote below stays checkable against the exact tree it was read from rather than against
-whatever the kit's `main` says later:
-
-> `color-contrast` on `TextButton variant="primary"` — 14 nodes across 12 stories.
->
-> `text-main` (#FFFFFF) on `bg-primary-4` (#DA584B) measures **3.83:1**, and `isSelected`'s
-> `bg-primary-3` (#E27D73) **2.83:1**, against 1.4.3's 4.5:1.
-
-Two ratios, not one: `primitives-textbutton--selected` and one of `--state-matrix`'s two nodes
-are the `primary-3` pairing. And those 14 are `TextButton` alone — a further **2 nodes across
-2 stories** are allowlisted separately, where `floating-popover.stories.tsx` hand-rolls its
-trigger as a bare `<button className="bg-primary-4 text-main">` rather than using the
-component. Sixteen accepted nodes across fourteen stories, and the split is the useful part:
-fixing `TextButton` clears twelve entries at once, while the popover pair is fixable on its
-own by making that story use a passing variant.
-
-They are accepted rather than fixed because there is nowhere to move. No label colour clears
-it: the darkest value in the entire palette, `neutral-5` (`#222528`), reaches only 4.02:1.
-No fill clears it either, since `primary-4` is already the red ramp's darkest step. The only
-remedy is a darker red — continuing the ramp's own arithmetic lands on `#D13323` at 4.99:1 —
-and inventing a value the design file does not contain is precisely what the kit's
-contributing rules forbid first. Repainting `--color-primary-4` instead would move every
-brand surface in both repositories to satisfy one component.
-
-So it is left as drawn, asserted in the kit's `contrast.test.ts` so it can never be mistaken
-for passing, and recorded here so a reviewer running axe finds a decision rather than an
-oversight. Worth being exact about the scope: the **icon** `Button`'s `primary` variant uses
-the same fill and is unaffected, because an icon is non-text and 1.4.11's 3:1 threshold is
-cleared at 3.83:1. This is the one place the design has a definite opinion that fails AA —
-everywhere else it was silent, and the silence was resolved in favour of contrast.
-
+— pinned to the tag this app installs, so it stays checkable. The kit's CI enforces that file:
+a new violation fails the build unless it is added deliberately.
 **The board shows five columns where the mockup shows three.** The brief lists five
 statuses; the mockup predates the schema. Five equal shares of a 1440px viewport leaves
 each card around 200px, at which point the points label, date badge and tag row all wrap
@@ -407,144 +238,16 @@ cover it.
 is called out specifically and offers no retry button, because retrying cannot fix it;
 anything else can be retried.
 
-## Things the brief asks for that the API cannot do
+## Deeper reading
 
-- **§6 asks the settings page to show `Position`.** `User` has no such field. It exposes
-  `id`, `fullName`, `email`, `avatar`, `type`, `createdAt` and `updatedAt` —
-  `awk '/^type User /,/^}/' schema.graphql` prints exactly those seven, and
-  `npm run schema:check` re-introspects the live endpoint to prove that file has not drifted
-  from it. The other five requested fields are all shown. Inventing a sixth seemed worse
-  than saying this.
+Three areas have more detail than a first read needs. Each is its own file:
 
-  Worth separating from the other `Position`: **§4's editable position is a different
-  field and it does exist.** `Task.position` is a `Float!` and `UpdateTaskInput` accepts it
-  as a nullable `Float`, so the edit modal sets it. Only `User.position` is missing.
-
-That is the only checkbox the API's shape prevents. Two further differences are listed here
-because they are the same kind of surprise, but neither costs anything:
-
-- **§5 calls the points filter `EstimatedPoints`.** The field is `pointEstimate`. The
-  schema wins, and the filter itself works exactly as asked — only the name differs.
-
-- **`CreateTaskInput` has no `position`, and the brief never asks for one on create.** The
-  server assigns it, so the field appears in the edit modal only — which is where §4 does
-  ask for it. A control on create would collect a value with nowhere to send it.
-
-## Bonus items
-
-Of the brief's five, these are built:
-
-- **Task count per column** — the design draws it (`In Progress (03)`), zero-padded.
-- **Due-date colour by urgency** — all three tiers the brief lists: green while the deadline
-  is more than a day out, amber when it is today or tomorrow, red once it is past. Colour is
-  never the only signal — the badge spells the date out in every tier, and the overdue one
-  adds "(overdue)" for anyone who does not receive colour at all.
-- **A list layout as well as the board** — each status becomes a full-width section and
-  each task a single row, rather than the same card stacked. Worth being precise about why
-  that distinction matters: the board is _already_ one stacked column at narrow widths, so
-  a list view built by stacking would have been a switcher that did nothing on a phone.
-
-Drag-and-drop was left out for scope, not difficulty — and it is worth being precise about
-that, because the easy excuse would be accessibility. The installed React Aria ships the
-whole accessible drag story: a keyboard mode, drop-target navigation and localised screen
-reader announcements. The obstacle was the collection layer each column would need, not the
-keyboard. A task's status and its position within a column can both be changed from the
-options menu, which exercises the same `updateTask` mutation a drop would.
-
-## Testing
-
-`npm run gate` is the bar: typecheck, lint, format check and coverage against an 85%
-threshold on every metric. CI runs the same thing, then a production build, the Tailwind
-`@source` canary (`npm run css:canary`), a bundle-size budget and
-`npm audit --audit-level=high`, on every pull request.
-
-No count is quoted here on purpose — this line has said 287, 316, 321, 358 and 370 at various
-points, each true when written and stale within a day. `npm test` prints the live figure. What
-the suite covers is the part that does not go stale: every feature through the surface a user
-touches — the board's loading, error and empty states as three distinct things; create, edit
-and delete including cache invalidation and the failure notification on each; every filter and
-its round trip through the URL; the profile page; date formatting across time zones; the
-mock/direct/proxied backend matrix in `src/lib/env.ts`; and the `@ravn/ui-kit` seam that
-neither repository's CI can see on its own.
-
-One of them is not a feature test at all. `board-render-cost.test.tsx` mounts a full board
-through the real route table and asserts that a keystroke in the search box re-renders **no**
-cards — so the board's memoisation is held by the suite rather than by a profiler someone
-remembers to open. It counts card avatars separately from the header's on purpose: a single
-combined total would also be satisfied by the header alone, and would go green on a board that
-had stopped rendering cards entirely. It also pins the count at mount before measuring the
-keystroke, which is the other half of the same guard — if the instrument ever stops seeing the
-cards, that assertion fails rather than the measurement quietly reporting zero of nothing.
-
-Dependencies get a second look on the way in. A separate `Dependency review` workflow fails
-a pull request that introduces a package carrying a high-severity advisory in GitHub's
-database — a different feed from npm's, read against the diff rather than the installed
-tree, so it names the dependency this change added. That matters here because Dependabot
-opens _grouped_ bumps, and a group is exactly where one bad package rides in behind fourteen
-harmless ones. The two checks share a severity threshold on purpose: two gates disagreeing
-about what counts as a problem is how a pipeline stops being read.
-
-The suite pins `VITE_API_URL`/`VITE_API_TOKEN` empty in `vite.config.ts`'s `test.env`, so it
-always runs against the MSW mock. That is not belt-and-braces — Vitest loads `.env` through
-Vite like any other build, and `.env` here is gitignored and per-developer, so without the
-pin two tests passed or failed depending on whether the machine running them happened to
-have real credentials configured. CI never saw it, because CI has no `.env`.
-
-A few conventions:
-
-- **No test ids.** Queries go through role, label and text — the things a user perceives.
-- **MSW runs with `onUnhandledRequest: 'error'`,** so a missing handler fails the test
-  loudly rather than falling through to the network and passing against live data.
-- **The mock store behaves like a server** — a created task appears in the next query,
-  filters genuinely narrow, deletes remove. A fixed list would let a broken cache
-  invalidation pass its own test. It is excluded from the coverage _metric_ (it is a test
-  double; counting it moves the number by the fake's complexity rather than the app's) but
-  unit-tested directly, because the filter tests trust it to behave like the real API.
-
-Several defects here were found only by driving the app in a real browser rather than
-trusting jsdom — a multi-select that cleared previous selections on each pick, an Escape
-key that closed a dialog along with the dropdown inside it, and an unhandled promise
-rejection every test happily passed through. Each has a regression test now.
-
-**One end-to-end spec, against a deployment.** `e2e/deployed-proxy.spec.ts` creates a task,
-filters the board to it, edits it and deletes it, in a real browser, against a real Vercel
-URL. It is the only test in the repository that touches `api/graphql.ts` as it actually
-runs: nothing imports that file — the app posts to a URL — so no amount of unit testing
-reaches it. It has already failed in a way only this could catch, exported as a default
-handler that Vercel read as `(req, res) => void`, discarding the `Response` and hanging
-every request while the types, the unit test and the local build all stayed green.
-
-`E2E_BASE_URL` is required and has no default, localhost least of all: a fallback to
-`npm run dev` would make this a slow, flaky duplicate of the suite above, passing while
-proving nothing about a deployment. The last assertion checks that the run actually went
-through `/api/graphql`, which is what makes a local run fail on purpose — pointing it at a
-dev server is useful only for proving the selectors still match after a UI change.
-
-It is one spec, not a suite, and that is a decision rather than a stopping point. Every
-additional flow would re-test components jsdom already covers, at a hundred times the cost,
-and would write to a board RAVN can see — so the spec removes what it created even when it
-fails partway through.
-
-`.github/workflows/e2e.yml` runs it on every successful deployment, and can be dispatched by
-hand against any URL. The automatic half only fires once the workflow file is on `main`,
-because that is GitHub's rule for `deployment_status` events; the manual half is what makes
-it usable before then.
-
-The traffic goes both ways, which is the more useful lesson. jsdom does not reflect the
-`inert` property to an attribute and does not evaluate media queries, so it will call a
-hidden notification reachable and show two navigation landmarks where a browser shows one.
-A browser, in turn, will report focus dropped on `<body>` if the interaction is driven with
-`element.click()` instead of real input, because that is not the press sequence React Aria
-listens for. Anything about focus or the accessibility tree is checked in both.
-
-Neither of those can see an _old_ browser, and a defect went out through the gap: a
-`URL.canParse` call — Chrome 120, above the floor — passed the whole suite, because jsdom
-runs on Node where that method exists, and passed the end-to-end spec, because that drives
-current Chromium. It threw on every browser this app claims to support, and the error
-boundary turned the board into the error screen. `npm run lint` now reads the declared
-`browserslist` and fails on API usage the floor does not have, which is the one check in
-`gate` that neither runtime could stand in for. It works from syntax, so what it cannot see
-is anything reached through a value rather than through a name.
+- **[The design system](docs/design-system.md)** — why the components are a separate package
+  (`@ravn/ui-kit`), what it ships, and how the boundary is enforced.
+- **[Deployment](docs/deployment.md)** — Vercel, and why a static SPA needs one serverless
+  function to keep RAVN's token out of the bundle.
+- **[Testing](docs/testing.md)** — what `npm run gate` checks, what the suite covers, and the
+  conventions behind it.
 
 ## Notes
 
@@ -568,7 +271,7 @@ This repository is heavily instrumented for AI development via [Claude Code](htt
 - **Automated Hooks (`.claude/hooks/`, wired up in `.claude/settings.json`)**: both read their event payload as JSON on stdin, which is the only way a hook is given one.
   - `PostToolUse` → `format-file.sh`: runs this repo's own ESLint and Prettier over the file Claude just saved, so a formatting slip never reaches `npm run gate`.
   - `PreToolUse` → `block-dangerous.sh`: refuses a handful of irreversible bash commands — a recursive forced `rm` aimed at `/` or `$HOME`, a plain force push, a download piped into a shell — by returning a `deny` decision, not by exiting non-zero, which Claude Code treats as a non-blocking error and runs the command anyway. `scripts/hooks.test.mjs` drives both scripts the way Claude Code drives them, because a hook that does nothing exits 0 exactly like a hook that works. Nothing enforces `gate` before a commit — running it is on you. A repository ruleset does enforce it before a merge: `main` and `dev` take changes by pull request only, with CI green against an up-to-date branch, and no force-push or deletion.
-- **Permissions (`.claude/settings.json`)**: Playwright and Chrome DevTools are whitelisted to run headless tests silently without interrupting the agent, and `permissions.deny` keeps `package-lock.json`, `coverage/`, `dist/` and `node_modules/` out of context. It is friction rather than a boundary, and this bullet used to say otherwise: a `Read()` rule matches the **command**, so it refuses `grep`, `cat` and `ls` against those paths, and does not stop a program that opens them itself — `node -e 'require("./package-lock.json")'` reads straight through, which is exactly how `CLAUDE.md` tells you to check which kit build is installed. Measured both ways rather than assumed; the full matrix is in `CLAUDE.md`'s `permissions.deny` passage. The value is that a dependency tree cannot arrive in a context window by accident, not that it cannot be read.
+- **Permissions (`.claude/settings.json`)**: Playwright and Chrome DevTools are whitelisted to run headless tests silently without interrupting the agent, and `permissions.deny` keeps `package-lock.json`, `coverage/`, `dist/` and `node_modules/` out of context — through the Read, Edit, Glob and Grep tools and through the shell's own readers alike.
 - **Lane provisioning (`scripts/new-lane.sh <lane-name> [branch]`)**: work happens in parallel git worktrees, and four of the things a worktree needs are gitignored, so they arrive in none of them — skills, local permissions, `.env`, and an MCP server that can resolve to the wrong scope. Each of those failures leaves a lane that looks fine and is missing a tool, so the script restores them, finishes with `npm run gate` so a lane never inherits a red tree as its own first bug, and prints a checklist read back off the worktree it just made. `scripts/new-lane.test.mjs` pins its pre-flight guards — the checks that keep a lane from landing inside the repo, where Vitest, ESLint and Prettier would all collect a second copy of this source tree.
 
 ## License
