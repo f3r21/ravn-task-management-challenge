@@ -107,6 +107,21 @@ describe('toKitTableRowProps', () => {
   it('carries the row’s position, which the kit zero-pads for display', () => {
     expect(toKitTableRowProps(makeTask(), now, { index: 3 }).index).toBe(3)
   })
+
+  it.each([
+    ['BACKLOG', 'neutral'],
+    ['TODO', 'neutral'],
+    ['IN_PROGRESS', 'yellow'],
+    ['DONE', 'green'],
+    ['CANCELLED', 'red'],
+  ] as const)('maps status %s to indicator colour %s', (status, indicatorColor) => {
+    // Kit v0.9.0 stopped defaulting `indicatorColor` to `'green'` (kit#141), so every row
+    // used to render the same stripe regardless of status. This pins the actual mapping
+    // rather than just that *some* value is passed.
+    expect(toKitTableRowProps(makeTask({ status }), now, { index: 1 }).indicatorColor).toBe(
+      indicatorColor,
+    )
+  })
 })
 
 describe('the two views cannot drift', () => {
