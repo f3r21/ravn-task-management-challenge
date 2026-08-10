@@ -296,6 +296,73 @@ test('the page does not scroll horizontally while the board does', async ({ page
   expect(measured?.boardScrolls).toBe(true)
 })
 
+/**
+ * Neither view may scroll the page sideways, at any width.
+ *
+ * The test above this one pins the same property, and could not reach this: it queries
+ * `[class*="overflow-x-auto"]` — the board — at a single `Desktop Chrome` viewport, so it
+ * is scoped to one view at one width. It passed green throughout the entire period the
+ * list view scrolled the page at every phone width. This closes the class rather than the
+ * instance: both views, four widths, all of them narrow, because that is where the list
+ * view failed and where the board never did.
+ *
+ * What it caught: the list view overflowed the document by 667px at 375, 554 at 768, 298
+ * at 1024 and 42 at 1280, sliding the sidebar and the header off screen. The cure is the
+ * one `#142` proved for the board — see `board-list-table.tsx`.
+ *
+ * `tables` is the control that the toggle actually changed the view rather than the probe
+ * measuring the same thing twice: the list view renders one `<table>` per status group and
+ * the board view renders none. Asserted as "some" and "none" rather than a count, so adding
+ * a sixth status does not fail a test that has nothing to do with statuses.
+ */
+test('neither view scrolls the page sideways at narrow widths', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: /^Backlog/ })).toBeVisible()
+
+  const READ = `(() => {
+    const de = document.documentElement
+    return {
+      pageOverflowBy: de.scrollWidth - de.clientWidth,
+      tables: document.querySelectorAll('table').length,
+    }
+  })()`
+
+  // The instrument's own control, run first and once. Every assertion below is a zero, and
+  // a zero from an expression that could not have reported anything else is not evidence —
+  // this repo's most repeated failure. Plant an element wider than the viewport, confirm the
+  // very same expression flips, remove it, confirm it returns to baseline.
+  const control: { base: number; planted: number; restored: number } = await page.evaluate(`(() => {
+    const de = document.documentElement
+    const base = de.scrollWidth - de.clientWidth
+    const spy = document.createElement('div')
+    spy.style.cssText = 'width:' + (window.innerWidth + 400) + 'px;height:4px;position:relative'
+    document.body.appendChild(spy)
+    const planted = de.scrollWidth - de.clientWidth
+    spy.remove()
+    return { base, planted, restored: de.scrollWidth - de.clientWidth }
+  })()`)
+  expect(control.base).toBe(0)
+  expect(control.planted).toBeGreaterThan(0)
+  expect(control.restored).toBe(0)
+
+  for (const width of [375, 768, 1024, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+
+    for (const view of ['Grid view', 'List view'] as const) {
+      await page.getByRole('radio', { name: view }).click()
+      const reading: { pageOverflowBy: number; tables: number } = await page.evaluate(READ)
+      const where = `${view} @${String(width)}`
+
+      if (view === 'List view') {
+        expect(reading.tables, `${where}: expected the list view's tables`).toBeGreaterThan(0)
+      } else {
+        expect(reading.tables, `${where}: expected no tables in the board view`).toBe(0)
+      }
+      expect(reading.pageOverflowBy, `${where}: the page scrolls sideways`).toBe(0)
+    }
+  }
+})
+
 /** One viewport's worth of board geometry, as the string probe below returns it. */
 interface BoardReading {
   boardWidth: number

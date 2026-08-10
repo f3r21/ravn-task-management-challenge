@@ -62,7 +62,32 @@ function BoardListTableImpl({ grouped, now, onEditTask, onDeleteTask }: BoardLis
     [grouped, resolvedNow, onEditTask, onDeleteTask],
   )
 
-  return <TaskTable groups={groups} />
+  // `contain-paint` is the list view's half of what `xl:contain-paint` does for the board,
+  // and it is load-bearing for the same non-obvious reason — see `board.tsx`'s `GRID_WRAPPER`
+  // for the long version.
+  //
+  // `TaskTable`'s root is already a correct scroll container: the design pins the five
+  // columns to 1108px total, and the kit gives that root `w-full overflow-x-auto` so the
+  // table scrolls inside itself on a narrow screen. Chrome nonetheless added those 1108px to
+  // the *document's* scrollable area, so the whole page scrolled sideways — 667px at 375,
+  // 554 at 768, 298 at 1024, 42 at 1280 — sliding the sidebar and the header off screen. The
+  // board had the identical defect and `#142` established that ordinary clipping will not
+  // touch it: measured there, `overflow-x: clip`/`hidden` on the shell, on `#root`, on `main`
+  // and on the wrapper all failed, and paint containment was the only thing that worked.
+  // Confirmed the same shape here before applying it — every ancestor of the scroll container
+  // reports `scrollWidth === clientWidth` while the document overflows by 667, so there is
+  // nothing out there for a clip to catch.
+  //
+  // It goes on the scroll container rather than a wrapper around it, which is why this is a
+  // `className` and not a new `<div>`: containment on the element that already scrolls cannot
+  // hide anything, because everything it clips is reachable by scrolling it. Unprefixed, since
+  // unlike the board this overflows from 375px up.
+  //
+  // Deliberately not pushed into the kit. The kit cannot know it is inside a page shell, and
+  // `contain: paint` on every consumer's table would clip any overlay a consumer did not
+  // portal. Page-level overflow is the page's business — which is exactly where the board
+  // keeps it.
+  return <TaskTable groups={groups} className="contain-paint" />
 }
 
 /**
