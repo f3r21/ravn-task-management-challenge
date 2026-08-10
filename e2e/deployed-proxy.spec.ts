@@ -295,3 +295,95 @@ test('the page does not scroll horizontally while the board does', async ({ page
   // scrolling at all, which would be a worse bug than the one being fixed.
   expect(measured?.boardScrolls).toBe(true)
 })
+
+/** One viewport's worth of board geometry, as the string probe below returns it. */
+interface BoardReading {
+  boardWidth: number
+  hiddenBy: number
+  pageOverflowBy: number
+}
+
+/**
+ * A wider window has to show more of the board.
+ *
+ * It did not. `AppLayout` capped its content at 1440px, which left the board 1176px —
+ * and 1176px was the answer at 1600, 1920, 2200 *and* 2600, because the cap binds long
+ * before the viewport does. Measured on the deployment: 692px of board hidden at every
+ * one of those widths, three of the five columns visible, `Done` and `Cancelled` cut at
+ * all of them. The widest monitor available revealed no more of the board than a 1600px
+ * one, and less than a 1024px one, where the wrapping layout fits all five.
+ *
+ * Two claims, because either alone is survivable by a regression. **Widening helps** is
+ * the general one and holds at every step. **The whole board fits somewhere** is the
+ * specific one, and 2400px is where it is asserted rather than 2200px on purpose: at
+ * 2200 the board measures 1872px against the 1868px five columns need, and four pixels
+ * of slack is not a margin. A platform whose classic vertical scrollbar takes 15px —
+ * which CI's Linux Chromium has and this was measured on macOS's overlay scrollbars,
+ * where it does not — would put that row at 1857px and fail a green build. 2400px
+ * leaves ~204px, which is slack rather than luck.
+ *
+ * Four viewports, because the widest two alone cannot tell this fix from a regression:
+ * the 1024 reading is the control that the narrow *wrapping* layout still fits its board
+ * entirely, so a fix that bought desktop width by clipping the phone fails here. And
+ * `pageOverflowBy` is checked at all four, so "widen the board" cannot quietly become
+ * "widen the document" — the defect the test above this one exists for.
+ *
+ * Not asserted: that the board never scrolls. Five 348px columns need 1868px, and the
+ * 348px pin is a written decision `board.tsx` argues for — five equal shares of 1440px
+ * leave ~200px cards, at which point the points label, the date badge and the tag row
+ * all wrap. Below ~2130px scrolling is correct behaviour, not a defect.
+ *
+ * One `goto`, four viewports: this is pure CSS, so a resize re-lays out and three more
+ * page loads against a live deployment are not warranted.
+ */
+test('a wider window shows more of the board', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: /^Backlog/ })).toBeVisible()
+
+  // A string body for the same reason as the test above: `e2e/tsconfig.json` leaves the
+  // DOM lib out, so remote code must not be made to look local.
+  const READ = `(() => {
+    const de = document.documentElement
+    const board = document.querySelector('[class*="overflow-x-auto"]')
+    if (!board) return null
+    return {
+      boardWidth: board.clientWidth,
+      hiddenBy: board.scrollWidth - board.clientWidth,
+      pageOverflowBy: de.scrollWidth - de.clientWidth,
+    }
+  })()`
+
+  // Narrowed through a throw rather than a `!`, which is a lint error here, and rather
+  // than `?.`, which would make the arithmetic below `number | undefined`. A missing
+  // scroll container is a real outcome — it is what a board that never loaded looks
+  // like — so it earns a message naming the width it happened at.
+  const readAt = async (width: number): Promise<BoardReading> => {
+    await page.setViewportSize({ width, height: 1000 })
+    const reading: BoardReading | null = await page.evaluate(READ)
+    if (reading === null) throw new Error(`no board scroll container at ${String(width)}px`)
+    return reading
+  }
+
+  const at1024 = await readAt(1024)
+  const at1600 = await readAt(1600)
+  const at1920 = await readAt(1920)
+  const at2400 = await readAt(2400)
+
+  // Claim one: widening helps, at every step. Before the fix all three of these read
+  // 1176 and each of these lines fails.
+  expect(at1920.boardWidth).toBeGreaterThan(at1600.boardWidth + 250)
+  expect(at2400.boardWidth).toBeGreaterThan(at1920.boardWidth + 400)
+
+  // Claim two: past a certain width the board is simply all there. Before the fix this
+  // read 692 at every width from 1600 up, however large the monitor.
+  expect(at2400.hiddenBy).toBe(0)
+
+  // Controls. The narrow layout wraps rather than scrolling, so its board is whole —
+  // a fix that bought desktop width by clipping the phone would fail here. And the
+  // document must not scroll sideways at any of the four.
+  expect(at1024.hiddenBy).toBe(0)
+  expect(at1024.pageOverflowBy).toBe(0)
+  expect(at1600.pageOverflowBy).toBe(0)
+  expect(at1920.pageOverflowBy).toBe(0)
+  expect(at2400.pageOverflowBy).toBe(0)
+})
