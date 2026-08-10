@@ -59,8 +59,28 @@ function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
  * does at narrow widths, so a switcher between the two would do nothing on a phone. It is
  * a table: the fields line up down the page and far more tasks fit on screen.
  */
+/**
+ * `xl:contain-paint` is what stops the *page* scrolling sideways, and it is not
+ * decoration.
+ *
+ * `overflow-x-auto` makes this a scroll container, and the five 348px columns scroll
+ * inside it correctly — measured at a 1582px viewport, 1868 of content in 1176. But
+ * Chrome still added the columns' width to the document's scrollable area, so the
+ * whole page scrolled 434px: the sidebar and the header slid off screen and revealed
+ * nothing but background, because there is nothing out there to reveal.
+ *
+ * Ordinary clipping does not stop it. Measured, all still 2016 against a 1582 viewport:
+ * `overflow-x: clip` on the page shell, on `#root`, on `main`, `overflow: hidden` on
+ * either, `min-width: 0` on the wrapper or on `main`, and `overflow-x: hidden` on this
+ * element itself. Only paint containment does — it makes this element a containing
+ * block, so its descendants stop contributing to an ancestor's scrollable overflow.
+ *
+ * Safe for the card menus: the kit portals its overlays out of this subtree, so paint
+ * containment cannot clip them. Verified against the deployment with the menu open —
+ * the popover renders outside this element and stays 160x88 with both items.
+ */
 const GRID_WRAPPER =
-  'flex flex-col gap-8 sm:grid sm:grid-cols-2 xl:flex xl:flex-row xl:overflow-x-auto xl:pb-2'
+  'flex flex-col gap-8 sm:grid sm:grid-cols-2 xl:flex xl:flex-row xl:overflow-x-auto xl:contain-paint xl:pb-2'
 const GRID_COLUMN = 'xl:w-87 xl:shrink-0'
 
 export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps) {
