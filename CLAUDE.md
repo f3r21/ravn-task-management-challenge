@@ -6,6 +6,11 @@ Everything here is something the code does not say for itself. The _why_ behind 
 decisions lives in comments and commit messages — the density there is deliberately high — so
 this file covers the shape of the whole thing, and the traps that have already cost time.
 
+`README.md`'s own "Deeper reading" section points at three files under `docs/` — design system,
+deployment, testing — written for a human reviewing the challenge rather than an agent working
+in it. They cover the same three seams this file does, in less depth and with screenshots; reach
+for `docs/` only if you need the human framing, since this file is the one written for you.
+
 ## Commands
 
 ```bash
@@ -473,6 +478,13 @@ jsdom, faster and more precisely, and each extra flow is more live mutation.
 - **Comments explain why.** A stale comment is worse than no comment, because a reader trusts
   it. If you change behaviour, grep for comments describing the old one — several rounds of
   that have already been needed.
+- **`npm run comments` is what backs the density claim in this file's opening paragraph**, the
+  same way `npm run assertions` backs the one below it. It parses rather than greps: a JSX
+  `{/* … */}` comment and a multi-line `/* */` block both defeat a reader that classifies a
+  line by its first character, and `--compare` runs that cruder reader over the same tree and
+  prints where the two disagree, so the parser's advantage is demonstrated rather than assumed.
+  Reading at `9e723b2`: 2219 comment lines / 2624 code lines = 84.6% —
+  `npm run comments 2>&1 | tail -3`.
 - **Zero `any`, zero `@ts-ignore`.** Both are lint _errors_, so `npm run lint` is what holds
   them at zero. **Type assertions are one as of #110** — the transport boundary, and nothing
   downstream — plus zero non-null `!`: `npm run assertions`, which lists each one and prints
