@@ -363,6 +363,66 @@ test('neither view scrolls the page sideways at narrow widths', async ({ page })
   }
 })
 
+/**
+ * The *loading* board must not scroll the page sideways either.
+ *
+ * The third instance of one defect, and the one that outlived the other two: `BoardSkeleton`
+ * draws five 348px columns like the real board but had neither a scroll container nor paint
+ * containment, so its 1868px went to the document. The page scrolled 884px at 1280, 564 at
+ * 1600 and 244 at 1920 while the tasks query was in flight. It survived both `#142` and
+ * `#144` precisely because it is transient — every guard above measures a board that has
+ * already loaded, and none of them can see this.
+ *
+ * **Which makes this the arm most likely to be vacuous, so it does not trust its own setup.**
+ * If the `Tasks` response is not actually held open, the page under measurement is the loaded
+ * board and every assertion here silently becomes a duplicate of the test above. Two controls
+ * rule that out before the measurement is read: the live region must say `Loading tasks`, and
+ * there must be no column headings on the page — the loaded board renders one per status.
+ *
+ * The widths are the three where it failed. 375 and 1024 are omitted deliberately rather than
+ * forgotten: the skeleton wraps there and read 0 before the fix too, so they would pass either
+ * way and could only dilute the result.
+ */
+test('the loading board does not scroll the page sideways either', async ({ page }) => {
+  // Hold the tasks query open so the skeleton is what is on screen when we measure. The
+  // route stays pending; navigating away abandons it, which is what ends each iteration.
+  await page.route('**/graphql', async (route) => {
+    if ((route.request().postData() ?? '').includes('Tasks')) {
+      await new Promise((resolve) => setTimeout(resolve, 8000))
+    }
+    await route.continue()
+  })
+
+  for (const width of [1280, 1600, 1920]) {
+    await page.setViewportSize({ width, height: 1000 })
+    await page.goto('/', { waitUntil: 'commit' })
+
+    // Deterministic rather than a timeout: wait until the app says it is loading.
+    await page.waitForFunction(`(() => {
+      const region = document.querySelector('[role="status"]')
+      return region !== null && region.textContent.trim() === 'Loading tasks'
+    })()`)
+
+    const reading: { pageOverflowBy: number; status: string; headings: number } =
+      await page.evaluate(`(() => {
+      const de = document.documentElement
+      const region = document.querySelector('[role="status"]')
+      return {
+        pageOverflowBy: de.scrollWidth - de.clientWidth,
+        status: region === null ? '' : region.textContent.trim(),
+        headings: document.querySelectorAll('h2').length,
+      }
+    })()`)
+    const where = `loading @${String(width)}`
+
+    // The controls, read before the assertion they qualify.
+    expect(reading.status, `${where}: not on the loading state`).toBe('Loading tasks')
+    expect(reading.headings, `${where}: the board loaded, so this measured the wrong thing`).toBe(0)
+
+    expect(reading.pageOverflowBy, `${where}: the page scrolls sideways`).toBe(0)
+  }
+})
+
 /** One viewport's worth of board geometry, as the string probe below returns it. */
 interface BoardReading {
   boardWidth: number
