@@ -123,38 +123,59 @@ describe('toFormFields', () => {
     expect(toFormFields(makeTask({ dueDate: 'not-a-date' })).dueDate).toBe('')
   })
 
-  it('round-trips through toUpdateInput without changing the task', () => {
-    // The two mappers are each other's inverse for every field the form owns, and
-    // this is the assertion that keeps them that way — an edit that opens a dialog
-    // and saves it again with no changes must not alter the task.
+  it('sends nothing but the id when the dialog was opened and saved unchanged', () => {
+    // The two mappers are each other's inverse for every field the form owns, and this
+    // is the assertion that keeps them that way. It also pins the patch contract: an
+    // edit that changes nothing must send nothing, because every field it sends is a
+    // field it would overwrite if a colleague had changed it in the meantime.
     const task = makeTask({ position: 3, assignee: makeUser({ id: 'user-7' }) })
 
-    const input = toUpdateInput(task.id, toFormFields(task))
-
-    expect(input).toEqual({
-      id: task.id,
-      name: task.name,
-      status: task.status,
-      tags: task.tags,
-      dueDate: task.dueDate,
-      pointEstimate: task.pointEstimate,
-      position: 3,
-      assigneeId: 'user-7',
-    })
+    expect(toUpdateInput(task, toFormFields(task))).toEqual({ id: task.id })
   })
 })
 
 describe('toUpdateInput', () => {
-  it('carries the id it was given', () => {
-    expect(toUpdateInput('task-9', fields()).id).toBe('task-9')
+  // Every case below edits exactly one field of a real task and asserts that exactly
+  // that field travels. `edited` keeps each test to the change it is about.
+  const baseline = makeTask({ position: 3, assignee: makeUser({ id: 'user-7' }) })
+  const edited = (patch: Partial<TaskFormFields>) => ({ ...toFormFields(baseline), ...patch })
+
+  it('carries the id', () => {
+    expect(toUpdateInput(baseline, toFormFields(baseline)).id).toBe(baseline.id)
+  })
+
+  it('sends only the field that changed', () => {
+    // The regression test for the clobbering defect. Before this, saving a due-date
+    // edit also replayed the name and status the dialog was seeded with, overwriting
+    // a concurrent edit with a stale snapshot and reporting success.
+    const input = toUpdateInput(baseline, edited({ dueDate: '2030-01-02' }))
+
+    expect(input).toEqual({ id: baseline.id, dueDate: '2030-01-02T00:00:00.000Z' })
+    expect(Object.hasOwn(input, 'name')).toBe(false)
+    expect(Object.hasOwn(input, 'status')).toBe(false)
+  })
+
+  it('does not treat reordered tags as an edit', () => {
+    // Sending them back would overwrite a colleague's tag change for no gain.
+    const reversed = [...toFormFields(baseline).tags].reverse()
+
+    expect(Object.hasOwn(toUpdateInput(baseline, edited({ tags: reversed })), 'tags')).toBe(false)
   })
 
   it('trims the name', () => {
-    expect(toUpdateInput('task-9', fields({ name: '  Slack  ' })).name).toBe('Slack')
+    // Deliberately not the fixture's own name — padding `Slack` is not an edit, which
+    // is the case the test below covers.
+    expect(toUpdateInput(baseline, edited({ name: '  Ship the API  ' })).name).toBe('Ship the API')
+  })
+
+  it('does not send a name whose only change is surrounding whitespace', () => {
+    const padded = `  ${toFormFields(baseline).name}  `
+
+    expect(Object.hasOwn(toUpdateInput(baseline, edited({ name: padded })), 'name')).toBe(false)
   })
 
   it('sends assigneeId as null when nobody is assigned, rather than omitting it', () => {
-    const input = toUpdateInput('task-9', fields({ assigneeId: null }))
+    const input = toUpdateInput(baseline, edited({ assigneeId: null }))
 
     // The opposite rule to create, and the reason unassigning was once impossible:
     // `UpdateTaskInput` is a patch, so an omitted field means "leave it alone".
@@ -173,15 +194,15 @@ describe('toUpdateInput', () => {
   // behaviour for a state the app cannot produce — and inventing a normalisation
   // to satisfy it would add a branch no path exercises.
 
-  it('sends assigneeId through unchanged when somebody is assigned', () => {
-    expect(toUpdateInput('task-9', fields({ assigneeId: 'user-2' })).assigneeId).toBe('user-2')
+  it('sends a reassignment through unchanged', () => {
+    expect(toUpdateInput(baseline, edited({ assigneeId: 'user-2' })).assigneeId).toBe('user-2')
   })
 
   it.each([
     ['blank', ''],
     ['only whitespace', '   '],
   ])('omits position when the field is %s', (_label, position) => {
-    const input = toUpdateInput('task-9', fields({ position }))
+    const input = toUpdateInput(baseline, edited({ position }))
 
     // `position` is a `Float!`, so `null` is a request to *unset* it rather than a
     // request to leave it alone. Omitting is what leaves the server's ordering
@@ -190,13 +211,21 @@ describe('toUpdateInput', () => {
   })
 
   it.each([
-    ['3', 3],
     ['0', 0],
     ['2.5', 2.5],
     ['-1', -1],
   ])('coerces the position text %s to the number %s', (position, expected) => {
-    // Zero matters: it is falsy, so a truthiness check here would drop a
-    // legitimate "move to the top of the column".
-    expect(toUpdateInput('task-9', fields({ position })).position).toBe(expected)
+    // Zero matters: it is falsy, so a truthiness check here would drop a legitimate
+    // "move to the top of the column". `baseline` sits at 3, so each of these is a
+    // real change and travels.
+    expect(toUpdateInput(baseline, edited({ position })).position).toBe(expected)
+  })
+
+  it('omits position when the number is the one the task already has', () => {
+    // `3` is `baseline.position`. Re-sending it would overwrite a colleague's
+    // reorder with the value this dialog happened to open on.
+    expect(Object.hasOwn(toUpdateInput(baseline, edited({ position: '3' })), 'position')).toBe(
+      false,
+    )
   })
 })

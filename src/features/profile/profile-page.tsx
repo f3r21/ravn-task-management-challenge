@@ -67,6 +67,9 @@ export function ProfilePage() {
       <AsyncSection
         status={status}
         error={error}
+        // Same reason as the board: a failed refresh should not blank a profile
+        // that is already on screen.
+        hasData={profile !== undefined}
         loadingLabel="Loading your profile"
         readyLabel="Profile loaded"
         errorTitle="Could not load your profile"

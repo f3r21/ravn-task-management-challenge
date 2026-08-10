@@ -24,9 +24,12 @@ import type { Task } from './task-types'
  * calendar day, which is the property that matters — the suite deliberately runs
  * at UTC+14, where anything reaching for a local calendar field lands a day early.
  *
- * This suffix used to be written out at three sites (`board-page.tsx`, and twice
- * in `use-board-filters.ts`) with no shared constant. Three copies of a format
- * string is three chances for one of them to drift.
+ * **Not the only place this suffix is built.** `use-board-filters.ts:219` still
+ * assembles it inline and does not import this helper, so a change to how a calendar
+ * day is sent has to be made in both. This comment previously claimed the
+ * consolidation was complete, which is the more expensive error: it invites a
+ * maintainer to edit here, watch the suite pass, and ship a filter path still on the
+ * old format.
  */
 export function toApiDateTime(yyyyMmDd: string): string {
   return `${yyyyMmDd}T00:00:00.000Z`
@@ -95,15 +98,51 @@ export function toFormFields(task: Task): TaskFormFields {
   }
 }
 
-export function toUpdateInput(id: string, fields: TaskFormFields): UpdateTaskInput {
-  return {
-    id,
-    name: fields.name.trim(),
-    status: fields.status,
-    tags: fields.tags,
-    dueDate: toApiDateTime(fields.dueDate),
-    pointEstimate: fields.pointEstimate,
-    ...(fields.position.trim() === '' ? {} : { position: Number(fields.position) }),
-    assigneeId: fields.assigneeId,
+/**
+ * The edit, as a patch — only the fields the user actually changed.
+ *
+ * `UpdateTaskInput` is a patch type and `use-update-task.ts` documents the app as
+ * relying on that, but this function used to resend the whole form snapshot, so no
+ * call site had ever sent a partial one. The cost is a lost write rather than a
+ * redundant one: the dialog seeds its fields when it opens, `refetchOnWindowFocus`
+ * can pull a colleague's edit onto the board while it is open, and saving then
+ * replays the stale snapshot over their change — two success toasts, no error, and
+ * a card that silently reverts.
+ *
+ * The baseline comes from `toFormFields(task)` rather than from `task` directly, so
+ * the comparison happens in the form's own vocabulary. A field is "unchanged" here
+ * exactly when it looks unchanged to the user, which is the only definition that
+ * cannot drift from what the dialog displayed.
+ */
+export function toUpdateInput(task: Task, fields: TaskFormFields): UpdateTaskInput {
+  const before = toFormFields(task)
+  const input: UpdateTaskInput = { id: task.id }
+
+  if (fields.name.trim() !== before.name.trim()) {
+    input.name = fields.name.trim()
   }
+  if (fields.status !== before.status) {
+    input.status = fields.status
+  }
+  // Order-insensitive: reordering the same tags is not an edit, and sending them
+  // back would overwrite a concurrent tag change for no gain.
+  if ([...fields.tags].sort().join() !== [...before.tags].sort().join()) {
+    input.tags = fields.tags
+  }
+  if (fields.dueDate !== before.dueDate) {
+    input.dueDate = toApiDateTime(fields.dueDate)
+  }
+  if (fields.pointEstimate !== before.pointEstimate) {
+    input.pointEstimate = fields.pointEstimate
+  }
+  // Blank means "leave it alone", which is why this is not simply a value compare —
+  // an empty field is the absence of an instruction rather than a request for 0.
+  if (fields.position.trim() !== '' && Number(fields.position) !== task.position) {
+    input.position = Number(fields.position)
+  }
+  if (fields.assigneeId !== before.assigneeId) {
+    input.assigneeId = fields.assigneeId
+  }
+
+  return input
 }

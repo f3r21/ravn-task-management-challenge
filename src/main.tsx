@@ -38,10 +38,27 @@ if (!rootElement) {
   throw new Error('Root element #root is missing from index.html')
 }
 
-void enableMockingIfNeeded().then(() => {
-  createRoot(rootElement).render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  )
-})
+/**
+ * Mount whatever happens to the mock worker.
+ *
+ * This was a bare `.then()`. A rejection from `worker.start()` therefore skipped
+ * `render()` entirely and the app never mounted — a blank page with one line in the
+ * console, and no error boundary to catch it because the boundary lives inside the tree
+ * that was never created. Service workers need a secure context, so the ordinary way in
+ * is `npm run preview -- --host` opened from a phone over plain HTTP, or a Firefox
+ * private window; a missing `mockServiceWorker.js` does it too.
+ *
+ * Failing to mock is recoverable — the app falls through to whatever `VITE_API_URL`
+ * says, and `BoardPage`'s own banner reports the mock state. Failing to mount is not.
+ */
+void enableMockingIfNeeded()
+  .catch((cause: unknown) => {
+    console.error('Mock worker did not start; continuing without it.', cause)
+  })
+  .finally(() => {
+    createRoot(rootElement).render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    )
+  })

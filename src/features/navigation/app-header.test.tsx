@@ -80,4 +80,29 @@ describe('AppHeader', () => {
     // header from borrowing.
     expect(header.queryByRole('img', { name: 'Unassigned' })).not.toBeInTheDocument()
   })
+
+  describe('searching from a route that does not read the filter', () => {
+    // The bar is rendered by `AppLayout` on every route, but only the board consumes
+    // `?name=`. Typing on /settings used to write the parameter onto a URL nobody read:
+    // the field filled, the clear button appeared, and nothing happened anywhere.
+
+    it('takes the user to the board with the term applied', async () => {
+      const user = userEvent.setup()
+      renderApp('/settings')
+
+      await user.type(screen.getByRole('searchbox', { name: /search tasks/i }), 'Slack')
+
+      // The board, filtered — not /settings carrying a parameter it ignores.
+      expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+      await screen.findByRole('heading', { name: 'Slack' })
+    })
+
+    it('shows an empty field off the board rather than a stale term', () => {
+      // `filters.name` reads whatever route the user is on. Landing on /settings with a
+      // leftover `?name=` in the URL must not present it as an active search.
+      renderApp('/settings?name=Slack')
+
+      expect(screen.getByRole('searchbox', { name: /search tasks/i })).toHaveValue('')
+    })
+  })
 })
