@@ -62,7 +62,43 @@ function BoardListTableImpl({ grouped, now, onEditTask, onDeleteTask }: BoardLis
     [grouped, resolvedNow, onEditTask, onDeleteTask],
   )
 
-  return <TaskTable groups={groups} />
+  // `contain-paint` is the list view's half of what `xl:contain-paint` does for the board,
+  // and it is load-bearing for the same non-obvious reason — see `board.tsx`'s `GRID_WRAPPER`
+  // for the long version.
+  //
+  // `TaskTable`'s root is already a correct scroll container: the design pins the five
+  // columns to 1108px total, and the kit gives that root `w-full overflow-x-auto` so the
+  // table scrolls inside itself on a narrow screen. Chrome nonetheless added those 1108px to
+  // the *document's* scrollable area, so the whole page scrolled sideways — 667px at 375,
+  // 554 at 768, 298 at 1024, 42 at 1280 — sliding the sidebar and the header off screen. The
+  // board had the identical defect and `#142` established that ordinary clipping will not
+  // touch it: measured there, `overflow-x: clip`/`hidden` on the shell, on `#root`, on `main`
+  // and on the wrapper all failed, and paint containment was the only thing that worked.
+  // Confirmed the same shape here before applying it — every ancestor of the scroll container
+  // reports `scrollWidth === clientWidth` while the document overflows by 667, so there is
+  // nothing out there for a clip to catch.
+  //
+  // It goes on the scroll container rather than a wrapper around it, which is why this is a
+  // `className` and not a new `<div>`: containment on the element that already scrolls cannot
+  // hide anything, because everything it clips is reachable by scrolling it. Unprefixed, since
+  // unlike the board this overflows from 375px up.
+  //
+  // Deliberately not pushed into the kit, and the reason is *not* the obvious one. "It would
+  // clip an overlay a consumer did not portal" is wrong: that root already computes
+  // `overflow-y: auto` — CSS Overflow 3 forces a `visible` sibling of a non-`visible` value
+  // to `auto` — so it clips such an overlay already and paint containment adds nothing to
+  // that hazard. Measured on the root: `{overflowX: 'auto', overflowY: 'auto'}`.
+  //
+  // What containment does add is that it becomes a containing block for `position: fixed`
+  // descendants and a new stacking context, and a fixed-position inline overlay is exactly
+  // the strategy that escapes the existing clip today. Measured: a `position: fixed; top: 0;
+  // left: 0` element placed inside this root lands at the root's own origin rather than the
+  // viewport's, against a control copy on `document.body` that lands at `0, 0`. So shipping
+  // this in the kit would silently relocate a working overlay in some other consumer. Here
+  // it is safe because the app knows this page portals its overlays, which is knowledge the
+  // kit does not have — page-level overflow is the page's business, and that is where the
+  // board keeps it too.
+  return <TaskTable groups={groups} className="contain-paint" />
 }
 
 /**

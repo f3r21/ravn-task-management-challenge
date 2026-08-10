@@ -295,3 +295,248 @@ test('the page does not scroll horizontally while the board does', async ({ page
   // scrolling at all, which would be a worse bug than the one being fixed.
   expect(measured?.boardScrolls).toBe(true)
 })
+
+/**
+ * Neither view may scroll the page sideways, at any width.
+ *
+ * The test above this one pins the same property, and could not reach this: it queries
+ * `[class*="overflow-x-auto"]` — the board — at a single `Desktop Chrome` viewport, so it
+ * is scoped to one view at one width. It passed green throughout the entire period the
+ * list view scrolled the page at every phone width. This closes the class rather than the
+ * instance: both views, four widths, all of them narrow, because that is where the list
+ * view failed and where the board never did.
+ *
+ * What it caught: the list view overflowed the document by 667px at 375, 554 at 768, 298
+ * at 1024 and 42 at 1280, sliding the sidebar and the header off screen. The cure is the
+ * one `#142` proved for the board — see `board-list-table.tsx`.
+ *
+ * `tables` is the control that the toggle actually changed the view rather than the probe
+ * measuring the same thing twice: the list view renders one `<table>` per status group and
+ * the board view renders none. Asserted as "some" and "none" rather than a count, so adding
+ * a sixth status does not fail a test that has nothing to do with statuses.
+ */
+test('neither view scrolls the page sideways at narrow widths', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: /^Backlog/ })).toBeVisible()
+
+  const READ = `(() => {
+    const de = document.documentElement
+    return {
+      pageOverflowBy: de.scrollWidth - de.clientWidth,
+      tables: document.querySelectorAll('table').length,
+    }
+  })()`
+
+  // The instrument's own control, run first and once. Every assertion below is a zero, and
+  // a zero from an expression that could not have reported anything else is not evidence —
+  // this repo's most repeated failure. Plant an element wider than the viewport, confirm the
+  // very same expression flips, remove it, confirm it returns to baseline.
+  const control: { base: number; planted: number; restored: number } = await page.evaluate(`(() => {
+    const de = document.documentElement
+    const base = de.scrollWidth - de.clientWidth
+    const spy = document.createElement('div')
+    spy.style.cssText = 'width:' + (window.innerWidth + 400) + 'px;height:4px;position:relative'
+    document.body.appendChild(spy)
+    const planted = de.scrollWidth - de.clientWidth
+    spy.remove()
+    return { base, planted, restored: de.scrollWidth - de.clientWidth }
+  })()`)
+  expect(control.base).toBe(0)
+  expect(control.planted).toBeGreaterThan(0)
+  expect(control.restored).toBe(0)
+
+  for (const width of [375, 768, 1024, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+
+    for (const view of ['Grid view', 'List view'] as const) {
+      await page.getByRole('radio', { name: view }).click()
+      const reading: { pageOverflowBy: number; tables: number } = await page.evaluate(READ)
+      const where = `${view} @${String(width)}`
+
+      if (view === 'List view') {
+        expect(reading.tables, `${where}: expected the list view's tables`).toBeGreaterThan(0)
+      } else {
+        expect(reading.tables, `${where}: expected no tables in the board view`).toBe(0)
+      }
+      expect(reading.pageOverflowBy, `${where}: the page scrolls sideways`).toBe(0)
+    }
+  }
+})
+
+/**
+ * The *loading* board must not scroll the page sideways either.
+ *
+ * The third instance of one defect, and the one that outlived the other two: `BoardSkeleton`
+ * draws five 348px columns like the real board but had neither a scroll container nor paint
+ * containment, so its 1868px went to the document. The page scrolled 884px at 1280, 564 at
+ * 1600 and 244 at 1920 while the tasks query was in flight. It survived both `#142` and
+ * `#144` precisely because it is transient — every guard above measures a board that has
+ * already loaded, and none of them can see this.
+ *
+ * **Which makes this the arm most likely to be vacuous, so it does not trust its own setup.**
+ * If the `Tasks` response is not actually held open, the page under measurement is the loaded
+ * board and every assertion here silently becomes a duplicate of the test above.
+ *
+ * Three controls rule that out, and the third is the one that matters. Two are *negative* —
+ * the live region must say `Loading tasks`, and there must be no column headings, which the
+ * loaded board renders one of per status. Both only establish that the board has **not**
+ * arrived; neither establishes that the skeleton is **there**. That gap is not theoretical:
+ * they hold together today only because `async-section.tsx` drives the region's text and
+ * `{status === 'pending' ? skeleton : null}` off one condition in one render, so the region
+ * cannot say `Loading tasks` with no skeleton mounted. That coupling lives in another file,
+ * and hoisting the live region so it "outlives every state it describes" — which `CLAUDE.md`
+ * and `AsyncSection`'s own doc comment both argue for — would break it while leaving this
+ * test green and blind: no headings still passes, and nothing on screen cannot overflow.
+ *
+ * So the third control is *positive*: something in `main` must be at least as wide as the
+ * five columns, `5 × 348 + 4 × 32 = 1868`. It is deliberately not keyed on the containment
+ * being present — a selector matching only the fixed state would make the sabotage fail in
+ * the control rather than in the measurement, which is a worse diagnostic than none.
+ *
+ * The widths are the three where it failed. 375 and 1024 are omitted deliberately rather than
+ * forgotten: the skeleton wraps there and read 0 before the fix too, so they would pass either
+ * way and could only dilute the result.
+ */
+test('the loading board does not scroll the page sideways either', async ({ page }) => {
+  // Hold the tasks query open so the skeleton is what is on screen when we measure. The
+  // route stays pending; navigating away abandons it, which is what ends each iteration.
+  await page.route('**/graphql', async (route) => {
+    if ((route.request().postData() ?? '').includes('Tasks')) {
+      await new Promise((resolve) => setTimeout(resolve, 8000))
+    }
+    await route.continue()
+  })
+
+  for (const width of [1280, 1600, 1920]) {
+    await page.setViewportSize({ width, height: 1000 })
+    await page.goto('/', { waitUntil: 'commit' })
+
+    // Deterministic rather than a timeout: wait until the app says it is loading.
+    await page.waitForFunction(`(() => {
+      const region = document.querySelector('[role="status"]')
+      return region !== null && region.textContent.trim() === 'Loading tasks'
+    })()`)
+
+    const reading: {
+      pageOverflowBy: number
+      status: string
+      headings: number
+      widest: number
+    } = await page.evaluate(`(() => {
+      const de = document.documentElement
+      const region = document.querySelector('[role="status"]')
+      const inMain = Array.prototype.slice.call(document.querySelectorAll('main *'))
+      return {
+        pageOverflowBy: de.scrollWidth - de.clientWidth,
+        status: region === null ? '' : region.textContent.trim(),
+        headings: document.querySelectorAll('h2').length,
+        widest: inMain.reduce(function (m, el) { return Math.max(m, el.scrollWidth) }, 0),
+      }
+    })()`)
+    const where = `loading @${String(width)}`
+
+    // The controls, read before the assertion they qualify.
+    expect(reading.status, `${where}: not on the loading state`).toBe('Loading tasks')
+    expect(reading.headings, `${where}: the board loaded, so this measured the wrong thing`).toBe(0)
+    // The positive one. Without it the two above pass just as well on a page with nothing on
+    // it — which cannot overflow, so the measurement below would be green and meaningless.
+    expect(
+      reading.widest,
+      `${where}: nothing board-shaped on screen — the skeleton never rendered`,
+    ).toBeGreaterThanOrEqual(1868)
+
+    expect(reading.pageOverflowBy, `${where}: the page scrolls sideways`).toBe(0)
+  }
+})
+
+/** One viewport's worth of board geometry, as the string probe below returns it. */
+interface BoardReading {
+  boardWidth: number
+  hiddenBy: number
+  pageOverflowBy: number
+}
+
+/**
+ * A wider window has to show more of the board.
+ *
+ * It did not. `AppLayout` capped its content at 1440px, which left the board 1176px —
+ * and 1176px was the answer at 1600, 1920, 2200 *and* 2600, because the cap binds long
+ * before the viewport does. Measured on the deployment: 692px of board hidden at every
+ * one of those widths, three of the five columns visible, `Done` and `Cancelled` cut at
+ * all of them. The widest monitor available revealed no more of the board than a 1600px
+ * one, and less than a 1024px one, where the wrapping layout fits all five.
+ *
+ * Two claims, because either alone is survivable by a regression. **Widening helps** is
+ * the general one and holds at every step. **The whole board fits somewhere** is the
+ * specific one, and 2400px is where it is asserted rather than 2200px on purpose: at
+ * 2200 the board measures 1872px against the 1868px five columns need, and four pixels
+ * of slack is not a margin. A platform whose classic vertical scrollbar takes 15px —
+ * which CI's Linux Chromium has and this was measured on macOS's overlay scrollbars,
+ * where it does not — would put that row at 1857px and fail a green build. 2400px
+ * leaves ~204px, which is slack rather than luck.
+ *
+ * Four viewports, because the widest two alone cannot tell this fix from a regression:
+ * the 1024 reading is the control that the narrow *wrapping* layout still fits its board
+ * entirely, so a fix that bought desktop width by clipping the phone fails here. And
+ * `pageOverflowBy` is checked at all four, so "widen the board" cannot quietly become
+ * "widen the document" — the defect the test above this one exists for.
+ *
+ * Not asserted: that the board never scrolls. Five 348px columns need 1868px, and the
+ * 348px pin is a written decision `board.tsx` argues for — five equal shares of 1440px
+ * leave ~200px cards, at which point the points label, the date badge and the tag row
+ * all wrap. Below ~2130px scrolling is correct behaviour, not a defect.
+ *
+ * One `goto`, four viewports: this is pure CSS, so a resize re-lays out and three more
+ * page loads against a live deployment are not warranted.
+ */
+test('a wider window shows more of the board', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: /^Backlog/ })).toBeVisible()
+
+  // A string body for the same reason as the test above: `e2e/tsconfig.json` leaves the
+  // DOM lib out, so remote code must not be made to look local.
+  const READ = `(() => {
+    const de = document.documentElement
+    const board = document.querySelector('[class*="overflow-x-auto"]')
+    if (!board) return null
+    return {
+      boardWidth: board.clientWidth,
+      hiddenBy: board.scrollWidth - board.clientWidth,
+      pageOverflowBy: de.scrollWidth - de.clientWidth,
+    }
+  })()`
+
+  // Narrowed through a throw rather than a `!`, which is a lint error here, and rather
+  // than `?.`, which would make the arithmetic below `number | undefined`. A missing
+  // scroll container is a real outcome — it is what a board that never loaded looks
+  // like — so it earns a message naming the width it happened at.
+  const readAt = async (width: number): Promise<BoardReading> => {
+    await page.setViewportSize({ width, height: 1000 })
+    const reading: BoardReading | null = await page.evaluate(READ)
+    if (reading === null) throw new Error(`no board scroll container at ${String(width)}px`)
+    return reading
+  }
+
+  const at1024 = await readAt(1024)
+  const at1600 = await readAt(1600)
+  const at1920 = await readAt(1920)
+  const at2400 = await readAt(2400)
+
+  // Claim one: widening helps, at every step. Before the fix all three of these read
+  // 1176 and each of these lines fails.
+  expect(at1920.boardWidth).toBeGreaterThan(at1600.boardWidth + 250)
+  expect(at2400.boardWidth).toBeGreaterThan(at1920.boardWidth + 400)
+
+  // Claim two: past a certain width the board is simply all there. Before the fix this
+  // read 692 at every width from 1600 up, however large the monitor.
+  expect(at2400.hiddenBy).toBe(0)
+
+  // Controls. The narrow layout wraps rather than scrolling, so its board is whole —
+  // a fix that bought desktop width by clipping the phone would fail here. And the
+  // document must not scroll sideways at any of the four.
+  expect(at1024.hiddenBy).toBe(0)
+  expect(at1024.pageOverflowBy).toBe(0)
+  expect(at1600.pageOverflowBy).toBe(0)
+  expect(at1920.pageOverflowBy).toBe(0)
+  expect(at2400.pageOverflowBy).toBe(0)
+})
