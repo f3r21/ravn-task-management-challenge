@@ -238,3 +238,60 @@ test.afterEach(async ({ request }) => {
     console.warn(`e2e cleanup: failed, a task named "…${RUN_ID}" may remain — ${String(error)}`)
   }
 })
+
+/**
+ * The board scrolls sideways; the page must not.
+ *
+ * This has to live in a real browser, which is why it is here and not in the unit
+ * suite: jsdom has no layout, so `scrollWidth` is 0 everywhere and the defect is
+ * invisible to every test the gate runs.
+ *
+ * What it caught: five 348px columns in an `overflow-x-auto` container scrolled
+ * correctly *inside* the board, and Chrome still added their width to the document's
+ * scrollable area. The page then scrolled 434px at a 1582px viewport, sliding the
+ * sidebar and the header off screen to reveal nothing — there is no content out there.
+ *
+ * The cure is `contain: paint` on the wrapper, and it is the only one that worked.
+ * `overflow-x: clip`/`hidden` on the shell, on `#root`, on `main`, and on the wrapper
+ * itself all left the document at 2016, as did `min-width: 0`. So this asserts the
+ * *behaviour* rather than the class: a future refactor that drops the containment for
+ * something that looks equivalent fails here rather than shipping.
+ */
+test('the page does not scroll horizontally while the board does', async ({ page }) => {
+  await page.setViewportSize({ width: 1582, height: 1035 })
+  await page.goto('/')
+  // Wait for the BOARD, not the toolbar. `Create task` paints immediately; the columns
+  // live inside `AsyncSection` and appear only once the tasks query resolves, so
+  // measuring on the button alone found no scroll container and returned null.
+  await expect(page.getByRole('heading', { name: /^Backlog/ })).toBeVisible()
+
+  // Passed as a **string** rather than a function, and that is this project's rule
+  // being followed rather than dodged. `e2e/tsconfig.json` leaves the DOM lib out on
+  // purpose — "a spec that can reach `document` compiles fine and then fails at
+  // runtime, because the page is on the other side of a websocket". A string body
+  // says that out loud; a typed arrow function would have needed the lib added and
+  // would have made remote code look local.
+  const measured: { overflowsBy: number; pageScrollX: number; boardScrolls: boolean } | null =
+    await page.evaluate(`(() => {
+    const de = document.documentElement
+    const board = document.querySelector('[class*="overflow-x-auto"]')
+    if (!board) return null
+    window.scrollTo({ left: 900, behavior: 'instant' })
+    const pageScrollX = window.scrollX
+    window.scrollTo({ left: 0, behavior: 'instant' })
+    return {
+      overflowsBy: de.scrollWidth - de.clientWidth,
+      pageScrollX,
+      boardScrolls: board.scrollWidth > board.clientWidth,
+    }
+  })()`)
+
+  expect(measured).not.toBeNull()
+  // The page: no scrollable width, and a scroll attempt that goes nowhere. Both,
+  // because a document can report width it will not actually scroll.
+  expect(measured?.overflowsBy).toBe(0)
+  expect(measured?.pageScrollX).toBe(0)
+  // The control. Without it this passes just as well on a board that stopped
+  // scrolling at all, which would be a worse bug than the one being fixed.
+  expect(measured?.boardScrolls).toBe(true)
+})
