@@ -1,4 +1,10 @@
-import type { AccentColor, DueDateUrgency, TaskCardProps, TaskTableRowProps } from '@ravn/ui-kit'
+import {
+  statusToIndicatorColor,
+  type AccentColor,
+  type DueDateUrgency,
+  type TaskCardProps,
+  type TaskTableRowProps,
+} from '@ravn/ui-kit'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { dueDateTone, formatDueDate, parseApiDate } from '@/lib/due-date'
 import { pointValue, tagAccent, tagLabel } from '../task-display'
@@ -154,6 +160,10 @@ export function toKitTableRowProps(task: Task, now: Date, options: RowOptions): 
     tags: shown.tags,
     assigneeName: shown.assigneeName,
     assigneeAvatar: shown.assigneeAvatar,
+    // Kit v0.9.0 stopped defaulting this to `'green'` — every row in every status group
+    // used to render the same stripe regardless of status. `statusToIndicatorColor` is the
+    // kit's own status→colour mapping (kit#141), so this app does not reinvent it.
+    indicatorColor: statusToIndicatorColor(task.status),
     ...options,
     // The row's select checkbox is `sr-only` rather than merely invisible, so without this
     // every row would put a checkbox in the accessibility tree — announced, tabbable, and
