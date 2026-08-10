@@ -78,10 +78,17 @@ function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
  * Safe for the card menus: the kit portals its overlays out of this subtree, so paint
  * containment cannot clip them. Verified against the deployment with the menu open —
  * the popover renders outside this element and stays 160x88 with both items.
+ *
+ * **Exported because `board-skeleton.tsx` renders the same box, and a copy of this string
+ * is a copy of the reasoning above.** The skeleton's whole purpose is that the layout which
+ * appears is the layout that stays, so the two cannot be allowed to drift — and they had
+ * already drifted once, which is how the loading state kept scrolling the page sideways
+ * after both the board and the list view had been fixed. A comment promising parity is not
+ * a mechanism; one constant is.
  */
-const GRID_WRAPPER =
+export const GRID_WRAPPER =
   'flex flex-col gap-8 sm:grid sm:grid-cols-2 xl:flex xl:flex-row xl:overflow-x-auto xl:contain-paint xl:pb-2'
-const GRID_COLUMN = 'xl:w-87 xl:shrink-0'
+export const GRID_COLUMN = 'xl:w-87 xl:shrink-0'
 
 export function Board({ tasks, view, now, onEditTask, onDeleteTask }: BoardProps) {
   // Memoised to skip the regrouping — a `Map`, five arrays and five `sort()`s —

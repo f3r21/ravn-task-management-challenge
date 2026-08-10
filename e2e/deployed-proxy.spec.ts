@@ -375,9 +375,23 @@ test('neither view scrolls the page sideways at narrow widths', async ({ page })
  *
  * **Which makes this the arm most likely to be vacuous, so it does not trust its own setup.**
  * If the `Tasks` response is not actually held open, the page under measurement is the loaded
- * board and every assertion here silently becomes a duplicate of the test above. Two controls
- * rule that out before the measurement is read: the live region must say `Loading tasks`, and
- * there must be no column headings on the page — the loaded board renders one per status.
+ * board and every assertion here silently becomes a duplicate of the test above.
+ *
+ * Three controls rule that out, and the third is the one that matters. Two are *negative* —
+ * the live region must say `Loading tasks`, and there must be no column headings, which the
+ * loaded board renders one of per status. Both only establish that the board has **not**
+ * arrived; neither establishes that the skeleton is **there**. That gap is not theoretical:
+ * they hold together today only because `async-section.tsx` drives the region's text and
+ * `{status === 'pending' ? skeleton : null}` off one condition in one render, so the region
+ * cannot say `Loading tasks` with no skeleton mounted. That coupling lives in another file,
+ * and hoisting the live region so it "outlives every state it describes" — which `CLAUDE.md`
+ * and `AsyncSection`'s own doc comment both argue for — would break it while leaving this
+ * test green and blind: no headings still passes, and nothing on screen cannot overflow.
+ *
+ * So the third control is *positive*: something in `main` must be at least as wide as the
+ * five columns, `5 × 348 + 4 × 32 = 1868`. It is deliberately not keyed on the containment
+ * being present — a selector matching only the fixed state would make the sabotage fail in
+ * the control rather than in the measurement, which is a worse diagnostic than none.
  *
  * The widths are the three where it failed. 375 and 1024 are omitted deliberately rather than
  * forgotten: the skeleton wraps there and read 0 before the fix too, so they would pass either
@@ -403,14 +417,20 @@ test('the loading board does not scroll the page sideways either', async ({ page
       return region !== null && region.textContent.trim() === 'Loading tasks'
     })()`)
 
-    const reading: { pageOverflowBy: number; status: string; headings: number } =
-      await page.evaluate(`(() => {
+    const reading: {
+      pageOverflowBy: number
+      status: string
+      headings: number
+      widest: number
+    } = await page.evaluate(`(() => {
       const de = document.documentElement
       const region = document.querySelector('[role="status"]')
+      const inMain = Array.prototype.slice.call(document.querySelectorAll('main *'))
       return {
         pageOverflowBy: de.scrollWidth - de.clientWidth,
         status: region === null ? '' : region.textContent.trim(),
         headings: document.querySelectorAll('h2').length,
+        widest: inMain.reduce(function (m, el) { return Math.max(m, el.scrollWidth) }, 0),
       }
     })()`)
     const where = `loading @${String(width)}`
@@ -418,6 +438,12 @@ test('the loading board does not scroll the page sideways either', async ({ page
     // The controls, read before the assertion they qualify.
     expect(reading.status, `${where}: not on the loading state`).toBe('Loading tasks')
     expect(reading.headings, `${where}: the board loaded, so this measured the wrong thing`).toBe(0)
+    // The positive one. Without it the two above pass just as well on a page with nothing on
+    // it — which cannot overflow, so the measurement below would be green and meaningless.
+    expect(
+      reading.widest,
+      `${where}: nothing board-shaped on screen — the skeleton never rendered`,
+    ).toBeGreaterThanOrEqual(1868)
 
     expect(reading.pageOverflowBy, `${where}: the page scrolls sideways`).toBe(0)
   }

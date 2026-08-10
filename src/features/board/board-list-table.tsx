@@ -83,10 +83,21 @@ function BoardListTableImpl({ grouped, now, onEditTask, onDeleteTask }: BoardLis
   // hide anything, because everything it clips is reachable by scrolling it. Unprefixed, since
   // unlike the board this overflows from 375px up.
   //
-  // Deliberately not pushed into the kit. The kit cannot know it is inside a page shell, and
-  // `contain: paint` on every consumer's table would clip any overlay a consumer did not
-  // portal. Page-level overflow is the page's business — which is exactly where the board
-  // keeps it.
+  // Deliberately not pushed into the kit, and the reason is *not* the obvious one. "It would
+  // clip an overlay a consumer did not portal" is wrong: that root already computes
+  // `overflow-y: auto` — CSS Overflow 3 forces a `visible` sibling of a non-`visible` value
+  // to `auto` — so it clips such an overlay already and paint containment adds nothing to
+  // that hazard. Measured on the root: `{overflowX: 'auto', overflowY: 'auto'}`.
+  //
+  // What containment does add is that it becomes a containing block for `position: fixed`
+  // descendants and a new stacking context, and a fixed-position inline overlay is exactly
+  // the strategy that escapes the existing clip today. Measured: a `position: fixed; top: 0;
+  // left: 0` element placed inside this root lands at the root's own origin rather than the
+  // viewport's, against a control copy on `document.body` that lands at `0, 0`. So shipping
+  // this in the kit would silently relocate a working overlay in some other consumer. Here
+  // it is safe because the app knows this page portals its overlays, which is knowledge the
+  // kit does not have — page-level overflow is the page's business, and that is where the
+  // board keeps it too.
   return <TaskTable groups={groups} className="contain-paint" />
 }
 
