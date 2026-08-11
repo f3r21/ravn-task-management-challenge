@@ -178,13 +178,16 @@ describe('the settings page', () => {
     expect(screen.queryByRole('button', { name: /try again/i })).not.toBeInTheDocument()
   })
 
-  it('is reachable from the sidebar', async () => {
+  it('is reachable from the header avatar, now that the sidebar points elsewhere', async () => {
+    // The sidebar's "My task" item used to point at /settings — see app#155 for
+    // why that changed. This page is still reachable, just from a different
+    // entry point: the avatar in the header.
     const user = userEvent.setup()
     renderApp('/')
 
-    await user.click(screen.getByRole('link', { name: /my task/i }))
+    await user.click(await screen.findByRole('link', { name: /settings/i }))
 
-    expect(await screen.findByRole('heading', { name: 'My task', level: 1 })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Settings', level: 1 })).toBeInTheDocument()
   })
 })
 

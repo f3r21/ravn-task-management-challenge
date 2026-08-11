@@ -4,6 +4,7 @@ import { NAV_ITEMS } from '@/features/navigation/app-sidebar'
 import { ProfilePage } from '@/features/profile/profile-page'
 import { AppLayout } from './app-layout'
 import { ErrorPage } from './error-page'
+import { MyTaskPage } from './my-task-page'
 import { NotFoundPage } from './not-found-page'
 import { PlaceholderPage } from './placeholder-page'
 
@@ -33,6 +34,15 @@ export const routes: RouteObject[] = [
     element: (
       <AppLayout>
         <ProfilePage />
+      </AppLayout>
+    ),
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: '/my-task',
+    element: (
+      <AppLayout>
+        <MyTaskPage />
       </AppLayout>
     ),
     errorElement: <ErrorPage />,

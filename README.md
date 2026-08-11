@@ -38,8 +38,14 @@ capture of the deployed build against the live API.
 - **Search and filter** — the app supports all six filters the brief lists. The app sends
   each filter to the API. It does not filter an already-loaded list. Filters live in the
   URL.
-- **My task** (`/settings`) — this page shows the signed-in user from the `profile` query.
-  The design sets the label. §6 asks for this route.
+- **My task** (`/my-task`) — the signed-in user's own tasks, filtered server-side by
+  `assigneeId` rather than `ownerId`; the two are not interchangeable — see app#155.
+  §6 asks for this route; the sidebar used to point it at the profile page below
+  instead, on a literal reading of the brief's label that did not survive contact
+  with what "my task" actually means.
+- **Settings** (`/settings`) — the signed-in user from the `profile` query, reached
+  from the header avatar now that the sidebar's "My task" item points at the list
+  above.
 - **Calendar, Team, Messages** — these are sample pages. §2 asks the sidebar to list menu
   items. Most of them should lead to a placeholder page. The brief's six sections do not
   build that many destinations. These three are real routes inside the app shell. They are

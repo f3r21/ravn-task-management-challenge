@@ -27,7 +27,7 @@ describe('AppSidebar', () => {
 
   it('does not mark the dashboard current on another route', () => {
     // `to="/"` matches every path by default, which would light up both tabs.
-    renderApp('/settings')
+    renderApp('/my-task')
 
     expect(screen.getByRole('link', { name: /dashboard/i })).not.toHaveAttribute('aria-current')
     expect(screen.getByRole('link', { name: /my task/i })).toHaveAttribute('aria-current', 'page')

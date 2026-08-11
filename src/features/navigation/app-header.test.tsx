@@ -15,6 +15,15 @@ describe('AppHeader', () => {
     expect(screen.getByRole('searchbox', { name: /search tasks/i })).toBeInTheDocument()
   })
 
+  it('links its avatar to /settings, now that the sidebar\'s "My task" points elsewhere', async () => {
+    const user = userEvent.setup()
+    const { router } = renderApp('/')
+
+    await user.click(await screen.findByRole('link', { name: 'Settings' }))
+
+    expect(router.state.location.pathname).toBe('/settings')
+  })
+
   it('keeps the field labelled once the placeholder is gone', async () => {
     const user = userEvent.setup()
     renderApp('/')

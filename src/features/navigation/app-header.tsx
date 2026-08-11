@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { Avatar, Skeleton, TopNav } from '@ravn/ui-kit'
 import { useBoardFilters } from '@/features/board/use-board-filters'
 import { useProfile } from '@/features/profile/use-profile'
@@ -92,14 +92,25 @@ export function AppHeader() {
           // interrupt whatever the page itself is saying.
           <Skeleton className="size-10 shrink-0 rounded-full" />
         ) : (
-          <Avatar
-            size="md"
-            // Every avatar the live API serves points at a decommissioned host that answers
-            // 410 with a valid SVG, so the `<img>` fires `load` and renders a placeholder —
-            // see `lib/decommissioned-avatar.ts`. Dropped here so the initials path takes over.
-            src={avatarSrcUnlessDecommissioned(profile?.avatar)}
-            name={profile?.fullName ?? 'Could not load your profile'}
-          />
+          // The sidebar's "My task" item points at a filtered task list now (app#155), so
+          // /settings — the profile page — needs a different way in. The avatar is already
+          // the visual cue for "the signed-in user", which is exactly what /settings shows.
+          //
+          // `aria-label` rather than leaning on the avatar's own accessible name: `Avatar`'s
+          // name is the person's name, and a link announcing "Fernando Ramirez" says nothing
+          // about where it goes. The explicit label wins name computation for the link itself
+          // without touching the avatar's own `role="img"` name underneath it.
+          <Link to="/settings" aria-label="Settings" className="shrink-0 rounded-full">
+            <Avatar
+              size="md"
+              // Every avatar the live API serves points at a decommissioned host that
+              // answers 410 with a valid SVG, so the `<img>` fires `load` and renders a
+              // placeholder — see `lib/decommissioned-avatar.ts`. Dropped here so the
+              // initials path takes over.
+              src={avatarSrcUnlessDecommissioned(profile?.avatar)}
+              name={profile?.fullName ?? 'Could not load your profile'}
+            />
+          </Link>
         )
       }
     />
