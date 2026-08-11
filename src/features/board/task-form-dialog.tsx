@@ -249,7 +249,6 @@ export function TaskFormDialog({
             onChange={(dueDate) => {
               dispatch({ type: 'set-due-date', dueDate })
             }}
-            className="w-40"
           />
 
           {/* `step="any"` because position is a Float — the board leaves gaps
