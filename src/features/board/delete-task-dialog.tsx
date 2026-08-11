@@ -53,9 +53,10 @@ interface DeleteTaskDialogProps {
  * whole reason for choosing the role.
  *
  * Both were fixed in the kit rather than worked around here, which is the standing
- * rule in `.claude/rules/ui-kit.md`: ravn-ui-kit#64 wired `contentProps`, and #66
- * made `isDismissable` a real prop driving both the backdrop and — through
- * `isKeyboardDismissDisabled` — Escape. Shipped in `v0.5.2`, adopted in app#30.
+ * rule in `.claude/rules/ui-kit.md`: ravn-ui-kit#66 wired `contentProps` and made
+ * `isDismissable` a real prop driving both the backdrop and — through
+ * `isKeyboardDismissDisabled` — Escape, closing ravn-ui-kit#64. Shipped in `v0.5.2`,
+ * adopted in app#30.
  *
  * What the kit still does not gate is its own close button, which calls `onClose`
  * unconditionally. That is why `onClose` is gated on `isDeleting` below as well as
