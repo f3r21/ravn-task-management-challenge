@@ -62,7 +62,7 @@ export function ProfilePage() {
 
   return (
     <main className="flex flex-col gap-6">
-      <h1 className="text-body-xl font-semibold">My task</h1>
+      <h1 className="text-body-xl font-semibold">Settings</h1>
 
       <AsyncSection
         status={status}

@@ -12,7 +12,13 @@ describe('routes', () => {
   it('renders the settings page at /settings', () => {
     renderApp('/settings')
 
-    expect(screen.getByRole('heading', { name: /my task/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+  })
+
+  it('renders the my-task page at /my-task', () => {
+    renderApp('/my-task')
+
+    expect(screen.getByRole('heading', { name: 'My task' })).toBeInTheDocument()
   })
 
   it('renders a sample page at a placeholder destination, not the not-found page', () => {

@@ -37,7 +37,7 @@ interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Dashboard', icon: GridViewIcon },
-  { to: '/settings', label: 'My task', icon: ListViewIcon },
+  { to: '/my-task', label: 'My task', icon: ListViewIcon },
   { to: '/calendar', label: 'Calendar', icon: CalendarIcon, isPlaceholder: true },
   { to: '/team', label: 'Team', icon: AssigneeIcon, isPlaceholder: true },
   { to: '/messages', label: 'Messages', icon: CommentIcon, isPlaceholder: true },
