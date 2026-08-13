@@ -1,8 +1,36 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest'
 import { server } from './src/mocks/server'
 import { taskStore } from './src/mocks/task-store'
+
+/*
+ * The suite runs at a fixed instant, because due dates are rendered relative to now.
+ *
+ * `formatDueDate` names the three days a user looks for — "Today", "Yesterday", "Tomorrow" —
+ * and prints a date otherwise. Both it and `toKitCardProps` take `now` as a parameter, so the
+ * unit tests inject one and are deterministic by construction. The COMPONENT layer reads the
+ * clock through `useCurrentDay()`, so a component test asserting a rendered date was really
+ * asserting a function of the calendar, against fixtures whose dates are fixed.
+ *
+ * That is a bomb with a date on it rather than a flake. On 2026-08-13 the card for a task due
+ * 2026-08-14 correctly rendered "Tomorrow" and `update-delete-task` failed looking for
+ * "14 August, 2026" — the app was right, the test was wrong, and the suite had been green for
+ * months. `board-column`'s "20 July, 2026" carries the same charge; its window has passed.
+ *
+ * Moving the fixture dates or the literals only resets the timer. The seam is `now`, the
+ * production code already has it, and this is how the component layer reaches it.
+ *
+ * ONLY `Date` IS FAKED. Faking timers wholesale would break `userEvent` and `waitFor`, which
+ * need real ones to advance; `shouldAdvanceTime` keeps the clock moving so a `waitFor` that is
+ * going to fail still times out rather than hanging on a deadline that can never arrive. The one
+ * interval in production code — `useCurrentDay`'s minute poll — compares two reads of the same
+ * fake clock and so correctly concludes the day has not rolled over.
+ *
+ * The instant is the one `due-date.test.ts` and `to-kit-props.test.ts` already use, so the whole
+ * suite has a single answer to "what day is it".
+ */
+const SUITE_NOW = new Date('2026-08-02T12:00:00.000Z')
 
 /*
  * A test that logs an error or a warning fails.
@@ -57,12 +85,16 @@ const realConsoleError = console.error.bind(console)
 const realConsoleWarn = console.warn.bind(console)
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'], shouldAdvanceTime: true, now: SUITE_NOW })
   consoleCalls.length = 0
   console.error = record('error', realConsoleError)
   console.warn = record('warn', realConsoleWarn)
 })
 
 afterEach(() => {
+  // Before the console gate below, so a test that leaves the clock faked cannot make the next
+  // one's failure look like a warning problem.
+  vi.useRealTimers()
   cleanup()
   // Handlers a test installed with `server.use()` are per-test overrides. Reset
   // so one test's stubbed failure cannot leak into the next test's happy path.
