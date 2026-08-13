@@ -1,4 +1,7 @@
 {
+  "enabledPlugins": {
+    "lane-orchestration@f3r21-lane-orchestration": true
+  },
   "permissions": {
     "allow": [
       "mcp__plugin_playwright_playwright__browser_press_key",
