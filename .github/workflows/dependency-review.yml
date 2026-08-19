@@ -31,7 +31,7 @@ jobs:
     steps:
       # Pinned to the same major as `ci.yml` and the sibling `ravn-ui-kit`
       # workflow. Bump in lockstep or not at all.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # What this adds over `npm audit --audit-level=high`, which `ci.yml`
       # already runs: `audit` answers "is anything in the installed tree
