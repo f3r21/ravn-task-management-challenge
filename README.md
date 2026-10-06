@@ -91,17 +91,17 @@ its own. The mock banner disappears. There is no separate "live mode" switch.
 
 ### Commands
 
-| Command                | What it does                                                    |
-| ---------------------- | --------------------------------------------------------------- |
-| `npm run dev`          | Dev server                                                      |
-| `npm run build`        | Typecheck, then production build                                |
-| `npm test`             | Test suite                                                      |
-| `npm run test:e2e`     | One Playwright spec against a deployment — needs `E2E_BASE_URL` |
-| `npm run coverage`     | Tests with the 85% coverage gate                                |
-| `npm run gate`         | Typecheck, lint, format check, coverage — what CI runs          |
-| `npm run codegen`      | Regenerate GraphQL types from `schema.graphql`                  |
-| `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted  |
-| `npm run css:canary`   | Fail if kit-only Tailwind classes did not reach the built CSS   |
+| Command                | What it does                                                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Dev server                                                                                                             |
+| `npm run build`        | Typecheck, then production build                                                                                       |
+| `npm test`             | Test suite                                                                                                             |
+| `npm run test:e2e`     | One Playwright spec against a deployment; needs `E2E_BASE_URL` and the API, so it cannot pass while the API is offline |
+| `npm run coverage`     | Tests with the 85% coverage gate                                                                                       |
+| `npm run gate`         | Typecheck, lint, format check, coverage — what CI runs                                                                 |
+| `npm run codegen`      | Regenerate GraphQL types from `schema.graphql`                                                                         |
+| `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted (needs the API, offline since October 2026)             |
+| `npm run css:canary`   | Fail if kit-only Tailwind classes did not reach the built CSS                                                          |
 
 ## Stack, and why
 
@@ -175,7 +175,8 @@ same `updateTask` mutation a drop would call.
 - **§6 asks the settings page to show a `Position` field.** The `User` type has no such
   field. It exposes only `id`, `fullName`, `email`, `avatar`, `type`, `createdAt`, and
   `updatedAt`. Run `awk '/^type User /,/^}/' schema.graphql` to print exactly those seven
-  fields. Run `npm run schema:check` to confirm the live endpoint still matches. This app
+  fields. That file is the schema as introspected while the API was online; the endpoint has
+  answered 404 since October 2026, so `npm run schema:check` cannot confirm it now. This app
   shows the other five requested fields. Inventing a sixth field seemed worse than stating
   this gap.
 
@@ -281,8 +282,9 @@ dated 2026-10-06:
 
 - **This app pins the schema. It does not fetch it at build time.** `schema.graphql` is
   committed to the repository. `npm run schema:check` re-introspects the live API, to prove
-  the file has not drifted. Codegen reads this committed file. So neither codegen nor CI
-  needs network access or a credential.
+  the file has not drifted. Since October 2026 the API answers 404, so that check fails until
+  the API returns ([Deployment](docs/deployment.md)). Codegen reads this committed file. So
+  neither codegen nor CI needs network access or a credential.
 - **This project's history is one branch and one pull request per unit of work,
   throughout.** The brief itself shipped as eight stacked branches: §1, §2, §3 read, §3
   create, §4, §5, §6, and the README. That is eight branches for six sections. §3 is large
