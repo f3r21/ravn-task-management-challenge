@@ -26,8 +26,11 @@ usable for its real users. Read the results as a pilot.
 - **How long.** About 15 minutes per person: 2 to set up, 10 for the tasks, 3 for the questions.
 - **Recording.** Screen and voice, only with consent, using Loom or QuickTime. No personal data
   goes into the notes. Participants are P1, P2 and P3.
-- **The board is shared with RAVN.** Every task a participant creates gets deleted afterwards
-  (see Cleanup). This is the same rule the e2e spec follows (`docs/testing.md`).
+- **The board runs on seeded mock data.** RAVN's challenge API went offline in October 2026, so
+  the deployment serves the same seeded tasks a fresh clone does (`docs/deployment.md`). A
+  participant's changes last until the page reloads, which is also the reset between sessions.
+  The banner above the board says so; tell participants to ignore it, since it is not part of
+  any task.
 
 ## Script
 
@@ -75,8 +78,8 @@ participant, and whether it would keep happening
 
 ## Cleanup
 
-After each session, make sure the participant's task is deleted, which T4 should already have
-done. Then reload the board and confirm the task no longer shows.
+Reload the page after each session. The seeded board comes back as it was, so the next
+participant starts from the same state.
 
 ## Results
 
