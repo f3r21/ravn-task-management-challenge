@@ -63,7 +63,7 @@ product risks and are not in the QA register.
 | Risk                                                             | L × I     | Response                                                                                            |
 | ---------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
 | RAVN's API does not come back, so nothing is ever saved for real | 3 × 3 = 9 | Serve the seeded mock with a banner; one line in `vercel.json` switches back                        |
-| The proto-persona is wrong, so the roadmap aims at the wrong job | 2 × 3 = 6 | Two usability interviews on 2026-10-07 (P1, P2); this page changes with what they find              |
+| The proto-persona is wrong, so the roadmap aims at the wrong job | 2 × 3 = 6 | Two interviews on 2026-10-07 (P1, P2) test it; this page changes with what they find                |
 | The brand's call-to-action fails WCAG AA (3.83:1 against 4.5:1)  | 3 × 2 = 6 | Accepted on purpose: only a darker red fixes it, and that is a brand decision ([design](design.md)) |
 
 ## The core flow: create a task
@@ -92,15 +92,16 @@ says what each suite proves and what it does not.
 - **What is green.** CI on 2026-10-06 (run 37479127953): 489 tests in 39 files; coverage
   97.72% of statements and 90.95% of branches against an 85% gate; 0 vulnerabilities in
   production dependencies.
-- **Nobody outside the project has used it yet.** Two usability interviews run on 2026-10-07.
+- **Nobody outside the project has used it yet.** Two interviews on 2026-10-07 each end with a
+  few minutes on the deployed board.
 
 **Ship criteria**, all of them: the API answers; the E2E spec passes against the production
-deployment with no retries; CI is green on `main`; the interviews find no severity 3 or 4
-problem in creating a task, or each one is fixed.
+deployment with no retries; CI is green on `main`; every piece of interview feedback weighed
+as a core problem, not a preference, is fixed.
 
 **Owner:** Fernando Ramirez. **Rollback trigger:** the E2E spec goes red on a production
-deployment, or a severity 4 report. **How:** Vercel Instant Rollback (`docs/deployment.md`,
-"Rolling back").
+deployment, or a report that someone cannot create a task. **How:** Vercel Instant Rollback
+(`docs/deployment.md`, "Rolling back").
 
 **Monitoring:** none today. North Star (assumption): tasks created per week that have an
 assignee. Every task has a `createdAt`, and `assignee` is the one field a task can lack
@@ -109,10 +110,12 @@ API is back.
 
 ## Validated by
 
-Two usability interviews run on 2026-10-07 on the deployed board, with P1, who is not a
-developer, and P2, a developer ([`research/usability-pilot.md`](research/usability-pilot.md)).
-Each of their four tasks tests one assumption above. **Results are pending.** Until then the
-persona and the problem stay assumptions.
+Two interviews run on 2026-10-07 with P1 and P2, neither of them a developer
+([`research/usability-pilot.md`](research/usability-pilot.md)). Each one asks for the story of
+the last time they handed work to a teammate or picked it up, reads the problem statement above
+aloud and asks whether it matches their experience, then gives them a few minutes on the deployed
+board. They test the persona, the problem and whether the board helps with it. **Results are
+pending.** Until then the persona and the problem stay assumptions.
 
 ## Now, next, later
 

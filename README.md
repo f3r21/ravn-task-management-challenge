@@ -282,8 +282,9 @@ dated 2026-10-06:
 - **[QA](docs/qa/test-plan.md)**: the test plan with entry and exit criteria, the
   [risk register](docs/qa/risk-register.md), and the [test map](docs/qa/test-map.md) of what
   each suite proves and does not prove.
-- **[Usability interviews](docs/research/usability-pilot.md)**: P1, who is not a developer,
-  and P2, a developer, on 2026-10-07. Results pending.
+- **[Front interviews](docs/research/usability-pilot.md)**: P1 and P2, neither of them a
+  developer, on 2026-10-07. A story-based interview, the problem statement read aloud, then a
+  few minutes on the deployed board. Results pending.
 
 ## Notes
 
