@@ -49,7 +49,8 @@ two per project and one product each; P3 and P4 try a different project and do n
 
 ## Script
 
-Read this aloud and do not improvise it, so that both participants hear the same words:
+Read this aloud and do not improvise it, so that both participants hear the same words. P2's
+session also covers the kit, so P2 hears "the products" where P1 hears "the app":
 
 > Thanks for helping. I'm testing the app, not you, so nothing you do here is a mistake. Please
 > think aloud the whole time: what you're looking at, what you expect, what surprises you. I
