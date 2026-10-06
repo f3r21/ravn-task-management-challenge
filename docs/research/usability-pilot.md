@@ -35,17 +35,17 @@ two per project and one product each; P3 and P4 try a different project and do n
   screen locally, with both voices. Zoom's local recording is the fallback, which would move the
   call to Zoom. Wispr Flow Notetaker writes the transcript. Recordings, transcripts and session
   notes stay outside this repository ([what stays out](#what-stays-out-of-this-repository)).
-- **Consent.** Asked in writing the day before, and confirmed at the start of the recording.
-  Each participant ticks a separate box for each of four agreements: taking part and being
-  quoted as P1 or P2; the recording and transcript; clips of 60 seconds or less shown to RAVN
-  evaluators on an unlisted page; and "Publish my de-identified results" (task times, ratings
-  and paraphrased notes, with no name and no quotes) in this public repository. Without the
-  clips box, only quotes are used. Without the results box, their results stay on the unlisted
-  page. No name, email or employer is recorded, and any moment that shows one is cut. Full
-  recordings and transcripts are deleted by 2026-10-23. A participant can withdraw at any time,
-  which deletes their recording, transcript and notes and removes their results from this
-  repository; earlier versions stay in its history, de-identified. Clips they agreed to stay
-  until they ask for them to be removed.
+- **Consent.** Asked in writing the day before, and, when the session is recorded, confirmed at
+  the start of the recording. A participant who declines recording is not recorded; their
+  written reply stands, and only quotes are used. Each participant ticks a separate box for each
+  of four agreements: taking part and being quoted as P1 or P2; the recording and transcript;
+  clips of 60 seconds or less shown to RAVN evaluators on an unlisted page; and "Publish my
+  de-identified results" (task times, ratings and paraphrased notes, with no name and no quotes)
+  in this public repository. Without the clips box, only quotes are used. No name, email or
+  employer is recorded, and any moment that shows one is cut. Full recordings and transcripts
+  are deleted by 2026-10-23. Clips a participant agreed to stay until they ask for them to be
+  removed. A participant can withdraw at any time. What the publish box allows, and what a
+  withdrawal deletes or removes, is in [what stays out](#what-stays-out-of-this-repository).
 - **The board runs on seeded mock data.** RAVN's challenge API went offline in October 2026, so
   the deployment serves the same seeded tasks a fresh clone does (`docs/deployment.md`). A
   participant's changes live in their own tab until it reloads. A fresh tab is the reset between
@@ -121,10 +121,12 @@ answers, and consent promises to delete them on withdrawal. Quotes and clips sta
 page, never here.
 
 A participant's results come here only if they ticked the separate "Publish my de-identified
-results" box. The Results below hold only outcomes, times, SEQ, first clicks, errors,
-paraphrased findings, and P1's five reaction words picked from the fixed list. The spoken reason
-for the first word stays in the session notes. If that participant withdraws, their results are
-removed from this repository, while earlier versions stay in its history, de-identified.
+results" box; without it, their results stay on the unlisted page. The Results below hold only
+outcomes, times, SEQ, first clicks, errors, paraphrased findings, and P1's five reaction words
+picked from the fixed list. The spoken reason for the first word stays in the session notes.
+
+A withdrawal deletes the participant's recording, transcript and notes, and removes their
+results from this repository, while earlier versions stay in its history, de-identified.
 
 ## Severity
 
@@ -145,9 +147,11 @@ roadmap's Next (`docs/product.md`).
 
 ## Results
 
-Fill this in after the sessions. Write down what happened, not what it means: interpretation
-goes in "Findings". No participant's spoken words go here
-([what stays out](#what-stays-out-of-this-repository)).
+Fill this in after the sessions. Leave a participant's column and findings out unless they
+ticked the publish box. Write down what happened, not what it means: interpretation goes in
+"Findings". No participant's spoken words go here
+([what stays out](#what-stays-out-of-this-repository)). Evidence in mm:ss exists only for a
+recorded session.
 
 ### Per task
 
