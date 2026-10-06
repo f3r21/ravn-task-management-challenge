@@ -3,6 +3,17 @@
 Vercel, at **[ravn-task-management-challenge.vercel.app](https://ravn-task-management-challenge.vercel.app)**,
 with a preview deployment per pull request.
 
+**The API went offline, so the deployment serves mock data.** On 2026-10-06 RAVN's challenge
+API stopped existing: `https://syn-api-production-e95c.up.railway.app/graphql` answers 404 with
+Railway's `"Application not found"`, and the proxy below passes that on as "The API responded
+with 404." for every operation. A board that only errors shows nothing, so `vercel.json` now
+builds with `VITE_API_URL` empty, which is the **mock** state in the table below: the deployment
+serves the same seeded data a fresh clone does, in memory, under a banner that says so. The
+proxy, `api/graphql.ts`, stays as it is. If the API comes back, setting `VITE_API_URL` back to
+`/api/graphql` in `vercel.json` restores the proxied state in one line. Two checks depend on
+the API and cannot pass until then: the E2E workflow, whose automatic trigger is off for that
+reason, and `npm run schema:check`.
+
 **Why a static SPA has a serverless function.** Vite replaces `import.meta.env.VITE_*` at
 build time, which means a deployed build configured the way local development is configured
 would ship RAVN's access token as a readable string in `dist/` — findable with devtools, or

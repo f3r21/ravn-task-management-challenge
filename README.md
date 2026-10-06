@@ -5,8 +5,10 @@ tasks on a status board. You can create, edit, and delete tasks. You can search 
 tasks. You can view the signed-in user's profile.
 
 **[Live app](https://ravn-task-management-challenge.vercel.app)** — this app runs on Vercel.
-It connects to the real API. [Deployment](docs/deployment.md) explains how it does this
-without publishing RAVN's token.
+Until October 2026 it reached RAVN's API through a proxy that kept the token off the page.
+That API has since gone offline, so the deployment now serves the same seeded mock data a
+fresh clone does, with a banner that says so. [Deployment](docs/deployment.md) explains both,
+and how to switch back.
 
 This app meets every checkbox in the brief's six sections except one. §6 asks the settings
 page to show a `Position` field. The `User` type has no such field.
@@ -75,7 +77,8 @@ because Tailwind v4 requires 128. The lower number did not match what the styles
 shows a banner that says so on screen. So you can clone this app and see a working board
 right away.
 
-To point it at the real API instead:
+To point it at the real API instead (offline since October 2026, see
+[Deployment](docs/deployment.md)):
 
 ```bash
 cp .env.example .env
