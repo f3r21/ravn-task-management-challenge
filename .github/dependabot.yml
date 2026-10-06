@@ -54,10 +54,10 @@ updates:
           - '@vitest/*'
           - '@testing-library/*'
     ignore:
-      # Pinned exactly, not caret-ranged: every published 7.x release falls inside
-      # at least one advisory range, so the version here is a deliberate choice
-      # rather than "whatever resolves". A Dependabot bump would silently undo
-      # that — upgrade it by hand, after checking the advisories.
+      # Pinned exactly, not caret-ranged: 8.3.0 is the first 8.x release outside
+      # GHSA-qwww-vcr4-c8h2, so the version here is a deliberate choice rather
+      # than "whatever resolves". A Dependabot bump would silently undo that, so
+      # upgrade it by hand, after checking the advisories.
       #
       # re-check by 2026-11-05. A manual-upgrade pin with nothing scheduling the
       # manual part is a pin that rots: the advisories that justified it are a
@@ -65,7 +65,7 @@ updates:
       # entry that would otherwise be the reminder. Move the date forward when
       # the pin is re-examined, whatever the answer — including "still pinned".
       - dependency-name: react-router
-      # Pinned to a git tag (`github:f3r21/ravn-ui-kit#v0.4.0`) precisely so this app
+      # Pinned to a git tag (`github:f3r21/ravn-ui-kit#<tag>`) precisely so this app
       # controls when the design system moves under it. An automated bump defeats the
       # pin, which is the entire mechanism.
       #
