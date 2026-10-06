@@ -325,8 +325,14 @@ dated 2026-10-06:
   you scroll.
 - **Status and position change through Edit.** The card menu offers Edit and Delete only,
   and there is no drag and drop.
+- **Focus is lost after a delete.** The "Task deleted" notification shows for 5 seconds in
+  the bottom-right corner, but keyboard focus falls to the page body, because the options
+  button it would return to is deleted with the card. A keyboard or screen-reader user loses
+  their place on the board.
 - **Field labels are visually hidden.** Every field has an accessible name, but the due date
   and position fields show no visible label, and a new task's due date starts at today.
+- **Tags go by two names.** The filter bar calls them "Tags", while the task form's field
+  reads "Label", as the design words them.
 - **Settings has no Position field**, because the API's `User` type has none (see above).
 - **The main button fails WCAG AA contrast** (3.83:1 against 4.5:1). It ships that way on
   purpose, because only a darker brand red fixes it (see above).
