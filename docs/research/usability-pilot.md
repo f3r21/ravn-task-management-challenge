@@ -1,40 +1,71 @@
-# Usability interviews
+# Front interviews: two non-developers
 
-Written on 2026-10-06, before the sessions. Two remote interviews on the deployed board, on
-2026-10-07, after the app was built: P1, who is not a developer, and P2, a developer. They test
+Written on 2026-10-06, before the sessions. Two remote interviews on 2026-10-07, after the app
+was built, with P1 and P2, neither of them a developer. Each session is a story-based interview,
+then the problem statement read aloud, then a few minutes trying the deployed board. They test
 the assumptions in the proto-persona (`docs/product.md`). They do not prove that the app is
 usable for its real users.
 
-They replace the three-person pilot planned earlier. The same morning holds four interviews,
-two per project and one product each; P3 and P4 try a different project and do not appear here.
+They replace the usability test planned earlier, and keep its file name. The same morning holds
+four interviews, two per project and one product each; P3 and P4 try a different project and do
+not appear here.
 
-## Why two interviews, and what they cannot show
+Every method line comes from the course content of the cohort's PM week and Design week, and
+names its source. A line with no source is logistics.
 
-- **No research came before the build.** The persona was rebuilt afterwards from the user-facing
-  reasons already written in this repository. Nielsen Norman Group calls that a proto-persona:
-  "created with no new research", and useful "if the team considers them to be hypotheses that
-  can be validated" (<https://www.nngroup.com/articles/persona-types/>). These interviews are
-  that validation, at its smallest.
-- **Two people, not five.** NN/g finds about 85% of the problems with five users
-  (<https://www.nngroup.com/articles/why-you-only-need-to-test-with-5-users/>). Two sessions, one
-  per profile, are a first look, not a measure: each result is a single observation.
-- **The participants are not the target users.** Neither runs a team's work on this board, and
-  NN/g warns that with colleagues "you won't observe authentic behavior"
-  (<https://www.nngroup.com/articles/employees-user-test/>). So both are new to the app, are asked
-  not to look it up before the call, and one is not a developer.
+## Research goals
+
+Each goal is an assumption from `docs/product.md`, "The user and the problem", to confirm or
+reject. An interview "should have research goals" ("User Interviews 101", NN/g, Design week
+Tuesday), and the goals are the "key assumptions you want to validate or invalidate about your
+customers' motivations and challenges" ("Jobs to be done for Product Managers", PM week Monday).
+
+1. **Persona.** A member of a small team that plans its work on one shared board. They add work,
+   give it an owner and a date, keep its status true, and point a teammate at the part of the
+   board that matters. A persona starts as a guess, to "test your hypotheses later with user
+   surveys/interviews" ("How to Create Product Personas + Examples", PM week Monday).
+2. **Problem.** A small team needs one place that shows what work exists, who owns it and when it
+   is due, and a way to hand a teammate exactly the slice they need. Block 4 tests it.
+3. **Product.** Does the board help with the pain they describe? Block 5 tests it.
+
+## Why this method, and what it cannot show
+
+- **Interviews answer why and how.** "Qualitative research - interviews, usability sessions,
+  open-ended observation - answers why and how" (Design week Tuesday brief).
+- **The interview comes before the board.** A session can open with an interview and then turn
+  to the product, as long as the questions do not "prime users to pay more attention to certain
+  things in the design" ("User Interviews 101"). So the moderator does not mention the board or
+  its features before block 5.
+- **They think aloud on the board.** "If you can do only one activity and aim to improve an
+  existing system, do qualitative (think-aloud) usability testing" ("UX Research Cheat Sheet",
+  NN/g, Design week Tuesday).
+- **Two people, not five to eight.** The course's rule of thumb is "five to eight users per user
+  group" ("Qualitative vs. Quantitative UX Research", NN/g, Design week Tuesday), and three to
+  four stories, "enough to prevent you from overreacting to a single story" ("Opportunity
+  Solution Trees", PM week Thursday). Two sessions are first signals, not patterns: "One vivid
+  interview is an anecdote until you see the pattern repeat" (Design week Tuesday brief).
+- **20 and 25 minutes, not an hour.** "JTBD interviews typically last 60-90 minutes" ("Jobs to be
+  done for Product Managers"). So each session keeps one story and few questions.
+- **Friends, new to the app.** The participants are friends of the moderator, which raises
+  "Social-desirability bias" ("User Interviews 101"), and "people report what they believe about
+  themselves, which often differs from what they actually do" (Design week Tuesday brief).
+  Neither runs a team's work on this board.
+- **The app's persona only.** The persona of `@ravn/ui-kit`, the developer who builds with it,
+  is not interviewed here.
 
 ## Setup
 
-- **Where.** Remote, over Google Meet, which the moderator runs in Chrome. The participant opens
-  <https://ravn-task-management-challenge.vercel.app> in a new tab of their own desktop browser,
-  makes the window as large as they can, and shares their screen.
-- **How long.** About 15 minutes of board tasks in each session. P1's session runs about 20
-  minutes, with a one-minute page tour before the tasks and reaction words after them. P2's runs
-  about 30, because P2 then tries the component kit; that part is not covered here.
+- **Where.** Remote, over Google Meet, which the moderator runs in Chrome. In block 5 the
+  participant opens <https://ravn-task-management-challenge.vercel.app> in a new tab of their own
+  desktop browser and shares their screen.
+- **How long.** P1: 20 minutes, at 09:00 (UTC-5). P2: 25 minutes, at 11:20. P2's extra minutes go
+  to the story and the board.
 - **Recording.** The moderator chose OBS Studio, which records their entire screen locally, with
   both voices. Zoom's local recording is the fallback, which would move the call to Zoom. Wispr
   Flow Notetaker writes the transcript. Recordings, transcripts and session notes stay outside
-  this repository ([what stays out](#what-stays-out-of-this-repository)).
+  this repository ([what stays out](#what-stays-out-of-this-repository)). With no second person
+  to take notes, the course says "it's great to record the session" ("Jobs to be done for Product
+  Managers").
 - **Privacy.** No consent step: the participants are friends of the moderator, and the project
   is internal. Participants are named only as P1 and P2: no name, email or employer goes into
   any file or note, and names, emails, notifications and open tabs are cut from any clip. Full
@@ -43,128 +74,219 @@ two per project and one product each; P3 and P4 try a different project and do n
 - **The board runs on seeded mock data.** RAVN's challenge API went offline in October 2026, so
   the deployment serves the same seeded tasks a fresh clone does (`docs/deployment.md`). A
   participant's changes live in their own tab until it reloads. A fresh tab is the reset between
-  sessions, so P1 and P2 start from the same board. A reload during the tasks would delete their
-  task, so the moderator never asks for one. The banner above the board is introduced once as a
-  note about test data; it is not part of any task.
+  sessions, so P1 and P2 start from the same board. The banner above the board says so, and the
+  moderator's opening line in block 5 says it once more.
 
-## Script
+## The session
 
-Start OBS, then Wispr. Then read this aloud and do not improvise it, so that both participants
-hear the same words. P2's session also covers the kit, so P2 hears "the products" where P1
-hears "the app":
+Six blocks. The guide is flexible: the moderator skips, reorders or stays longer on a question
+when the story is rich ("An interview guide can be used flexibly", "User Interviews 101").
 
-> Thanks for helping. I'm testing the app, not you, so nothing you do here is a mistake. Please
-> think aloud the whole time: what you're looking at, what you expect, what surprises you. I
-> won't help while you work, because I want to see where the app leaves you on your own. If you
-> ask me something, I may not answer right away. When you think a task is done, say "done".
+| Block                    | P1, minutes | P2, minutes |
+| ------------------------ | ----------- | ----------- |
+| 1. Start easy            | 0-2         | 0-2         |
+| 2. Background            | 2-4         | 2-4         |
+| 3. The story             | 4-11        | 4-14        |
+| 4. The problem statement | 11-13       | 14-16       |
+| 5. Try the board         | 13-18       | 16-23       |
+| 6. Close                 | 18-20       | 23-25       |
 
-While they work, the moderator says only these, and nothing else: "What are you thinking?" after
-10 seconds of silence; "Keep going."; "What do you think?" or "What would you do if I weren't
-here?" when asked a question; "Thanks, let's move on to the next one." at a task's cap; and the
-fixed line before T3. "Shut up and let the users do the talking"
-(<https://www.nngroup.com/articles/thinking-aloud-the-1-usability-tool/>).
+**How the moderator talks.** Slowly, without interrupting or rushing, acknowledging with "I see"
+or "okay", or by echoing their words ("User Interviews 101"). The moderator gives no opinion and
+captures "the customer's story in their own words without injecting your own opinions or
+assumptions", and they "avoid leading or yes/no questions" ("Jobs to be done for Product
+Managers"). The probes sit on an index card beside the screen: "Tell me more about that." "Can
+you expand on that?" "Why is that important to you?" ("User Interviews 101"), and "What
+alternatives did you consider?" ("Jobs to be done for Product Managers").
 
-## Tasks
+### 1. Start easy
 
-Each card is pasted in the chat, and the participant reads it aloud. Each task is a goal, never
-the steps, and uses none of the app's labels. Each one tests a named assumption in the
-proto-persona. A task has a 4-minute cap; at the cap it scores fail.
+> Thanks for doing this. I'm learning how small teams keep track of their work. First I'll ask
+> about your own experience, then I'll show you something I built and ask what you think. What
+> you tell me helps me decide what to change. There are no right or wrong answers.
+>
+> To start, tell me a bit about yourself and your work.
 
-| #   | Card                                                                                                                                          | Success when                                                                                                                                    | Assumption it tests                                                                                      |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| T1  | "You just agreed to review a teammate's work by Friday, October 9. Put that on the team's board, so it's clear who has it and when it's due." | One new task shows with a name, an assignee and the due date Friday, October 9, 2026 (the card reads "9 October, 2026"). Today's date is a fail | Adding a task is the core job: the brief's "browse and add tasks to users"                               |
-| T2  | "Your lead only cares about the React work. Show just that, then send them something that opens on exactly the same view."                    | Only React tasks show (3 tasks, the address ends in `?tags=REACT`), and the participant copies the address or says they would send the link     | A filtered view should be shareable (`README.md`, "Decisions worth explaining": filters live in the URL) |
-| T3  | "The review is finished. Update the board so everyone can see that."                                                                          | The T1 task's status is Done                                                                                                                    | Keeping the board true is part of the job                                                                |
-| T4  | "Remove the task you created; it was only a test."                                                                                            | The task is gone after the participant confirms the Delete dialog                                                                               | A destructive action asks first (`README.md`, "What it does": a confirmation dialog handles delete)      |
+The course opens with "a warm introduction, explaining the purpose of the interview, and assuring
+the participant that there are no right or wrong answers" ("Jobs to be done for Product
+Managers"), then "questions that are easy to answer, such as Tell me a bit about yourself" ("User
+Interviews 101").
 
-**Before T3, always.** The React filter from T2 hides the T1 task. After T2, the moderator asks
-the participant to click "Clear filters", at the right end of the filter row, and to close any
-tab they opened. If the T1 task is gone anyway (they reloaded), they add it again, untimed, and
-the notes say so.
+### 2. Background
 
-**What a dry run on 2026-10-06 changed.** T1 now names the date, because the date field starts
-at today and a task left there used to pass. T3 now starts from "Clear filters", because the T2
-filter hid the task and a reload would delete it. T4 now records whether the participant noticed
-the "Task deleted" message, which shows for 5 seconds in the bottom-right corner.
+> Tell me a bit about your team. Who do you work with day to day?
 
-**What the moderator watches.** T1: whether they find the date field, which has no visible label,
-and who they pick as assignee, since nothing on screen says who "you" are. T2: a search for a
-share button; there is none. T3: the card leaving the visible board after Save, since Done can
-sit off screen to the right, and any pause at the unlabelled Position field. T4: whether they
-notice "Task deleted".
+A JTBD interview runs in three parts, "starting with background questions, diving into the
+specific purchase story, and ending with reflective questions" ("Jobs to be done for Product
+Managers"). Blocks 2, 3 and 6 are those parts.
 
-## What to record, per task
+### 3. The story
 
-- **Success.** Success, partial or fail. Partial means done with help or with a detour of more
-  than one minute.
-- **Time.** In seconds, from the end of the reading to "done". These are think-aloud times.
-- **First click.** Where it went.
-- **Errors.** Each wrong turn, with a short note of what the participant expected to happen.
-- **Quote.** The one sentence that best explains what happened, with its mm:ss, in the session
-  notes.
-- **Ease (SEQ).** Right after each task: "Overall, how difficult or easy was that task to
-  complete? 1 is very difficult, 7 is very easy."
+> Tell me about the last time you had to hand a piece of work to a teammate, or pick one up from
+> someone. What happened?
 
-Per session: the three worst problems, each with its mm:ss. P1 also picks the five of 25
-reaction words that best describe using the board, and says why they picked the first.
+Follow-ups, only for what the story has not covered:
 
-### What stays out of this repository
+- When did this happen? How long did it take you?
+- Has this happened to you before?
+- And how did you solve it?
+- What did you use to keep track of it?
+- What was going through your mind at that point?
+- How did you feel during this experience?
+
+"Good interviewers ask about specific past events ('tell me about the last time you hired a dog
+walker'), not hypotheticals" (Design week Tuesday brief). The follow-ups come from "User
+Interviews 101", "Jobs to be done for Product Managers" and the course's sample interview
+transcript, "Vello_Interview_P01" (Design week Tuesday).
+
+### 4. The problem statement
+
+Read aloud, then pasted in the chat:
+
+> A small team needs one place that shows what work exists, who owns it and when it is due, and
+> a way to hand a teammate exactly the slice they need.
+>
+> Does this statement match your experience?
+
+Whatever the answer: "Tell me more about that." The course takes the statement "to some of the
+actual humans who might be facing this problem" and asks them "Does this statement resonate with
+their lived experience?" ("The Product Management Problem Statement: How to Get it Right", PM
+week Monday).
+
+### 5. Try the board
+
+The link is pasted in the chat.
+
+> This is a task board I built. It runs on sample data, so nothing you do is saved. Please look
+> around and use it however you like, and say what you think as you go.
+
+The moderator watches without explaining. If they go quiet: "What do you think about that?"
+
+> Is this right for the problem you described earlier?
+
+Then: "Tell me more about that."
+
+Testers "give the basic technology a try" and "focus on the functionality and the ability to
+solve pain points" ("What is a Minimum Viable Product (MVP)? How to Get Started", PM week Tuesday
+and Wednesday). The closing question is the course's: "This is the kind of content I want to
+create. Is this right?" ("Minimum Viable Product (MVP) Example - The Handy Guide", the same
+week).
+
+### 6. Close
+
+> What was better than you expected, and what was worse?
+>
+> Last thing. If a tool like this worked perfectly for your team, what would it do?
+>
+> That's everything. Thank you, this really helps.
+
+The reflective close asks "What has been better than expected, and what has been worse?" ("Jobs
+to be done for Product Managers"). The last question follows the sample transcript's "Last thing.
+If a service like this existed and worked perfectly, what would it do?"
+
+## After each session
+
+Within 15 minutes, the moderator fills that participant's session notes, outside this
+repository, in their words: "capture the problem or need in their words" ("User Stories With
+Examples and a Template", Atlassian, PM week Friday). The notes hold:
+
+- the story, in order;
+- the patterns the course names: "Similar triggering events or struggling moments", "Common
+  criteria or considerations", "Shared anxieties or hesitations" and "Recurring language or
+  phrases" ("Jobs to be done for Product Managers");
+- whether the problem statement resonates, partly or not at all, and why;
+- what they did on the board and what they said, marked where the two differ;
+- their answer to "Is this right?";
+- each piece of feedback, weighed as "a core problem" or "a minor typo or personal preference"
+  ("Minimum Viable Product (MVP) Example - The Handy Guide");
+- what was better and what was worse than expected.
+
+After both sessions, the synthesis reads across them, to "find the themes that recur, and distill
+them into insights - statements about what's true for users - and then into problem statements"
+(Design week Tuesday brief). Every claim in it is checked against the transcript before it comes
+here: "The audit is not optional polish" (the same brief).
+
+## What stays out of this repository
 
 This repository is public, and its history keeps every version. So recordings, transcripts and
 session notes stay outside it, because the notes hold quotes, reasons and word-for-word answers.
 Quotes and clips of 60 seconds or less stay on an unlisted page shown to RAVN evaluators, never
 here.
 
-The Results below hold only outcomes, times, SEQ, first clicks, errors, paraphrased findings,
-and P1's five reaction words picked from the fixed list. The spoken reason for the first word
-stays in the session notes.
+The Results below hold only paraphrased findings, and whether the problem statement matched each
+participant's experience. Repeated phrases and verbatim quotes stay in the session notes.
 
 If a participant later asks, their results are removed from this repository, and earlier
 versions stay in its history, de-identified.
 
-## Severity
-
-Give each finding a severity from 0 to 4. Base it on how often it happened, how much it cost the
-participant, and whether it would keep happening
-(<https://www.nngroup.com/articles/how-to-rate-the-severity-of-usability-problems/>). With one
-participant per profile, how often is unknown, so "Seen in" names the P numbers instead.
-
-| 0             | 1        | 2     | 3     | 4                               |
-| ------------- | -------- | ----- | ----- | ------------------------------- |
-| not a problem | cosmetic | minor | major | catastrophe, fix before release |
-
-## Reporting
-
-Individual values only, in the form `P1: success, <seconds> s, SEQ <1-7>`. Never an average or a
-percentage: two people cannot carry one. Every finding names the change it puts in the
-roadmap's Next (`docs/product.md`).
-
 ## Results
 
-Fill this in after the sessions. Write down what happened, not what it means: interpretation
-goes in "Findings". No participant's spoken words go here
-([what stays out](#what-stays-out-of-this-repository)). Evidence in mm:ss exists only if the
-recording did not fail.
+Fill this in after the sessions. Paraphrase: no participant's spoken words go here ([what stays
+out](#what-stays-out-of-this-repository)).
 
-### Per task
+### Per session
 
-| Task                                     | P1  | P2                        |
-| ---------------------------------------- | --- | ------------------------- |
-| T1 success / time / SEQ                  |     |                           |
-| T2 success / time / SEQ                  |     |                           |
-| T3 success / time / SEQ                  |     |                           |
-| T4 success / time / SEQ                  |     |                           |
-| T4 noticed "Task deleted" (yes / no)     |     |                           |
-| Reaction words, five from the fixed list |     | not asked about the board |
+| Finding, paraphrased                                                   | P1  | P2  |
+| ---------------------------------------------------------------------- | --- | --- |
+| The story                                                              |     |     |
+| Triggering event or struggling moment                                  |     |     |
+| Criteria they used                                                     |     |     |
+| Anxieties or hesitations                                               |     |     |
+| The problem statement: resonates, partly or no                         |     |     |
+| Why it matched or did not                                              |     |     |
+| On the board: what they did, and where it differed from what they said |     |     |
+| "Is this right?"                                                       |     |     |
+| Better than expected                                                   |     |     |
+| Worse than expected                                                    |     |     |
 
-### Findings
+### Feedback, weighed
 
-| #   | What happened | Seen in (P#) | Severity 0-4 | Evidence (recording, mm:ss) | Assumption confirmed or refuted | Next item |
-| --- | ------------- | ------------ | ------------ | --------------------------- | ------------------------------- | --------- |
-| F1  |               |              |              |                             |                                 |           |
+| Feedback, paraphrased | Seen in (P#) | Core problem or preference |
+| --------------------- | ------------ | -------------------------- |
+|                       |              |                            |
+
+### Themes
+
+A theme seen in one session only is an anecdote, and is labelled that way. Verbatim quotes stay
+out, so this table has no quote column.
+
+| Theme | Participant count and IDs | What users said | What we infer | Contradicting evidence |
+| ----- | ------------------------- | --------------- | ------------- | ---------------------- |
+|       |                           |                 |               |                        |
+
+### Insights
+
+Statements about what is true for these users.
+
+-
+
+### Job stories
+
+"When [situation], I want to [motivation], so I can [expected outcome]" ("Jobs to be done for
+Product Managers"). Each one states the job, not this board: "One of the most common pitfalls in
+JTBD is confusing the customer's job with your own solution" (the same source).
+
+-
+
+### Verdicts
+
+| Assumption                    | Holds, changes or unclear | Evidence (P#) |
+| ----------------------------- | ------------------------- | ------------- |
+| Persona                       |                           |               |
+| Problem statement             |                           |               |
+| The board helps with the pain |                           |               |
+
+The refined problem statement, as Who, What and Why (the Design week Tuesday deliverable). The
+feedback is used "to tighten your language, clarify the pain, and better represent the reality of
+your potential users" ("The Product Management Problem Statement: How to Get it Right"):
+
+- Who:
+- What:
+- Why:
 
 ### What changes because of this
 
-- In `docs/product.md`: what the proto-persona keeps, changes or drops.
-- In `docs/qa/risk-register.md`: any new risk.
+- In `docs/product.md`: what the proto-persona and the problem statement keep, change or drop,
+  and its "Validated by" section.
+- In `docs/qa/risk-register.md`: a row for each core problem in the feedback table.
 - In the roadmap's Next: what to build or fix first.
