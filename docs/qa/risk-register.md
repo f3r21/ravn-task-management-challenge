@@ -21,4 +21,5 @@ row: Fernando Ramirez. Reviewed 2026-10-06; the interviews on 2026-10-07 add row
 
 - R1 drops to 0 the day the API answers; then R3 and R2 come first.
 - R4 rises to 3 × 2 when someone bumps the kit past `v0.9.0`.
-- Any severity 3 or 4 finding from the interviews becomes a row here with its own score.
+- Each piece of interview feedback weighed as a core problem, not a preference, becomes a row
+  here with its own score.
