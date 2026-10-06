@@ -99,4 +99,5 @@ automatic assignment of the production domain, so the next merge to `main` build
 not go live until someone clicks **Undo Rollback** on the same tile, or runs
 `vercel promote <deployment>`. And a rollback moves only this app: whatever a bad release wrote
 to RAVN's API stays written. What calls for a rollback is the E2E workflow going red on a
-production deployment, since it runs against every one (see [Testing](testing.md)).
+production deployment. While the API is offline that workflow runs only by hand and cannot
+pass (see [Testing](testing.md)), so today nothing automatic would call for one.

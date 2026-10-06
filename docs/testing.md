@@ -3,7 +3,8 @@
 `npm run gate` is the bar: typecheck, lint, format check and coverage against an 85%
 threshold on every metric. CI runs the same thing, then a production build, the Tailwind
 `@source` canary (`npm run css:canary`), a bundle-size budget and
-`npm audit --audit-level=high`, on every pull request.
+`npm audit --omit=dev --audit-level=high`, on every pull request. The full audit, devDependencies
+included, runs after it and reports without blocking (`ci.yml` says why).
 
 No count is quoted here on purpose — this line has said 287, 316, 321, 358 and 370 at various
 points, each true when written and stale within a day. `npm test` prints the live figure. What
@@ -72,10 +73,11 @@ additional flow would re-test components jsdom already covers, at a hundred time
 and would write to a board RAVN can see — so the spec removes what it created even when it
 fails partway through.
 
-`.github/workflows/e2e.yml` runs it on every successful deployment, and can be dispatched by
-hand against any URL. The automatic half only fires once the workflow file is on `main`,
-because that is GitHub's rule for `deployment_status` events; the manual half is what makes
-it usable before then.
+**It cannot pass today.** RAVN's API has answered 404 since 2026-10-06, and the spec refuses
+mock data on purpose. Its last run against a deployment failed 4 of 5 tests (Actions run
+37415458012). So `.github/workflows/e2e.yml` no longer runs on every deployment; it runs only
+when dispatched by hand against a URL. Its header says how to turn the automatic trigger back
+on when the API returns. Until then, a green CI says nothing about the deployment.
 
 The traffic goes both ways, which is the more useful lesson. jsdom does not reflect the
 `inert` property to an attribute and does not evaluate media queries, so it will call a
