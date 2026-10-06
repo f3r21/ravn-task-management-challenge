@@ -35,12 +35,12 @@ A change is ready to test when:
 A change may merge when all of these hold. Each one is a CI step, so a red step is the
 answer.
 
-| Criterion                                                                                     | Measured by                                            | 2026-10-06 (run 37479127953)               |
+| Criterion                                                                                     | Measured by                                            | 2026-10-06 (main run 37486098648)          |
 | --------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------ |
 | Typecheck, lint, format check pass                                                            | `npm run gate`                                         | Pass                                       |
 | Every test passes, and coverage is at least 85% on statements, branches, functions and lines  | `npm run gate` (Vitest thresholds in `vite.config.ts`) | 489 of 489; 97.72%, 90.95%, 97.59%, 97.62% |
 | The production build succeeds, and at least 25 kit-only classes reach the built CSS           | `npm run build`, `npm run css:canary`                  | Pass, 222 classes                          |
-| No script over 250,000 bytes (the mock worker aside), and first-load JS at most 620,000 bytes | "Bundle size budget" step in `ci.yml`                  | Pass, 571,419 bytes first load             |
+| No script over 250,000 bytes (the mock worker aside), and first-load JS at most 620,000 bytes | "Bundle size budget" step in `ci.yml`                  | Pass, 571,621 bytes first load             |
 | No high or critical advisory in production dependencies                                       | `npm audit --omit=dev --audit-level=high`              | 0 found                                    |
 
 A release to production also needs:

@@ -1,24 +1,18 @@
 name: E2E against the deployment
 
-# Two triggers, because neither is sufficient on its own.
+# One trigger: `workflow_dispatch`, run by hand. It takes the deployment URL as
+# an input and works from any branch, including against a pull request's own
+# preview URL.
 #
-# `deployment_status` is the automatic half: Vercel reports a deployment as
-# `success` and this runs against the URL it just published. **It only fires
-# when this file is on the default branch.** That is GitHub's rule for this
-# event, not a setting, and it has a consequence worth stating plainly: while
-# this file exists only on `dev`, the automatic half does nothing at all. It
-# starts working the day `dev` is promoted to `main`. A workflow that silently
-# never runs is worse than no workflow, so:
-#
-# `workflow_dispatch` is the manual half, and it works from anywhere. It takes
-# the deployment URL as an input, which is how this gets exercised before it can
-# ever fire on its own — including from a pull request's own preview URL.
-#
-# **The automatic half is off since 2026-10-06.** The spec proves the proxy
-# against RAVN's live API, and that API went offline (docs/deployment.md): every
-# deployment now serves mock data, and the spec refuses mock data on purpose, so
-# each deployment would report a red run that says nothing new. Put
-# `deployment_status:` back above `workflow_dispatch:` the day the API returns.
+# **The automatic trigger, `deployment_status`, is off since 2026-10-06.** The
+# spec proves the proxy against RAVN's live API, and that API went offline
+# (docs/deployment.md): every deployment now serves mock data, and the spec
+# refuses mock data on purpose, so each deployment would report a red run that
+# says nothing new. Put `deployment_status:` back above `workflow_dispatch:` the
+# day the API returns. The job's `if:` below still handles that event, so the
+# trigger line is the whole change. It fires only from the copy of this file on
+# the default branch, `main`: that is GitHub's rule for this event, not a
+# setting, so the restored trigger works once it reaches `main`.
 on:
   workflow_dispatch:
     inputs:

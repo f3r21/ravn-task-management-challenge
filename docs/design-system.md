@@ -12,7 +12,7 @@ props and its states without cloning anything.
 
 Both counts are re-derived from the installed artifact rather than trusted here — note that
 it is the _function_ exports that are counted, since interfaces and types are capitalized
-exports too and grepping for those instead returns 132:
+exports too:
 
 ```bash
 f=node_modules/@ravn/ui-kit/dist/index.d.ts
@@ -43,9 +43,9 @@ The migration is complete through the board. `Modal`, `Select`, `MultiSelect` an
 came first; then `Avatar`, `Button`, `Tag` and `Skeleton`; then the board itself. `src/ui/`
 now holds only what has no reason to move.
 
-`EmptyState`, the toast system and the icon set are app-owned by design, not queued
-migrations, and the reason is worth stating precisely because it is the opposite of the
-obvious one: the kit has all three, and it has them **because this app wrote them first**.
+`EmptyState` and the toast system are app-owned by design, not queued migrations, and the
+reason is worth stating precisely because it is the opposite of the obvious one: the kit has
+both, and it has them **because this app wrote them first**.
 Its `EmptyState` and `ToastProvider` are both marked "No Figma source" in the kit and were
 ported from here — the design file draws neither, and the accessibility lessons behind them
 (an empty state that must not be a live region, a toast region that has to be portalled _and_

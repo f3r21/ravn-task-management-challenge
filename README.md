@@ -20,17 +20,18 @@ schema's wording, at no cost.
 
 ## What it does
 
-|                                                      |                                                   |
-| ---------------------------------------------------- | ------------------------------------------------- |
-| ![Creating a task](docs/screenshots/create-task.jpg) | ![No results](docs/screenshots/empty-results.jpg) |
-| Creating a task                                      | Filters that match nothing                        |
-| ![Settings](docs/screenshots/settings.jpg)           | ![List layout](docs/screenshots/list-view.jpg)    |
-| The signed-in user — email redacted, see below       | The list layout                                   |
+|                                                                                                         |                                                   |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| ![Creating a task](docs/screenshots/create-task.jpg)                                                    | ![No results](docs/screenshots/empty-results.jpg) |
+| Creating a task                                                                                         | Filters that match nothing                        |
+| ![Settings](docs/screenshots/settings.jpg)                                                              | ![List layout](docs/screenshots/list-view.jpg)    |
+| The signed-in user, captured 2026-08-09 before "My task" became its own page. Email redacted, see below | The list layout                                   |
 
 The email field in that screenshot reads `[email redacted]`. The API's seeded profile
 belongs to a real person at RAVN. This repository is public, so the screenshot masks the
-address instead of publishing it. No other screenshot is altered. Each one is a direct
-capture of the deployed build against the live API.
+address instead of publishing it. No other screenshot is altered. All five were captured on
+2026-08-09 from the deployed build while it still reached RAVN's API. The deployment now
+serves seeded mock data, so its tasks and signed-in user differ from these images.
 
 - **Board** — five status columns. Each task card shows a name, tags, a due date, points,
   an assignee, and an options menu. Loading, error, and empty states are three separate
@@ -86,22 +87,23 @@ cp .env.example .env
 ```
 
 RAVN issues this token by email. `.gitignore` excludes `.env`. No token appears anywhere in
-this repository. Once you fill in both values, `npm run dev` connects to the live API on
-its own. The mock banner disappears. There is no separate "live mode" switch.
+this repository. Once you fill in both values, `npm run dev` stops serving mock data and
+calls that URL directly, and the banner disappears. While RAVN's API is offline, the board
+then shows its error state instead of tasks. There is no separate "live mode" switch.
 
 ### Commands
 
-| Command                | What it does                                                                                                           |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`          | Dev server                                                                                                             |
-| `npm run build`        | Typecheck, then production build                                                                                       |
-| `npm test`             | Test suite                                                                                                             |
-| `npm run test:e2e`     | One Playwright spec against a deployment; needs `E2E_BASE_URL` and the API, so it cannot pass while the API is offline |
-| `npm run coverage`     | Tests with the 85% coverage gate                                                                                       |
-| `npm run gate`         | Typecheck, lint, format check, coverage — what CI runs                                                                 |
-| `npm run codegen`      | Regenerate GraphQL types from `schema.graphql`                                                                         |
-| `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted (needs the API, offline since October 2026)             |
-| `npm run css:canary`   | Fail if kit-only Tailwind classes did not reach the built CSS                                                          |
+| Command                | What it does                                                                                                                           |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Dev server                                                                                                                             |
+| `npm run build`        | Typecheck, then production build                                                                                                       |
+| `npm test`             | Test suite                                                                                                                             |
+| `npm run test:e2e`     | One Playwright spec against a deployment; needs `E2E_BASE_URL` and the API, so it cannot pass while the API is offline                 |
+| `npm run coverage`     | Tests with the 85% coverage gate                                                                                                       |
+| `npm run gate`         | Typecheck, lint, format check, coverage. CI runs this, then a build, the CSS canary, a bundle budget and a production dependency audit |
+| `npm run codegen`      | Regenerate GraphQL types from `schema.graphql`                                                                                         |
+| `npm run schema:check` | Re-introspect the API and fail if `schema.graphql` has drifted (needs the API, offline since October 2026)                             |
+| `npm run css:canary`   | Fail if kit-only Tailwind classes did not reach the built CSS                                                                          |
 
 ## Stack, and why
 
@@ -117,30 +119,32 @@ its own. The mock banner disappears. There is no separate "live mode" switch.
 | **React Aria (hooks) + react-stately**                     | Modals, menus, selects, radio groups, and toasts are easy to get subtly wrong on accessibility: focus containment, focus restoration, the Escape key, inerting the page behind, roving tabindex, typeahead. RAVN's `aria-use-react-aria-hooks` rule requires these hooks specifically. react-stately provides their state half: collections, overlay triggers, radio groups, the toast queue. |
 | **MSW v2**                                                 | RAVN's `mock-msw-external-apis` rule requires MSW. MSW intercepts requests at the network layer. So tests exercise the real client code, not a stubbed module. The same handlers let the app run without credentials.                                                                                                                                                                         |
 | **Vitest + Testing Library**                               | Queries by role and label, never by test id.                                                                                                                                                                                                                                                                                                                                                  |
-| **react-router 8**                                         | §1 requires routing. This app pins the version instead of using a caret range: every 7.x release falls inside at least one published security advisory. The route table is a plain array. So tests mount the real route table and navigate for real.                                                                                                                                          |
+| **react-router 8**                                         | §1 requires routing. This app pins the version exactly, at 8.3.0, the first 8.x release outside GHSA-qwww-vcr4-c8h2, instead of using a caret range. The route table is a plain array. So tests mount the real route table and navigate for real.                                                                                                                                             |
 | **date-fns**                                               | This app uses date-fns to parse and validate API dates. It uses `Intl` with an explicit `timeZone` to format dates. See the UTC note below. It explains why a date library that reads local fields was the wrong tool for formatting.                                                                                                                                                         |
 | **clsx + tailwind-merge**                                  | One `cn` helper, so a component's class can override a variant's class instead of both landing in the output.                                                                                                                                                                                                                                                                                 |
 
 RAVN publishes these rules at [`ravnhq/ai-toolkit`](https://github.com/ravnhq/ai-toolkit):
-`platform-frontend`, `tech-react`, `design-frontend`, `tech-vitest`, `lang-typescript`.
+`platform-frontend`, `tech-react`, `design-frontend`, `tech-vitest`, `lang-typescript`,
+`figma-to-react-components`.
 
 ### Structure
 
-This app organizes code by feature, not by type. It uses named exports. It has no barrel
-files. RAVN's `platform-frontend` rules require all three.
+This app organizes code by feature, not by type. It uses named exports. It has no
+hand-written barrel files, and lint bans importing the one codegen emits. RAVN's
+`platform-frontend` rules require all three.
 
 ```
 src/
 ├── main.tsx     bootstrap: starts MSW when unconfigured, then renders
 ├── app/         routing, providers, query client, error boundary
 ├── features/    board/ · profile/ · navigation/
-├── ui/          app-level pieces the kit does not own: async section, empty state, error boundary, toast
+├── ui/          app-level pieces: async section, empty state, error boundary, toast
 ├── graphql/     operations, the fetch client, generated types
-├── lib/         cn, dates, env, assertNever, exhaustive
+├── lib/         cn, dates, env, assertNever, exhaustive, the current-day hook, the dead-avatar filter
 ├── shared/      debounce
 ├── styles/      the token layer
 ├── mocks/       MSW handlers + an in-memory store
-└── test/        the one render helper every test goes through
+└── test/        the shared render helper and the kit smoke test
 ```
 
 A component lives inside the feature that uses it. It moves to `ui/` only when another
@@ -153,10 +157,10 @@ The brief lists five bonus items. This app builds three:
 - **Task count per column** — the design shows this as `In Progress (03)`. The count is
   zero-padded.
 - **Due-date colour by urgency** — this app builds all three tiers the brief lists. The
-  badge is green when the deadline is more than a day away. It is amber when the deadline
-  is today or tomorrow. It is red once the deadline has passed. Colour is never the only
-  signal. The badge always spells out the date too. The overdue badge also adds the word
-  "(overdue)", for anyone who cannot see colour.
+  badge is neutral when the deadline is two or more days away, yellow when it is today or
+  tomorrow, and red once it has passed. Colour is never the only signal. The badge always
+  states the date in words: "Today", "Tomorrow", "Yesterday" or the full date. For screen
+  readers, the kit also adds a visually hidden ", due soon" or ", overdue" after it.
 - **A list layout, in addition to the board** — each status becomes a full-width section.
   Each task becomes a single row, not a stacked card. This distinction matters for a
   specific reason. The board already collapses to one stacked column at narrow widths. A
@@ -166,8 +170,8 @@ This app leaves out drag-and-drop for scope reasons, not difficulty. Accessibili
 the reason, and it matters to be precise about that. The installed React Aria library ships
 the whole accessible drag story already: a keyboard mode, drop-target navigation, and
 localized screen-reader announcements. The real obstacle was the collection layer each
-column would need, not the keyboard. You can change a task's status from the options menu.
-You can also change its position within a column from the same menu. Both actions call the
+column would need, not the keyboard. You can change a task's status, and its position
+within a column, in the Edit dialog that the card's options menu opens. Saving calls the
 same `updateTask` mutation a drop would call.
 
 ## Things the brief asks for that the API cannot do
@@ -294,6 +298,48 @@ dated 2026-10-06:
   for the current count, instead of trusting a number written here. All work now branches
   off `dev`. It merges back through a pull request with a green CI run. A repository
   ruleset enforces this, instead of relying on habit.
+
+## Known limitations
+
+- **RAVN's API is offline.** Its endpoint has answered 404 since at least 2026-10-06. The
+  live app and a fresh clone both run on seeded mock data inside your browser. A banner says
+  so on the board; My task and Settings show the same mock data without it.
+- **Changes do not persist.** The mock lives in your browser's memory. A reload restores the
+  seeded board, and a link you share opens the seeded board with your filters, not your
+  edits.
+- **A token no longer helps.** With `VITE_API_URL` and `VITE_API_TOKEN` filled in, the app
+  calls the offline API and the board shows its error state.
+- **Two checks cannot pass until the API returns:** `npm run test:e2e` and
+  `npm run schema:check`. The E2E workflow runs only when dispatched by hand, so a green CI
+  run says nothing about the deployment.
+- **The seeded tasks are all overdue.** Their due dates fall between 28 July and 20 September
+  2026, so every seeded card shows red. Create or edit a task with a later date to see the
+  other colours.
+- **The demo user is seeded.** On the mock you are signed in as Alicia Koch. The screenshots
+  above were captured on 2026-08-09 against the live API, so their tasks and user differ from
+  the demo.
+- **The last columns start off screen.** On windows 1280px and wider the board is one row of
+  five 348px columns, about 1,870px in all. At 1440px Done and Cancelled sit off screen to
+  the right, and at 1280px In Progress is cut off too. Scroll the board sideways with a
+  trackpad, or with Shift and the mouse wheel. Overlay scrollbars on macOS show no cue until
+  you scroll.
+- **Status and position change through Edit.** The card menu offers Edit and Delete only,
+  and there is no drag and drop.
+- **Field labels are visually hidden.** Every field has an accessible name, but the due date
+  and position fields show no visible label, and a new task's due date starts at today.
+- **Settings has no Position field**, because the API's `User` type has none (see above).
+- **The main button fails WCAG AA contrast** (3.83:1 against 4.5:1). It ships that way on
+  purpose, because only a darker brand red fixes it (see above).
+- **Only Chromium has run in a real browser**, through the E2E spec, which cannot pass today.
+  Firefox and Safari are declared in `browserslist` and checked by lint, but no test runs
+  them, and no accessibility scan runs on the app's own pages.
+- **Development tooling carries known advisories:** 42 high and 1 critical in the full audit
+  on 2026-10-06. CI blocks only on production dependencies, which have none.
+- **The next kit release breaks the build.** `@ravn/ui-kit` is pinned to `v0.9.0`; its
+  unreleased renames cause five type errors and one tag colour regression (app#157).
+- **There is no sign-in.** The app shows one fixed user, and the deployment's `/api/graphql`
+  proxy accepts any caller ([Deployment](docs/deployment.md)).
+- **Dates show in UTC**, whatever your time zone (see "This app reads dates in UTC").
 
 ## License
 

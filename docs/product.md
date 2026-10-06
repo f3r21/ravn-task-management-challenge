@@ -25,7 +25,7 @@ first commit that carries each one (`git log -G`):
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | --------------------- |
 | Filters live in the URL: "you can link or bookmark a filtered board"           | `README.md`, "Decisions worth explaining"                                     | 2026-08-03, `512430c` |
 | A task due tomorrow must not read "Yesterday" for someone west of Greenwich    | `README.md`, "This app reads dates in UTC"                                    | 2026-08-03, `e25ab5b` |
-| The overdue badge adds "(overdue)" "for anyone who cannot see colour"          | `README.md`, "Bonus items"                                                    | 2026-08-03, `e25ab5b` |
+| The overdue badge says "overdue" to screen readers, not by colour alone        | `README.md`, "Bonus items"                                                    | 2026-08-03, `e25ab5b` |
 | A rejected token gets no retry button, because retrying cannot fix it          | `README.md`, "A failure a user can fix is different from one they cannot fix" | 2026-08-03, `4bf9813` |
 | A failed edit also goes to a notification, because the dialog can be dismissed | commit `939be0c`                                                              | 2026-08-06            |
 | "My task" lists what is assigned to one person, filtered by `assigneeId`       | commit `dbcd92e`                                                              | 2026-08-11            |
@@ -41,14 +41,14 @@ owns it and when it is due, and a way to hand a teammate exactly the slice they 
 The brief's six sections are requirements, so they are the Musts. The five bonus items are
 optional. Built is the MVP.
 
-| Candidate                                      | MoSCoW      | Status                    | Why                                                                                                                                                             |
-| ---------------------------------------------- | ----------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Board by status, create, edit, delete (§2-§4)  | Must        | Built                     | The core job: browse and add tasks                                                                                                                              |
-| Search and filter (§5)                         | Must        | Built                     | Sent to the API, kept in the URL                                                                                                                                |
-| Profile page (§6)                              | Must        | Built, without `Position` | The API's `User` type has no such field (`README.md`, "Things the brief asks for that the API cannot do")                                                       |
-| Count per column, list layout, due-date colour | Could       | Built                     | Three of five bonus items (`README.md`, "Bonus items")                                                                                                          |
-| Drag and drop                                  | Won't (now) | Cut                       | "for scope reasons, not difficulty": each column needs a collection layer. The options menu already changes status and position with the same `updateTask` call |
-| Animation when a task is added                 | Won't       | Cut                       | No reason was written when it was cut. Read now: it changes how adding feels, not whether it works. **Assumption**                                              |
+| Candidate                                      | MoSCoW      | Status                    | Why                                                                                                                                                                                                  |
+| ---------------------------------------------- | ----------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Board by status, create, edit, delete (§2-§4)  | Must        | Built                     | The core job: browse and add tasks                                                                                                                                                                   |
+| Search and filter (§5)                         | Must        | Built                     | Sent to the API, kept in the URL                                                                                                                                                                     |
+| Profile page (§6)                              | Must        | Built, without `Position` | The API's `User` type has no such field (`README.md`, "Things the brief asks for that the API cannot do")                                                                                            |
+| Count per column, list layout, due-date colour | Could       | Built                     | Three of five bonus items (`README.md`, "Bonus items")                                                                                                                                               |
+| Drag and drop                                  | Won't (now) | Cut                       | "for scope reasons, not difficulty": each column needs a collection layer. The Edit dialog, opened from the card's options menu, already changes status and position with the same `updateTask` call |
+| Animation when a task is added                 | Won't       | Cut                       | No reason was written when it was cut. Read now: it changes how adding feels, not whether it works. **Assumption**                                                                                   |
 
 There is no RICE table. Reach, impact and effort were never measured, and "a RICE score
 built on made-up numbers is just a made-up decision" (PM week, Day 4 brief). MoSCoW and the
@@ -56,8 +56,9 @@ written reasons explain the cut.
 
 ## Top three risks
 
-Likelihood and impact on a 1 to 3 scale. The full register is
-[`qa/risk-register.md`](qa/risk-register.md).
+Likelihood and impact on a 1 to 3 scale. The first risk is R1 in the QA register,
+[`qa/risk-register.md`](qa/risk-register.md). The persona and call-to-action risks below are
+product risks and are not in the QA register.
 
 | Risk                                                             | L × I     | Response                                                                                            |
 | ---------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
