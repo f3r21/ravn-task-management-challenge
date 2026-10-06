@@ -14,12 +14,12 @@ production (see [product](../product.md#go-or-no-go)).
 
 ## Environments and data
 
-| Level            | Runs where                                  | Data                                                                               |
-| ---------------- | ------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Vitest, jsdom    | CI, every pull request                      | MSW over an in-memory store that behaves like a server (`src/mocks/task-store.ts`) |
-| Proxy unit tests | CI, inside the same Vitest run              | A stubbed upstream                                                                 |
-| Playwright E2E   | By hand (`workflow_dispatch`) against a URL | RAVN's live board; the run creates one task with a unique name and deletes it      |
-| Usability pilot  | The production deployment, 2026-10-07       | The seeded mock; a reload resets it between participants                           |
+| Level                | Runs where                                                               | Data                                                                               |
+| -------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Vitest, jsdom        | CI, every pull request                                                   | MSW over an in-memory store that behaves like a server (`src/mocks/task-store.ts`) |
+| Proxy unit tests     | CI, inside the same Vitest run                                           | A stubbed upstream                                                                 |
+| Playwright E2E       | By hand (`workflow_dispatch`) against a URL                              | RAVN's live board; the run creates one task with a unique name and deletes it      |
+| Usability interviews | The production deployment, in each participant's own browser, 2026-10-07 | The seeded mock; each participant starts in a fresh tab                            |
 
 ## Entry criteria
 
@@ -47,8 +47,8 @@ A release to production also needs:
 
 - the E2E spec passing against the production deployment, with `retries: 0`. **Not met:**
   the last run, 2026-10-06, failed 4 of 5 (run 37415458012);
-- the pilot finding no open severity 3 or 4 problem in creating a task. **Pending:** it runs
-  on 2026-10-07.
+- the interviews with P1 and P2 finding no open severity 3 or 4 problem in creating a task.
+  **Pending:** they run on 2026-10-07.
 
 ## Who and when
 
