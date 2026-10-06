@@ -100,7 +100,7 @@ deployment with no retries; CI is green on `main`; every piece of interview feed
 as a core problem, not a preference, is fixed.
 
 **Owner:** Fernando Ramirez. **Rollback trigger:** the E2E spec goes red on a production
-deployment, or a report of a catastrophic problem. **How:** Vercel Instant Rollback
+deployment, or a report that someone cannot create a task. **How:** Vercel Instant Rollback
 (`docs/deployment.md`, "Rolling back").
 
 **Monitoring:** none today. North Star (assumption): tasks created per week that have an

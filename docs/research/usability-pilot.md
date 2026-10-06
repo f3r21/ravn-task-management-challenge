@@ -40,12 +40,14 @@ customers' motivations and challenges" ("Jobs to be done for Product Managers", 
   existing system, do qualitative (think-aloud) usability testing" ("UX Research Cheat Sheet",
   NN/g, Design week Tuesday).
 - **Two people, not five to eight.** The course's rule of thumb is "five to eight users per user
-  group" ("Qualitative vs. Quantitative UX Research", NN/g, Design week Tuesday), and three to
+  group" ("Qualitative vs. Quantitative UX Research", Design week Tuesday), and three to
   four stories, "enough to prevent you from overreacting to a single story" ("Opportunity
   Solution Trees", PM week Thursday). Two sessions are first signals, not patterns: "One vivid
   interview is an anecdote until you see the pattern repeat" (Design week Tuesday brief).
-- **20 and 25 minutes, not an hour.** "JTBD interviews typically last 60-90 minutes" ("Jobs to be
-  done for Product Managers"). So each session keeps one story and few questions.
+- **20 and 25 minutes, not an hour or more.** "JTBD interviews typically last 60-90 minutes"
+  ("Jobs to be done for Product Managers"), and a session that combines an interview with a test
+  is longer, "90 minutes rather than 60 minutes" ("User Interviews 101"). So each session keeps
+  one story and few questions.
 - **Friends, new to the app.** The participants are friends of the moderator, which raises
   "Social-desirability bias" ("User Interviews 101"), and "people report what they believe about
   themselves, which often differs from what they actually do" (Design week Tuesday brief).
@@ -63,9 +65,8 @@ customers' motivations and challenges" ("Jobs to be done for Product Managers", 
 - **Recording.** The moderator chose OBS Studio, which records their entire screen locally, with
   both voices. Zoom's local recording is the fallback, which would move the call to Zoom. Wispr
   Flow Notetaker writes the transcript. Recordings, transcripts and session notes stay outside
-  this repository ([what stays out](#what-stays-out-of-this-repository)). With no second person
-  to take notes, the course says "it's great to record the session" ("Jobs to be done for Product
-  Managers").
+  this repository ([what stays out](#what-stays-out-of-this-repository)). The transcript stands
+  in for a note-taker ("Jobs to be done for Product Managers").
 - **Privacy.** No consent step: the participants are friends of the moderator, and the project
   is internal. Participants are named only as P1 and P2: no name, email or employer goes into
   any file or note, and names, emails, notifications and open tabs are cut from any clip. Full
@@ -135,8 +136,8 @@ Follow-ups, only for what the story has not covered:
 - How did you feel during this experience?
 
 "Good interviewers ask about specific past events ('tell me about the last time you hired a dog
-walker'), not hypotheticals" (Design week Tuesday brief). The follow-ups come from "User
-Interviews 101", "Jobs to be done for Product Managers" and the course's sample interview
+walker'), not hypotheticals" (Design week Tuesday brief). The follow-ups follow the shape of
+"User Interviews 101", "Jobs to be done for Product Managers" and the course's sample interview
 transcript, "Vello_Interview_P01" (Design week Tuesday).
 
 ### 4. The problem statement
@@ -250,9 +251,9 @@ out](#what-stays-out-of-this-repository)).
 A theme seen in one session only is an anecdote, and is labelled that way. Verbatim quotes stay
 out, so this table has no quote column.
 
-| Theme | Participant count and IDs | What users said | What we infer | Contradicting evidence |
-| ----- | ------------------------- | --------------- | ------------- | ---------------------- |
-|       |                           |                 |               |                        |
+| Theme | Participant count and IDs | What users said, paraphrased | What we infer | Contradicting evidence |
+| ----- | ------------------------- | ---------------------------- | ------------- | ---------------------- |
+|       |                           |                              |               |                        |
 
 ### Insights
 
