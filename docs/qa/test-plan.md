@@ -14,12 +14,12 @@ production (see [product](../product.md#go-or-no-go)).
 
 ## Environments and data
 
-| Level            | Runs where                                  | Data                                                                               |
-| ---------------- | ------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Vitest, jsdom    | CI, every pull request                      | MSW over an in-memory store that behaves like a server (`src/mocks/task-store.ts`) |
-| Proxy unit tests | CI, inside the same Vitest run              | A stubbed upstream                                                                 |
-| Playwright E2E   | By hand (`workflow_dispatch`) against a URL | RAVN's live board; the run creates one task with a unique name and deletes it      |
-| Usability pilot  | The production deployment, 2026-10-07       | The seeded mock; a reload resets it between participants                           |
+| Level                | Runs where                                                               | Data                                                                               |
+| -------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Vitest, jsdom        | CI, every pull request                                                   | MSW over an in-memory store that behaves like a server (`src/mocks/task-store.ts`) |
+| Proxy unit tests     | CI, inside the same Vitest run                                           | A stubbed upstream                                                                 |
+| Playwright E2E       | By hand (`workflow_dispatch`) against a URL                              | RAVN's live board; the run creates one task with a unique name and deletes it      |
+| Usability interviews | The production deployment, in each participant's own browser, 2026-10-07 | The seeded mock; each participant starts in a fresh tab                            |
 
 ## Entry criteria
 
@@ -35,20 +35,20 @@ A change is ready to test when:
 A change may merge when all of these hold. Each one is a CI step, so a red step is the
 answer.
 
-| Criterion                                                                                     | Measured by                                            | 2026-10-06 (run 37479127953)               |
+| Criterion                                                                                     | Measured by                                            | 2026-10-06 (main run 37486098648)          |
 | --------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------ |
 | Typecheck, lint, format check pass                                                            | `npm run gate`                                         | Pass                                       |
 | Every test passes, and coverage is at least 85% on statements, branches, functions and lines  | `npm run gate` (Vitest thresholds in `vite.config.ts`) | 489 of 489; 97.72%, 90.95%, 97.59%, 97.62% |
 | The production build succeeds, and at least 25 kit-only classes reach the built CSS           | `npm run build`, `npm run css:canary`                  | Pass, 222 classes                          |
-| No script over 250,000 bytes (the mock worker aside), and first-load JS at most 620,000 bytes | "Bundle size budget" step in `ci.yml`                  | Pass, 571,419 bytes first load             |
+| No script over 250,000 bytes (the mock worker aside), and first-load JS at most 620,000 bytes | "Bundle size budget" step in `ci.yml`                  | Pass, 571,621 bytes first load             |
 | No high or critical advisory in production dependencies                                       | `npm audit --omit=dev --audit-level=high`              | 0 found                                    |
 
 A release to production also needs:
 
 - the E2E spec passing against the production deployment, with `retries: 0`. **Not met:**
   the last run, 2026-10-06, failed 4 of 5 (run 37415458012);
-- the pilot finding no open severity 3 or 4 problem in creating a task. **Pending:** it runs
-  on 2026-10-07.
+- the interviews with P1 and P2 finding no open severity 3 or 4 problem in creating a task.
+  **Pending:** they run on 2026-10-07.
 
 ## Who and when
 

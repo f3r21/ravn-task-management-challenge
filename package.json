@@ -4,6 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Task management dashboard for the RAVN frontend code challenge.",
+  "homepage": "https://ravn-task-management-challenge.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f3r21/ravn-task-management-challenge.git"
+  },
   "license": "MIT",
   "engines": {
     "node": "^22.13.0"
