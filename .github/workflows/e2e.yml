@@ -89,3 +89,18 @@ jobs:
       - run: npm run test:e2e
         env:
           E2E_BASE_URL: ${{ steps.target.outputs.url }}
+
+      # The HTML report, and the traces a failure keeps, for two weeks. A red
+      # run against a live board cannot be re-run to look again, since the board
+      # has moved on by then, so the evidence is kept rather than re-derived.
+      # `!cancelled()` rather than `always()`: a cancelled run has nothing to read.
+      - name: Upload the report and the traces
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
