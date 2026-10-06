@@ -134,7 +134,7 @@ src/
 ├── main.tsx     bootstrap: starts MSW when unconfigured, then renders
 ├── app/         routing, providers, query client, error boundary
 ├── features/    board/ · profile/ · navigation/
-├── ui/          design-system pieces still owned here: button, dialog, tag, toast, …
+├── ui/          app-level pieces the kit does not own: async section, empty state, error boundary, toast
 ├── graphql/     operations, the fetch client, generated types
 ├── lib/         cn, dates, env, assertNever, exhaustive
 ├── shared/      debounce

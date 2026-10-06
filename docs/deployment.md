@@ -87,3 +87,16 @@ the answer. Two parts:
 Both would change the moment this app grew a login. The e2e spec against the deployment (see
 [Testing](#testing)) is what would catch a CSP that broke the board, so the ordering is:
 users first, then the policy, with a check that can prove it.
+
+**Rolling back.** Production is whatever `main` last deployed, and the way back is Vercel's
+Instant Rollback: on the project's overview, the Production Deployment tile has an **Instant
+Rollback** button, and the ⋮ menu of a production deployment in the Deployments list has the
+same option. Nothing rebuilds. Vercel points the domain back at the earlier build, with the
+environment variables that build was made with. On a Hobby account only the immediately
+previous production deployment is eligible; Pro can pick any deployment that once served the
+production domain. Two consequences are easy to miss. After a rollback Vercel turns off the
+automatic assignment of the production domain, so the next merge to `main` builds but does
+not go live until someone clicks **Undo Rollback** on the same tile, or runs
+`vercel promote <deployment>`. And a rollback moves only this app: whatever a bad release wrote
+to RAVN's API stays written. What calls for a rollback is the E2E workflow going red on a
+production deployment, since it runs against every one (see [Testing](testing.md)).

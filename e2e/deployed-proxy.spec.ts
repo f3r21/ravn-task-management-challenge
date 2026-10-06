@@ -3,8 +3,8 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 /**
  * One spec, deliberately, and this is the gap it fills.
  *
- * There are 26 Vitest files over `src/`, running the real components against
- * MSW at the network layer, and they cover the app's behaviour better than a
+ * The Vitest files over `src/` run the real components against MSW at the
+ * network layer, and they cover the app's behaviour better than a
  * browser driver could. What none of them can reach is `api/graphql.ts` running
  * on Vercel. That function is not imported by the app — the app posts to a URL —
  * so no unit test loads it, and the one bug it has already had was invisible to
