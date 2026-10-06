@@ -37,8 +37,8 @@ two per project and one product each; P3 and P4 try a different project and do n
   this repository ([what stays out](#what-stays-out-of-this-repository)).
 - **Privacy.** No consent step: the participants are friends of the moderator, and the project
   is internal. Participants are named only as P1 and P2: no name, email or employer goes into
-  any file or note, and names and notifications are cut from any clip. Full recordings and
-  transcripts are deleted by 2026-10-23. Where quotes, clips and results go is in
+  any file or note, and names, emails, notifications and open tabs are cut from any clip. Full
+  recordings and transcripts are deleted by 2026-10-23. Where quotes, clips and results go is in
   [what stays out](#what-stays-out-of-this-repository).
 - **The board runs on seeded mock data.** RAVN's challenge API went offline in October 2026, so
   the deployment serves the same seeded tasks a fresh clone does (`docs/deployment.md`). A
@@ -112,7 +112,8 @@ reaction words that best describe using the board, and says why they picked the 
 
 This repository is public, and its history keeps every version. So recordings, transcripts and
 session notes stay outside it, because the notes hold quotes, reasons and word-for-word answers.
-Quotes and clips stay on the unlisted page, never here.
+Quotes and clips of 60 seconds or less stay on an unlisted page shown to RAVN evaluators, never
+here.
 
 The Results below hold only outcomes, times, SEQ, first clicks, errors, paraphrased findings,
 and P1's five reaction words picked from the fixed list. The spoken reason for the first word
@@ -142,8 +143,8 @@ roadmap's Next (`docs/product.md`).
 
 Fill this in after the sessions. Write down what happened, not what it means: interpretation
 goes in "Findings". No participant's spoken words go here
-([what stays out](#what-stays-out-of-this-repository)). Evidence in mm:ss exists only for a
-recorded session.
+([what stays out](#what-stays-out-of-this-repository)). Evidence in mm:ss exists only if the
+recording did not fail.
 
 ### Per task
 
