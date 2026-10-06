@@ -262,6 +262,21 @@ Three topics need more detail than a first read gives them. Each one has its own
 - **[Testing](docs/testing.md)** — what `npm run gate` checks, what the suite covers, and
   the conventions behind it.
 
+## Product, design and QA
+
+What the app is for, how it looks and how it is tested, each read back after the build and
+dated 2026-10-06:
+
+- **[Product](docs/product.md)**: the proto-persona (an assumption), what was built and cut,
+  the go/no-go for production, and what comes next.
+- **[Design](docs/design.md)**: the data flow, the loading, empty, error and success state of
+  each screen, and where the build differs from Figma.
+- **[QA](docs/qa/test-plan.md)**: the test plan with entry and exit criteria, the
+  [risk register](docs/qa/risk-register.md), and the [test map](docs/qa/test-map.md) of what
+  each suite proves and does not prove.
+- **[Usability pilot](docs/research/usability-pilot.md)**: three people, 2026-10-07. Results
+  pending.
+
 ## Notes
 
 - **This app pins the schema. It does not fetch it at build time.** `schema.graphql` is
