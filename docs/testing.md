@@ -24,13 +24,14 @@ had stopped rendering cards entirely. It also pins the count at mount before mea
 keystroke, which is the other half of the same guard — if the instrument ever stops seeing the
 cards, that assertion fails rather than the measurement quietly reporting zero of nothing.
 
-Dependencies get a second look on the way in. A separate `Dependency review` workflow fails
-a pull request that introduces a package carrying a high-severity advisory in GitHub's
+Dependencies get a second look on the way in. A separate `Dependency review` workflow marks
+a pull request red when it introduces a package carrying a high-severity advisory in GitHub's
 database — a different feed from npm's, read against the diff rather than the installed
 tree, so it names the dependency this change added. That matters here because Dependabot
 opens _grouped_ bumps, and a group is exactly where one bad package rides in behind fourteen
 harmless ones. The two checks share a severity threshold on purpose: two gates disagreeing
-about what counts as a problem is how a pipeline stops being read.
+about what counts as a problem is how a pipeline stops being read. It is not a required
+check, so it reports rather than blocks.
 
 The suite pins `VITE_API_URL`/`VITE_API_TOKEN` empty in `vite.config.ts`'s `test.env`, so it
 always runs against the MSW mock. That is not belt-and-braces — Vitest loads `.env` through
@@ -57,8 +58,8 @@ rejection every test happily passed through. Each has a regression test now.
 **One end-to-end spec, against a deployment.** `e2e/deployed-proxy.spec.ts` creates a task,
 filters the board to it, edits it and deletes it, in a real browser, against a real Vercel
 URL. It is the only test in the repository that touches `api/graphql.ts` as it actually
-runs: nothing imports that file — the app posts to a URL — so no amount of unit testing
-reaches it. It has already failed in a way only this could catch, exported as a default
+runs. Its unit test imports the handler directly and the app only posts to a URL, so no unit
+test sees the function run on Vercel. It has already failed in a way only this could catch, exported as a default
 handler that Vercel read as `(req, res) => void`, discarding the `Response` and hanging
 every request while the types, the unit test and the local build all stayed green.
 
@@ -73,8 +74,8 @@ additional flow would re-test components jsdom already covers, at a hundred time
 and would write to a board RAVN can see — so the spec removes what it created even when it
 fails partway through.
 
-**It cannot pass today.** RAVN's API has answered 404 since 2026-10-06, and the spec refuses
-mock data on purpose. Its last run against a deployment failed 4 of 5 tests (Actions run
+**It cannot pass today.** RAVN's API has answered 404 since at least 2026-10-06 (the last
+passing E2E run was on 2026-09-23), and the spec refuses mock data on purpose. Its last run against a deployment failed 4 of 5 tests (Actions run
 37415458012). So `.github/workflows/e2e.yml` no longer runs on every deployment; it runs only
 when dispatched by hand against a URL. Its header says how to turn the automatic trigger back
 on when the API returns. Until then, a green CI says nothing about the deployment.

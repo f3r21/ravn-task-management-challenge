@@ -1,8 +1,10 @@
 # Design
 
+Written on 2026-10-06, after the app was built.
+
 **The build follows Figma, except where the API or WCAG AA disagrees, and each exception is
-written down with its reason.** Every screen has a distinct loading, empty, error and
-success state, and a test pins each one.
+written down with its reason.** Every screen has a distinct loading, error and success state,
+and an empty state where one can occur; a test pins each one.
 
 ## How data reaches a screen
 
@@ -12,7 +14,7 @@ flowchart LR
   Q --> C["fetch client, src/graphql/client.ts"]
   C -->|"VITE_API_URL empty (today)"| M["MSW seeded mock, in the browser"]
   C -->|"VITE_API_URL = /api/graphql"| P["Vercel function, api/graphql.ts"]
-  P --> G["RAVN GraphQL API, 404 since 2026-10-06"]
+  P --> G["RAVN GraphQL API, 404 since at least 2026-10-06 (the last passing E2E run was on 2026-09-23)"]
   K["@ravn/ui-kit, pinned by git tag (v0.9.0)"] -.->|"components and tokens"| UI
 ```
 
@@ -28,14 +30,14 @@ flowchart LR
 The strings are the ones a user sees or a screen reader hears. Each test name is in the file
 named in the last column.
 
-| Screen                | Loading                                   | Empty                                             | Error                                                                       | Success                                                            | Tests                                                 |
-| --------------------- | ----------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
-| Board, `/`            | Skeleton board, "Loading tasks" announced | "No tasks yet", pointing at the + button          | "Could not load the board" with Try again; no retry for a rejected token    | Five status columns with zero-padded counts; or the list layout    | `board-page.test.tsx`, `board.test.tsx`               |
-| Board with filters    | Same skeleton                             | "No tasks match these filters" with Clear filters | Same as the board                                                           | Only matching tasks; the filters are in the URL                    | `search-filter.test.tsx`                              |
-| My task, `/my-task`   | Skeleton, "Loading your tasks"            | "No tasks assigned to you"                        | "Could not load your tasks" with Try again                                  | The signed-in user's tasks, list layout                            | `my-task-page.test.tsx`                               |
-| Settings, `/settings` | Skeleton, "Loading your profile"          | None: there is always a signed-in user            | "Could not load your profile" with Try again; no retry for a rejected token | Name, email, type, created and updated dates                       | `profile-page.test.tsx`                               |
-| Create or edit dialog | Submit reads "Saving…" and is disabled    | A blank form on every open                        | The dialog stays open with the reason, and a notification for an edit       | "Task created" or "Task updated"; the card is already on the board | `create-task.test.tsx`, `update-delete-task.test.tsx` |
-| Delete confirmation   | Cannot be dismissed while the delete runs | Not applicable                                    | A notification, and the card comes back without a refetch                   | "Task deleted"                                                     | `update-delete-task.test.tsx`                         |
+| Screen                | Loading                                   | Empty                                             | Error                                                                              | Success                                                            | Tests                                                 |
+| --------------------- | ----------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
+| Board, `/`            | Skeleton board, "Loading tasks" announced | "No tasks yet", pointing at the + button          | "Could not load the board" with Try again; no retry for a rejected token           | Five status columns with zero-padded counts; or the list layout    | `board-page.test.tsx`, `board.test.tsx`               |
+| Board with filters    | Same skeleton                             | "No tasks match these filters" with Clear filters | Same as the board                                                                  | Only matching tasks; the filters are in the URL                    | `search-filter.test.tsx`                              |
+| My task, `/my-task`   | Skeleton, "Loading your tasks"            | "No tasks assigned to you"                        | "Could not load your tasks" with Try again                                         | The signed-in user's tasks, list layout                            | `my-task-page.test.tsx`                               |
+| Settings, `/settings` | Skeleton, "Loading your profile"          | None: there is always a signed-in user            | "Could not load your profile" with Try again; no retry for a rejected token        | Name, email, type, created and updated dates                       | `profile-page.test.tsx`                               |
+| Create or edit dialog | Submit reads "Saving…" and is disabled    | A blank form on every open                        | The dialog stays open with the reason, and a notification, for a create or an edit | "Task created" or "Task updated"; the card is already on the board | `create-task.test.tsx`, `update-delete-task.test.tsx` |
+| Delete confirmation   | Cannot be dismissed while the delete runs | Not applicable                                    | A notification, and the card comes back without a refetch                          | "Task deleted"                                                     | `update-delete-task.test.tsx`                         |
 
 Two more states from the Design week list, and where they live:
 

@@ -178,9 +178,9 @@ jobs:
           fi
           exit $FAILED
 
-      # The README argues react-router was pinned because "every 7.x release falls
-      # inside at least one published advisory range" — reasoning about advisories
-      # in prose while never running one. This runs one.
+      # The README pins react-router at 8.3.0, "the first 8.x release outside
+      # GHSA-qwww-vcr4-c8h2". That is reasoning about an advisory in prose; this
+      # step runs the audit that checks it.
       #
       # It blocks on what ships: the dependencies, without the devDependencies,
       # which never reach `dist/` or the function. On 2026-10-06 the full tree

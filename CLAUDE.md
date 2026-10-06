@@ -12,12 +12,14 @@ npm run dev            # Vite on :5173, runs with no credentials
 npm run build          # tsc --noEmit then a production bundle
 npm test               # the suite, once
 npm run codegen        # regenerate src/graphql/generated/ from schema.graphql
-npm run schema:check   # fail if schema.graphql has drifted from the live API
-npm run test:e2e       # one Playwright spec against a deployment. Needs E2E_BASE_URL.
+npm run schema:check   # fail if schema.graphql has drifted from the API. Fails while it is offline.
+npm run test:e2e       # one Playwright spec against a deployment. Needs E2E_BASE_URL and the API,
+                       # so it cannot pass while the API is offline.
 ```
 
 The last two sit outside `gate` deliberately, one needing the network and one a deployment. CI
-runs `gate` plus `build` on every pull request. Nothing enforces `gate` before a commit.
+runs `gate`, then `build`, the CSS canary, a bundle budget and `npm audit --omit=dev` on every
+pull request. Nothing enforces `gate` before a commit.
 
 ## Invariants
 
@@ -25,8 +27,9 @@ runs `gate` plus `build` on every pull request. Nothing enforces `gate` before a
   This app is what proves the package works, so loosening an assertion throws away the only
   signal the arrangement generates.
 - **Generated types are the domain model.** Nothing redeclares an API shape.
-- **No barrel files, no test ids, no `any`, no `@ts-ignore`, no non-null `!`.** The last three
-  are lint errors, so `npm run lint` holds them at zero.
+- **No barrel files, no test ids, no `any`, no `@ts-ignore`, no non-null `!`.** `any` and
+  `@ts-ignore` are lint errors, so `npm run lint` holds them at zero. `npm run assertions`
+  reports each non-null `!` without blocking, and review holds the rest.
 - **React Aria hooks only.** Never `react-aria-components`.
 - **Comments explain why, and a stale comment is a defect.** Change behaviour, grep for comments
   describing the old one.

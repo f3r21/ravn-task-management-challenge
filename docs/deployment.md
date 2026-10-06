@@ -3,14 +3,16 @@
 Vercel, at **[ravn-task-management-challenge.vercel.app](https://ravn-task-management-challenge.vercel.app)**,
 with a preview deployment per pull request.
 
-**The API went offline, so the deployment serves mock data.** On 2026-10-06 RAVN's challenge
-API stopped existing: `https://syn-api-production-e95c.up.railway.app/graphql` answers 404 with
-Railway's `"Application not found"`, and the proxy below passes that on as "The API responded
-with 404." for every operation. A board that only errors shows nothing, so `vercel.json` now
+**The API went offline, so the deployment serves mock data.** RAVN's challenge API has
+answered 404 since at least 2026-10-06 (the last passing E2E run was on 2026-09-23):
+`https://syn-api-production-e95c.up.railway.app/graphql` returns Railway's
+`"Application not found"`, and the proxy below passes that on as "The API responded with 404."
+for every operation. A board that only errors shows nothing, so `vercel.json` now
 builds with `VITE_API_URL` empty, which is the **mock** state in the table below: the deployment
 serves the same seeded data a fresh clone does, in memory, under a banner that says so. The
 proxy, `api/graphql.ts`, stays as it is. If the API comes back, setting `VITE_API_URL` back to
-`/api/graphql` in `vercel.json` restores the proxied state in one line. Two checks depend on
+`/api/graphql` in `vercel.json` restores the proxied state in one line, if it returns at the
+same URL; otherwise `UPSTREAM_URL` in `api/graphql.ts` changes too. Two checks depend on
 the API and cannot pass until then: the E2E workflow, whose automatic trigger is off for that
 reason, and `npm run schema:check`.
 
@@ -29,11 +31,11 @@ server-side read as "not configured", fell back to the MSW mock, and would have 
 seeded data under a banner telling the visitor to edit a `.env` file they do not have. It
 now has three:
 
-|             | `VITE_API_URL` | Token    | Where                                               |
-| ----------- | -------------- | -------- | --------------------------------------------------- |
-| **mock**    | unset          | —        | a clone with no credentials; MSW serves seeded data |
-| **direct**  | absolute       | required | local development with a filled-in `.env`           |
-| **proxied** | `/api/graphql` | none     | the deployment; the server holds it                 |
+|             | `VITE_API_URL` | Token    | Where                                                                         |
+| ----------- | -------------- | -------- | ----------------------------------------------------------------------------- |
+| **mock**    | unset          | unused   | a clone with no credentials, and the deployment today; MSW serves seeded data |
+| **direct**  | absolute       | required | local development with a filled-in `.env`                                     |
+| **proxied** | `/api/graphql` | none     | the deployment while RAVN's API was online; the server holds it               |
 
 The rule that a URL needs a token is unchanged rather than relaxed. It exists because an
 absolute URL reaches a server that answers every query `UNAUTHENTICATED` — the app looks
@@ -85,7 +87,7 @@ the answer. Two parts:
   already have.
 
 Both would change the moment this app grew a login. The e2e spec against the deployment (see
-[Testing](#testing)) is what would catch a CSP that broke the board, so the ordering is:
+[Testing](testing.md)) is what would catch a CSP that broke the board, so the ordering is:
 users first, then the policy, with a check that can prove it.
 
 **Rolling back.** Production is whatever `main` last deployed, and the way back is Vercel's

@@ -25,7 +25,7 @@ first commit that carries each one (`git log -G`):
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | --------------------- |
 | Filters live in the URL: "you can link or bookmark a filtered board"           | `README.md`, "Decisions worth explaining"                                     | 2026-08-03, `512430c` |
 | A task due tomorrow must not read "Yesterday" for someone west of Greenwich    | `README.md`, "This app reads dates in UTC"                                    | 2026-08-03, `e25ab5b` |
-| The overdue badge adds "(overdue)" "for anyone who cannot see colour"          | `README.md`, "Bonus items"                                                    | 2026-08-03, `e25ab5b` |
+| The overdue badge says "overdue" to screen readers, not by colour alone        | `README.md`, "Bonus items"                                                    | 2026-08-03, `e25ab5b` |
 | A rejected token gets no retry button, because retrying cannot fix it          | `README.md`, "A failure a user can fix is different from one they cannot fix" | 2026-08-03, `4bf9813` |
 | A failed edit also goes to a notification, because the dialog can be dismissed | commit `939be0c`                                                              | 2026-08-06            |
 | "My task" lists what is assigned to one person, filtered by `assigneeId`       | commit `dbcd92e`                                                              | 2026-08-11            |
@@ -41,14 +41,14 @@ owns it and when it is due, and a way to hand a teammate exactly the slice they 
 The brief's six sections are requirements, so they are the Musts. The five bonus items are
 optional. Built is the MVP.
 
-| Candidate                                      | MoSCoW      | Status                    | Why                                                                                                                                                             |
-| ---------------------------------------------- | ----------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Board by status, create, edit, delete (§2-§4)  | Must        | Built                     | The core job: browse and add tasks                                                                                                                              |
-| Search and filter (§5)                         | Must        | Built                     | Sent to the API, kept in the URL                                                                                                                                |
-| Profile page (§6)                              | Must        | Built, without `Position` | The API's `User` type has no such field (`README.md`, "Things the brief asks for that the API cannot do")                                                       |
-| Count per column, list layout, due-date colour | Could       | Built                     | Three of five bonus items (`README.md`, "Bonus items")                                                                                                          |
-| Drag and drop                                  | Won't (now) | Cut                       | "for scope reasons, not difficulty": each column needs a collection layer. The options menu already changes status and position with the same `updateTask` call |
-| Animation when a task is added                 | Won't       | Cut                       | No reason was written when it was cut. Read now: it changes how adding feels, not whether it works. **Assumption**                                              |
+| Candidate                                      | MoSCoW      | Status                    | Why                                                                                                                                                                                                  |
+| ---------------------------------------------- | ----------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Board by status, create, edit, delete (§2-§4)  | Must        | Built                     | The core job: browse and add tasks                                                                                                                                                                   |
+| Search and filter (§5)                         | Must        | Built                     | Sent to the API, kept in the URL                                                                                                                                                                     |
+| Profile page (§6)                              | Must        | Built, without `Position` | The API's `User` type has no such field (`README.md`, "Things the brief asks for that the API cannot do")                                                                                            |
+| Count per column, list layout, due-date colour | Could       | Built                     | Three of five bonus items (`README.md`, "Bonus items")                                                                                                                                               |
+| Drag and drop                                  | Won't (now) | Cut                       | "for scope reasons, not difficulty": each column needs a collection layer. The Edit dialog, opened from the card's options menu, already changes status and position with the same `updateTask` call |
+| Animation when a task is added                 | Won't       | Cut                       | No reason was written when it was cut. Read now: it changes how adding feels, not whether it works. **Assumption**                                                                                   |
 
 There is no RICE table. Reach, impact and effort were never measured, and "a RICE score
 built on made-up numbers is just a made-up decision" (PM week, Day 4 brief). MoSCoW and the
@@ -56,13 +56,14 @@ written reasons explain the cut.
 
 ## Top three risks
 
-Likelihood and impact on a 1 to 3 scale. The full register is
-[`qa/risk-register.md`](qa/risk-register.md).
+Likelihood and impact on a 1 to 3 scale. The first risk is R1 in the QA register,
+[`qa/risk-register.md`](qa/risk-register.md). The persona and call-to-action risks below are
+product risks and are not in the QA register.
 
 | Risk                                                             | L × I     | Response                                                                                            |
 | ---------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
 | RAVN's API does not come back, so nothing is ever saved for real | 3 × 3 = 9 | Serve the seeded mock with a banner; one line in `vercel.json` switches back                        |
-| The proto-persona is wrong, so the roadmap aims at the wrong job | 2 × 3 = 6 | Usability pilot on 2026-10-07; this page changes with what it finds                                 |
+| The proto-persona is wrong, so the roadmap aims at the wrong job | 2 × 3 = 6 | Two usability interviews on 2026-10-07 (P1, P2); this page changes with what they find              |
 | The brand's call-to-action fails WCAG AA (3.83:1 against 4.5:1)  | 3 × 2 = 6 | Accepted on purpose: only a darker red fixes it, and that is a brand decision ([design](design.md)) |
 
 ## The core flow: create a task
@@ -91,10 +92,10 @@ says what each suite proves and what it does not.
 - **What is green.** CI on 2026-10-06 (run 37479127953): 489 tests in 39 files; coverage
   97.72% of statements and 90.95% of branches against an 85% gate; 0 vulnerabilities in
   production dependencies.
-- **Nobody outside the project has used it yet.** The pilot runs on 2026-10-07.
+- **Nobody outside the project has used it yet.** Two usability interviews run on 2026-10-07.
 
 **Ship criteria**, all of them: the API answers; the E2E spec passes against the production
-deployment with no retries; CI is green on `main`; the pilot finds no severity 3 or 4
+deployment with no retries; CI is green on `main`; the interviews find no severity 3 or 4
 problem in creating a task, or each one is fixed.
 
 **Owner:** Fernando Ramirez. **Rollback trigger:** the E2E spec goes red on a production
@@ -108,17 +109,18 @@ API is back.
 
 ## Validated by
 
-A three-person usability pilot runs on 2026-10-07 on the deployed board
-([`research/usability-pilot.md`](research/usability-pilot.md)). Each of its four tasks tests
-one assumption above. **Results are pending.** Until then the persona and the problem stay
-assumptions.
+Two usability interviews run on 2026-10-07 on the deployed board, with P1, who is not a
+developer, and P2, a developer ([`research/usability-pilot.md`](research/usability-pilot.md)).
+Each of their four tasks tests one assumption above. **Results are pending.** Until then the
+persona and the problem stay assumptions.
 
 ## Now, next, later
 
-- **Now:** run the pilot. Keep the deployment on mock data with its banner. Keep CI green.
-- **Next:** write the pilot's findings into this page and the risk register. When the API
+- **Now:** run the two interviews. Keep the deployment on mock data with its banner. Keep CI
+  green.
+- **Next:** write the interviews' findings into this page and the risk register. When the API
   returns, point `VITE_API_URL` back at the proxy and turn the E2E trigger on. Bump the kit
   past its breaking renames (app#157).
-- **Later:** drag and drop, if the pilot shows people change status often. A darker brand
+- **Later:** drag and drop, if the interviews show people change status often. A darker brand
   red, if the brand owner agrees. A login, and then a Content-Security-Policy
   (`docs/deployment.md` explains that order).
