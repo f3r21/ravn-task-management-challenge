@@ -34,7 +34,8 @@ two per project and one product each; P3 and P4 try a different project and do n
 - **Recording.** Only with consent. The plan is Cap 0.6.0, in Studio mode, recording the entire
   screen locally, with both voices. Cap is pending confirmation after a test call; the fallbacks
   are OBS Studio, then Zoom's local recording, which would move the call to Zoom. Wispr Flow
-  Notetaker writes the transcript. Recordings and transcripts stay outside this repository.
+  Notetaker writes the transcript. Recordings, transcripts and session notes stay outside this
+  repository ([what stays out](#what-stays-out-of-this-repository)).
 - **Consent.** Asked in writing the day before, and confirmed at the start of the recording.
   Each participant agrees separately to taking part and being quoted as P1 or P2, to the
   recording and transcript, and to clips of 60 seconds or less shown to RAVN evaluators on an
@@ -109,10 +110,14 @@ notice "Task deleted".
 Per session: the three worst problems, each with its mm:ss. P1 also picks the five of 25
 reaction words that best describe using the board, and says why they picked the first.
 
-Quotes and clips stay on the unlisted page, never in this repository. This repository is public
-and its history cannot honour a withdrawal, so its Results hold outcomes, times, SEQ, first
-clicks, errors and paraphrased findings only. P1's five reaction words may be listed, since they
-come from a fixed list; the spoken reason for the first stays in the session notes.
+### What stays out of this repository
+
+This repository is public, and its history cannot honour a withdrawal. So recordings,
+transcripts and session notes stay outside it: the notes hold quotes, reasons and word-for-word
+answers, and consent promises to delete them on withdrawal. Quotes and clips stay on the unlisted
+page, never here. The Results below hold only outcomes, times, SEQ, first clicks, errors,
+paraphrased findings, and P1's five reaction words picked from the fixed list. The spoken reason
+for the first word stays in the session notes.
 
 ## Severity
 
@@ -134,7 +139,8 @@ roadmap's Next (`docs/product.md`).
 ## Results
 
 Fill this in after the sessions. Write down what happened, not what it means: interpretation
-goes in "Findings". Paraphrase; no participant's words go here.
+goes in "Findings". No participant's spoken words go here
+([what stays out](#what-stays-out-of-this-repository)).
 
 ### Per task
 
