@@ -39,10 +39,12 @@ two per project and one product each; P3 and P4 try a different project and do n
 - **Consent.** Asked in writing the day before, and confirmed at the start of the recording.
   Each participant agrees separately to taking part and being quoted as P1 or P2, to the
   recording and transcript, and to clips of 60 seconds or less shown to RAVN evaluators on an
-  unlisted page. Without that last agreement, only quotes are used. No name, email or employer is
-  recorded, and any moment that shows one is cut. Full recordings and transcripts are deleted by
-  2026-10-23. A participant can withdraw at any time, which deletes their recording, transcript
-  and notes. Clips they agreed to stay until they ask for them to be removed.
+  unlisted page. Without that last agreement, only quotes are used. Participants also agree that
+  de-identified results (task times, ratings and paraphrased notes, with no name and no quotes)
+  are published in this public repository. No name, email or employer is recorded, and any
+  moment that shows one is cut. Full recordings and transcripts are deleted by 2026-10-23. A
+  participant can withdraw at any time, which deletes their recording, transcript and notes.
+  Clips they agreed to stay until they ask for them to be removed.
 - **The board runs on seeded mock data.** RAVN's challenge API went offline in October 2026, so
   the deployment serves the same seeded tasks a fresh clone does (`docs/deployment.md`). A
   participant's changes live in their own tab until it reloads. A fresh tab is the reset between
