@@ -31,15 +31,20 @@ two per project and one product each; P3 and P4 try a different project and do n
 - **How long.** About 15 minutes of board tasks in each session. P1's session runs about 20
   minutes, with a one-minute page tour before the tasks and reaction words after them. P2's runs
   about 30, because P2 then tries the component kit; that part is not covered here.
-- **Recording.** Only with consent. Cap 0.6.0, in Studio mode, records the entire screen locally,
-  with both voices. Wispr Flow Notetaker writes the transcript. Recordings and transcripts stay
-  outside this repository.
+- **Recording.** Only with consent. The plan is Cap 0.6.0, in Studio mode, recording the entire
+  screen locally, with both voices. Cap is pending confirmation after a test call; the fallbacks
+  are OBS Studio, then Zoom's local recording, which would move the call to Zoom. Wispr Flow
+  Notetaker writes the transcript. Recordings, transcripts and session notes stay outside this
+  repository ([what stays out](#what-stays-out-of-this-repository)).
 - **Consent.** Asked in writing the day before, and confirmed at the start of the recording.
   Each participant agrees separately to taking part and being quoted as P1 or P2, to the
   recording and transcript, and to clips of 60 seconds or less shown to RAVN evaluators on an
-  unlisted page. Without that last agreement, only quotes are used. No name, email or employer is
-  recorded, and any moment that shows one is cut. Full recordings and transcripts are deleted by
-  2026-10-23.
+  unlisted page. Without that last agreement, only quotes are used. Participants also agree that
+  de-identified results (task times, ratings and paraphrased notes, with no name and no quotes)
+  are published in this public repository. No name, email or employer is recorded, and any
+  moment that shows one is cut. Full recordings and transcripts are deleted by 2026-10-23. A
+  participant can withdraw at any time, which deletes their recording, transcript and notes.
+  Clips they agreed to stay until they ask for them to be removed.
 - **The board runs on seeded mock data.** RAVN's challenge API went offline in October 2026, so
   the deployment serves the same seeded tasks a fresh clone does (`docs/deployment.md`). A
   participant's changes live in their own tab until it reloads. A fresh tab is the reset between
@@ -99,12 +104,22 @@ notice "Task deleted".
 - **Time.** In seconds, from the end of the reading to "done". These are think-aloud times.
 - **First click.** Where it went.
 - **Errors.** Each wrong turn, with a short note of what the participant expected to happen.
-- **Quote.** The one sentence that best explains what happened, with its mm:ss.
+- **Quote.** The one sentence that best explains what happened, with its mm:ss, in the session
+  notes.
 - **Ease (SEQ).** Right after each task: "Overall, how difficult or easy was that task to
   complete? 1 is very difficult, 7 is very easy."
 
 Per session: the three worst problems, each with its mm:ss. P1 also picks the five of 25
 reaction words that best describe using the board, and says why they picked the first.
+
+### What stays out of this repository
+
+This repository is public, and its history cannot honour a withdrawal. So recordings,
+transcripts and session notes stay outside it: the notes hold quotes, reasons and word-for-word
+answers, and consent promises to delete them on withdrawal. Quotes and clips stay on the unlisted
+page, never here. The Results below hold only outcomes, times, SEQ, first clicks, errors,
+paraphrased findings, and P1's five reaction words picked from the fixed list. The spoken reason
+for the first word stays in the session notes.
 
 ## Severity
 
@@ -126,17 +141,19 @@ roadmap's Next (`docs/product.md`).
 ## Results
 
 Fill this in after the sessions. Write down what happened, not what it means: interpretation
-goes in "Findings".
+goes in "Findings". No participant's spoken words go here
+([what stays out](#what-stays-out-of-this-repository)).
 
 ### Per task
 
-| Task                                 | P1  | P2  |
-| ------------------------------------ | --- | --- |
-| T1 success / time / SEQ              |     |     |
-| T2 success / time / SEQ              |     |     |
-| T3 success / time / SEQ              |     |     |
-| T4 success / time / SEQ              |     |     |
-| T4 noticed "Task deleted" (yes / no) |     |     |
+| Task                                     | P1  | P2                        |
+| ---------------------------------------- | --- | ------------------------- |
+| T1 success / time / SEQ                  |     |                           |
+| T2 success / time / SEQ                  |     |                           |
+| T3 success / time / SEQ                  |     |                           |
+| T4 success / time / SEQ                  |     |                           |
+| T4 noticed "Task deleted" (yes / no)     |     |                           |
+| Reaction words, five from the fixed list |     | not asked about the board |
 
 ### Findings
 
