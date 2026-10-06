@@ -82,12 +82,14 @@ export function BoardPage() {
       <h1 className="sr-only">Dashboard</h1>
 
       {isUsingMockApi ? (
-        // Stated rather than hidden: a reviewer running this without a token
-        // should know why the board has data, and should not mistake mock data
-        // for a working connection to RAVN's API.
+        // Stated rather than hidden: anyone looking at this board should know
+        // why it has data, and should not mistake mock data for a working
+        // connection to RAVN's API. The banner used to say how to connect with a
+        // token, which stopped being true when that API went offline; the
+        // deployment serves this mock too now (docs/deployment.md).
         <p className="text-muted text-body-m">
-          Running on mocked data. Add <code className="text-main">VITE_API_TOKEN</code> to your{' '}
-          <code className="text-main">.env</code> to use the live API.
+          Running on mocked data. RAVN&apos;s challenge API went offline in October 2026, so this
+          board is seeded here, and your changes last until you reload.
         </p>
       ) : null}
 

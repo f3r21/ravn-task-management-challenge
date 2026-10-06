@@ -6,6 +6,7 @@ coverage
 # its config are tracked; what a run produces is not. Matching entries live in
 # `.prettierignore` and `eslint.config.js`.
 e2e/test-results
+e2e/playwright-report
 *.local
 .DS_Store
 .env

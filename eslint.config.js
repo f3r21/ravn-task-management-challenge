@@ -213,6 +213,7 @@ export default tseslint.config(
       // Playwright's failure artefacts. The spec itself is linted; what a run
       // leaves behind is not source.
       'e2e/test-results',
+      'e2e/playwright-report',
       // A git worktree checked out inside the repo is a second, complete copy of
       // this source tree. `.git/info/exclude` hides it from git, but ESLint and
       // Prettier do not read that file — only `.gitignore` and their own ignore

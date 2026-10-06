@@ -1,6 +1,8 @@
 ---
 name: bonus-points
 description: Requirements for the 5 extra credit bonus points for the RAVN coding challenge.
+paths:
+  - 'src/features/board/**'
 ---
 
 # RAVN Challenge Bonus Points

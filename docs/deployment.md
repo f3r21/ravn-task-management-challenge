@@ -3,6 +3,17 @@
 Vercel, at **[ravn-task-management-challenge.vercel.app](https://ravn-task-management-challenge.vercel.app)**,
 with a preview deployment per pull request.
 
+**The API went offline, so the deployment serves mock data.** On 2026-10-06 RAVN's challenge
+API stopped existing: `https://syn-api-production-e95c.up.railway.app/graphql` answers 404 with
+Railway's `"Application not found"`, and the proxy below passes that on as "The API responded
+with 404." for every operation. A board that only errors shows nothing, so `vercel.json` now
+builds with `VITE_API_URL` empty, which is the **mock** state in the table below: the deployment
+serves the same seeded data a fresh clone does, in memory, under a banner that says so. The
+proxy, `api/graphql.ts`, stays as it is. If the API comes back, setting `VITE_API_URL` back to
+`/api/graphql` in `vercel.json` restores the proxied state in one line. Two checks depend on
+the API and cannot pass until then: the E2E workflow, whose automatic trigger is off for that
+reason, and `npm run schema:check`.
+
 **Why a static SPA has a serverless function.** Vite replaces `import.meta.env.VITE_*` at
 build time, which means a deployed build configured the way local development is configured
 would ship RAVN's access token as a readable string in `dist/` — findable with devtools, or
@@ -76,3 +87,16 @@ the answer. Two parts:
 Both would change the moment this app grew a login. The e2e spec against the deployment (see
 [Testing](#testing)) is what would catch a CSP that broke the board, so the ordering is:
 users first, then the policy, with a check that can prove it.
+
+**Rolling back.** Production is whatever `main` last deployed, and the way back is Vercel's
+Instant Rollback: on the project's overview, the Production Deployment tile has an **Instant
+Rollback** button, and the ⋮ menu of a production deployment in the Deployments list has the
+same option. Nothing rebuilds. Vercel points the domain back at the earlier build, with the
+environment variables that build was made with. On a Hobby account only the immediately
+previous production deployment is eligible; Pro can pick any deployment that once served the
+production domain. Two consequences are easy to miss. After a rollback Vercel turns off the
+automatic assignment of the production domain, so the next merge to `main` builds but does
+not go live until someone clicks **Undo Rollback** on the same tile, or runs
+`vercel promote <deployment>`. And a rollback moves only this app: whatever a bad release wrote
+to RAVN's API stays written. What calls for a rollback is the E2E workflow going red on a
+production deployment, since it runs against every one (see [Testing](testing.md)).

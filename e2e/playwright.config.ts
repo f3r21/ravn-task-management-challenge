@@ -63,8 +63,12 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
 
   // `github` turns failures into annotations on the run; `list` is readable in a
-  // terminal.
-  reporter: process.env.CI ? 'github' : 'list',
+  // terminal. In CI the HTML report is written too, and the workflow uploads it
+  // with the traces, so a red run can be read step by step without re-running
+  // it against a board that has moved on since.
+  reporter: process.env.CI
+    ? [['github'], ['html', { open: 'never', outputFolder: './playwright-report' }]]
+    : 'list',
 
   use: {
     baseURL,

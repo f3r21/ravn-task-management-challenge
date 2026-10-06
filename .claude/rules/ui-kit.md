@@ -1,73 +1,98 @@
-# `@ravn/ui-kit` Rules
+---
+name: ui-kit
+description: The kit is a git dependency pinned to a tag; which build you actually have, and the one test that spans both repos.
+paths:
+  - 'package.json'
+  - 'package-lock.json'
+  - 'src/test/ui-kit-smoke.test.tsx'
+  - 'src/**/*.tsx'
+---
 
-The app's UI layer comes from a separate package, `@ravn/ui-kit`
-(https://github.com/f3r21/ravn-ui-kit), built from the Figma export and consumed here as a
-dependency. This app is its first and only consumer.
+# `@ravn/ui-kit` is somebody else's package
 
-## The standing rule
+The Figma file for this challenge is a component library rather than a set of screens, so it was
+built as one: `@ravn/ui-kit` (https://github.com/f3r21/ravn-ui-kit), a separate repo with its own
+Storybook, tests and CI. This app is its first and only consumer. What stays app-owned is what
+the app still implements rather than imports. Read the imports, not a list in a document: the
+list keeps moving.
 
-- **When a kit component fails an assertion in this app, the fix goes in the kit — never in
-  the test.** Loosening an assertion to accommodate a kit component discards the only signal
-  this arrangement produces, and leaves the defect in a package meant to outlive this app.
-  Real defects found exactly this way: a popover that could not escape an `overflow: hidden`
-  ancestor, a focus ring that computed a colour and painted nothing, `onAction` firing twice
-  per menu pick.
-- **A migration blocked on a kit gap stops.** Record the gap, leave the app's own component
-  in place, and say why in a comment. Do not migrate a component into a regression, and do
-  not weaken the app to make a migration land.
+The standing rule (fix a failing kit component in the kit, never in the test) is in the root
+`CLAUDE.md`. The corollary lives here: **a migration can be blocked on a kit gap, and that is a
+legitimate place to stop.** Record the gap, leave the app correct, do not migrate a component
+into a regression. Nothing is blocked on the kit today. The worked arc is
+`delete-task-dialog.tsx`, whose own doc comment holds it, beside the code so it cannot go stale
+the way a paragraph here did.
 
 ## The dependency is a git tag
 
-- `"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#<tag>"`. **Read the tag from `package.json`**
-  (`grep ui-kit package.json`), never from prose — this line named `v0.4.0` for three
-  releases after that stopped being true. The kit repo is public, so `npm ci` clones it
-  anonymously — no token needed in CI or on Vercel.
-- **A tag, never a branch.** A branch re-resolves on every `npm ci` behind an unchanged
-  lockfile entry, which is exactly the moving target the pin exists to close.
-- **Never hand-edit anything under `node_modules/@ravn/ui-kit/`.** It is installed build
-  output — a change there is invisible to the kit's own tests and is destroyed by the next
-  install. Fix it in the kit repo, release, then bump the tag here.
-- Bumping the tag is its own commit, never mixed into an app change. The kit ships breaking
-  changes on minor bumps (pre-1.0), so read its `CHANGELOG.md` first.
-- **Only `packages['node_modules/@ravn/ui-kit'].resolved` decides which build you have.** This
-  rule used to say "verify by the resolved commit SHA, not by a version string" — which named
-  the trap and left you standing in it, because `package-lock.json`'s **root spec is a version
-  string** (`"github:f3r21/ravn-ui-kit#v0.8.0"`) and so is the `version` field beside
-  `resolved`. All three, plus the packed filename, can claim a tag the installed tree is not:
-  a bare `npm install` after editing `package.json` rewrote the root spec, left `resolved` on
-  the old commit, printed `up to date` and exited 0.
+`"@ravn/ui-kit": "github:f3r21/ravn-ui-kit#<tag>"`. There is no registry, so the dependency is
+the repository. **Read the pinned tag from `package.json`** (`grep ui-kit package.json`), never
+from prose: this line named a stale version for three releases once. The kit repo is public, so
+`npm ci` clones it anonymously, with no token in CI or on Vercel. A git install runs no build,
+because the kit commits its `dist/` and checks its freshness in its own CI.
 
-  ```bash
-  npm install '@ravn/ui-kit@github:f3r21/ravn-ui-kit#<tag>'   # the form that actually bumps
-  node -e 'const l=require("./package-lock.json");const p="node_modules/@ravn/ui-kit";
-    console.log(l.packages[p].resolved, "|", l.packages[""].dependencies["@ravn/ui-kit"]);'
-  git ls-remote https://github.com/f3r21/ravn-ui-kit 'refs/tags/<tag>*'
-  ```
+- **A tag, never a branch.** A branch re-resolves on every `npm ci` behind an unchanged lockfile
+  entry, which is the moving target the pin exists to close.
+- **Bumping the tag is its own commit**, never mixed into an app change. The kit lands breaking
+  changes on minor bumps under SemVer's pre-1.0 carve-out, so read its `CHANGELOG.md` first,
+  including on a Dependabot PR.
+- **Never hand-edit anything under `node_modules/@ravn/ui-kit/`.** It is installed build output.
+  A change there is invisible to the kit's tests and is destroyed by the next install.
 
-  Compare `resolved` to the **`^{}`** line: the kit's tags are annotated, so the bare
-  `refs/tags/<tag>` is the tag object and `resolved` holds the commit. On `dev` at `9ddc8a4`
-  all of them agree, so the disagreement is reproducible rather than currently present.
-  `src/test/ui-kit-smoke.test.tsx` catches the specific case of a pin bumped without an
-  install, because it compares the installed manifest against the pinned tag.
+**Exactly one field says which build you have:
+`packages['node_modules/@ravn/ui-kit'].resolved` in `package-lock.json`.** The root spec, the
+`version` field beside `resolved` and the packed filename are all claims about intent, and every
+one can say `v0.8.0` over an installed `v0.7.0`. A bare `npm install` after editing
+`package.json` rewrote the root spec, left `resolved` on the previous tag's commit, printed
+`up to date` and exited 0.
 
-- **`src/test/ui-kit-smoke.test.tsx` guards the seam between the two repos** — the one
-  failure neither repository's CI can see. It asserts, from the public barrel rather than a
-  deep path, that the components the app imports exist, that one renders with its accessible
-  name intact, and that the installed manifest version matches the pinned tag. Forgetting
-  `npm install` after a pin bump fails it. Extend it when the app imports a new component;
-  never delete an assertion to make a bump land.
+```bash
+npm install '@ravn/ui-kit@github:f3r21/ravn-ui-kit#<tag>'   # the form that actually bumps
+node -e 'const l=require("./package-lock.json");const p="node_modules/@ravn/ui-kit";
+  console.log("resolved  ", l.packages[p].resolved);
+  console.log("root spec ", l.packages[""].dependencies["@ravn/ui-kit"]);
+  console.log("version   ", l.packages[p].version);'
+git ls-remote https://github.com/f3r21/ravn-ui-kit 'refs/tags/<tag>*'
+```
+
+**Compare `resolved` against the `^{}` line of that last command, not the bare tag line.** The
+kit's tags are annotated, so `refs/tags/v0.8.0` is the tag object and `refs/tags/v0.8.0^{}` is
+the commit, and `resolved` holds the commit. Comparing against the bare ref makes a correct
+lockfile look wrong, which is a third decoy on top of the two above. The four currently agree,
+so the disagreement is reproducible rather than present. Do not read agreement as proof the trap
+is gone.
+
+## The one test that spans the two repos
+
+`src/test/ui-kit-smoke.test.tsx`. Nothing else can see the seam: `gate` typechecks against
+whatever `dist/` is installed, and the kit's CI tests its source tree rather than the artifact a
+consumer installs, so a tag whose `dist/` was never rebuilt, or a pin missing an export this app
+imports, ships green and breaks on Vercel.
+
+It imports from the public barrel, never a deep `@ravn/ui-kit/dist/...` path, which would resolve
+past the `exports` map and keep passing after the package stopped exporting a name. It renders
+one component, asserts its accessible name, and compares the installed manifest version against
+the tag `package.json` pins. That last assertion is why bumping the pin without running
+`npm install` is a failing test rather than a warm `node_modules` serving the old build to the
+whole suite. It names the components the app imports one by one: add to the list when the app
+starts importing another, and never delete an assertion to make a bump land.
 
 ## Reading the kit without its source
 
-- The kit's source is not in this checkout. `node_modules/@ravn/ui-kit/dist/index.d.ts`
-  keeps the doc comments through the build and is the authoritative local reference for what
-  a component does and why.
-- **A shell reader is refused there and that is not this instruction being wrong.**
-  `permissions.deny` in `.claude/settings.json` carries `Read(./node_modules/**)`, and a
-  `grep` under that path comes back denied — measured, along with `cat` and `ls` against the
-  other deny rules. The rule matches the command rather than the file, so `node -e` reads it,
-  which is also how the `resolved` check above gets at `package-lock.json` under a deny rule
-  of its own. Deliberate friction, not a boundary; `CLAUDE.md`'s `permissions.deny` passage
-  has the full matrix, including which tools were never probed.
-- Component and icon counts are derived from that file, not remembered — capitalized
-  `export declare`s, minus the ones typed `IconProps`, minus the `const` exports.
+The kit's source is not in this checkout. `node_modules/@ravn/ui-kit/dist/index.d.ts` keeps the
+doc comments through the build and is the authoritative local reference for what a component does.
+
+**A shell reader is refused there, and that is not this instruction being wrong.**
+`permissions.deny` carries `Read(./node_modules/**)`, so a `grep` under that path comes back
+denied. The rule matches the command rather than the file, so `node -e` reads it, which is also
+how the `resolved` check above reaches `package-lock.json` under a deny rule of its own.
+Deliberate friction, not a boundary. Component and icon counts are derived from that `.d.ts`
+file, never remembered.
+
+**`vite.config.ts`'s `dedupe` list is a no-op as committed, and kept anyway.** npm packs only
+what the kit's `files: ["dist"]` names and never installs a dependency's devDependencies, so
+`node_modules/@ravn/ui-kit` has no `node_modules` of its own and every bare specifier resolves up
+to this project's single install. The list guards the other consumption mode: switching to a
+sibling `file:../ravn-ui-kit` brings a checkout that does have its own `node_modules`, and then
+two React instances mean "Invalid hook call". That switch is a one-line `package.json` edit and
+the failure reads as a bug in the component rather than in how it was installed.
