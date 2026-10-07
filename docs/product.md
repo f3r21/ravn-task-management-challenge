@@ -6,7 +6,8 @@ evidence.
 
 Written on 2026-10-06, after the app was built. It reads the product back from what this
 repository already says. Every line that is inferred rather than recorded says
-**assumption**.
+**assumption**. Updated 2026-10-07 with the interview findings, paraphrased from a synthesis
+kept outside this repository.
 
 ## The user and the problem
 
@@ -36,6 +37,17 @@ says the app "has no concept of a user".
 **Problem (assumption).** A small team needs one place that shows what work exists, who
 owns it and when it is due, and a way to hand a teammate exactly the slice they need.
 
+**What the interviews found, 2026-10-07.** Two interviews, with P1 and P2, were run to test the
+assumptions above. Two people give a first signal, not a pattern.
+
+- **Persona: complicated by both participants.** Their teams track work in Linear, but they
+  hand work over in Slack and standups.
+- **Second persona (untested).** A non-developer who hands work to developers.
+- **Problem: complicated.** P2 has the problem. P1 says a tool already meets that need. Nobody
+  probed or tried its second half: a way to hand a teammate exactly the slice they need.
+- **The board.** Points confused both participants. P1 found that the tech-stack labels assume
+  developers. P1 created a task; P2 created none.
+
 ## What was built, and what was cut
 
 The brief's six sections are requirements, so they are the Musts. The five bonus items are
@@ -63,7 +75,7 @@ product risks and are not in the QA register.
 | Risk                                                             | L × I     | Response                                                                                            |
 | ---------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
 | RAVN's API does not come back, so nothing is ever saved for real | 3 × 3 = 9 | Serve the seeded mock with a banner; one line in `vercel.json` switches back                        |
-| The proto-persona is wrong, so the roadmap aims at the wrong job | 2 × 3 = 6 | Two interviews on 2026-10-07 (P1, P2) test it; this page changes with what they find                |
+| The proto-persona is wrong, so the roadmap aims at the wrong job | 2 × 3 = 6 | The interviews on 2026-10-07 (P1, P2) complicated it; this page records what they found             |
 | The brand's call-to-action fails WCAG AA (3.83:1 against 4.5:1)  | 3 × 2 = 6 | Accepted on purpose: only a darker red fixes it, and that is a brand decision ([design](design.md)) |
 
 ## The core flow: create a task
@@ -92,8 +104,8 @@ says what each suite proves and what it does not.
 - **What is green.** CI on 2026-10-06 (run 37479127953): 489 tests in 39 files; coverage
   97.72% of statements and 90.95% of branches against an 85% gate; 0 vulnerabilities in
   production dependencies.
-- **Nobody outside the project has used it yet.** Two interviews on 2026-10-07 each end with a
-  few minutes on the deployed board.
+- **Two people outside the project have used it.** P1 and P2 each used the deployed board for
+  a few minutes near the end of their interviews on 2026-10-07 ([Validated by](#validated-by)).
 
 **Ship criteria**, all of them: the API answers; the E2E spec passes against the production
 deployment with no retries; CI is green on `main`; every piece of interview feedback weighed
@@ -110,20 +122,23 @@ API is back.
 
 ## Validated by
 
-Two interviews run on 2026-10-07 with P1 and P2, neither of them a developer
-([`research/usability-pilot.md`](research/usability-pilot.md)). Each one asks for the story of
-the last time they handed work to a teammate or picked it up, reads the problem statement above
-aloud and asks whether it matches their experience, then gives them a few minutes on the deployed
-board. They test the persona, the problem and whether the board helps with it. **Results are
-pending.** Until then the persona and the problem stay assumptions.
+Two interviews ran on 2026-10-07 with P1 and P2, neither of them a developer
+([`research/usability-pilot.md`](research/usability-pilot.md)). Each one asked for the story of
+the last time they handed work to a teammate or picked it up, read the problem statement above
+aloud and asked whether it matched their experience, then gave them a few minutes on the
+deployed board. Their aim was to test the persona, the problem and whether the board helps with
+it. **Results:** the persona and the problem are complicated, and whether the board helps is
+unclear. Two people are a first signal, not a pattern.
+[What the interviews found, 2026-10-07](#the-user-and-the-problem) has the detail.
 
 ## Now, next, later
 
-- **Now:** run the two interviews. Keep the deployment on mock data with its banner. Keep CI
-  green.
-- **Next:** write the interviews' findings into this page and the risk register. When the API
-  returns, point `VITE_API_URL` back at the proxy and turn the E2E trigger on. Bump the kit
-  past its breaking renames (app#157).
-- **Later:** drag and drop, if the interviews show people change status often. A darker brand
-  red, if the brand owner agrees. A login, and then a Content-Security-Policy
-  (`docs/deployment.md` explains that order).
+- **Now:** the two interviews are done, and their findings are in
+  [The user and the problem](#the-user-and-the-problem). Keep the deployment on mock data with
+  its banner. Keep CI green.
+- **Next:** write the interviews' findings into the risk register. When the API returns, point
+  `VITE_API_URL` back at the proxy and turn the E2E trigger on. Bump the kit past its breaking
+  renames (app#157).
+- **Later:** drag and drop, if people are seen changing status often; the 2026-10-07 interviews
+  did not show it. A darker brand red, if the brand owner agrees. A login, and then a
+  Content-Security-Policy (`docs/deployment.md` explains that order).
