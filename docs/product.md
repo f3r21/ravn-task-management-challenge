@@ -46,7 +46,7 @@ assumptions above. Two people give a first signal, not a pattern.
 - **Problem: complicated.** P2 has the problem. P1 says a tool already meets that need. Nobody
   probed or tried its second half: a way to hand a teammate exactly the slice they need.
 - **The board.** Points confused both participants. P1 found that the tech-stack labels assume
-  developers.
+  developers. P1 created a task; P2 created none.
 
 ## What was built, and what was cut
 
