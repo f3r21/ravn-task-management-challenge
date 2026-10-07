@@ -36,6 +36,17 @@ says the app "has no concept of a user".
 **Problem (assumption).** A small team needs one place that shows what work exists, who
 owns it and when it is due, and a way to hand a teammate exactly the slice they need.
 
+**What the interviews found, 2026-10-07.** Two interviews, with P1 and P2, tested the
+assumptions above. Two people give a first signal, not a pattern.
+
+- **Persona: complicated by both participants.** Their teams track work in Linear, but they
+  hand work over in Slack and standups.
+- **Second persona (untested).** A non-developer who hands work to developers.
+- **Problem: complicated.** P2 has the problem. P1 says a tool already meets that need. Nobody
+  probed or tried its second half: a way to hand a teammate exactly the slice they need.
+- **The board.** Points confused both participants. P1 found that the tech-stack labels assume
+  developers.
+
 ## What was built, and what was cut
 
 The brief's six sections are requirements, so they are the Musts. The five bonus items are
@@ -119,11 +130,12 @@ pending.** Until then the persona and the problem stay assumptions.
 
 ## Now, next, later
 
-- **Now:** run the two interviews. Keep the deployment on mock data with its banner. Keep CI
-  green.
-- **Next:** write the interviews' findings into this page and the risk register. When the API
-  returns, point `VITE_API_URL` back at the proxy and turn the E2E trigger on. Bump the kit
-  past its breaking renames (app#157).
+- **Now:** the two interviews are done, and their findings are in
+  [The user and the problem](#the-user-and-the-problem). Keep the deployment on mock data with
+  its banner. Keep CI green.
+- **Next:** write the interviews' findings into the risk register. When the API returns, point
+  `VITE_API_URL` back at the proxy and turn the E2E trigger on. Bump the kit past its breaking
+  renames (app#157).
 - **Later:** drag and drop, if the interviews show people change status often. A darker brand
   red, if the brand owner agrees. A login, and then a Content-Security-Policy
   (`docs/deployment.md` explains that order).
