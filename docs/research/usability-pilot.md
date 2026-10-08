@@ -301,10 +301,10 @@ priority or urgency.
 
 These runs are a rehearsal by an agent (`pilot-runner`), not by a user.
 
-| Run    | Date             | Production commit | Field name         | The answer says | Result  |
-| ------ | ---------------- | ----------------- | ------------------ | --------------- | ------- |
-| Before | 2026-10-07       | `dcdc7e2`         | "Estimated points" | size and effort | Pass    |
-| After  | Pending, app#209 | Pending           | Pending            | Pending         | Pending |
+| Run    | Date       | Production commit | Field name         | The answer says               | Result |
+| ------ | ---------- | ----------------- | ------------------ | ----------------------------- | ------ |
+| Before | 2026-10-07 | `dcdc7e2`         | "Estimated points" | size and effort               | Pass   |
+| After  | 2026-10-08 | `297674f`         | "Effort"           | how much work, not how urgent | Pass   |
 
 **Before, 2026-10-07.** The task card: "Create a task for a teammate. Then say, in one sentence,
 what the Estimated points field means." The agent's steps:
@@ -346,3 +346,46 @@ shows nothing.
 ![The create form before the change, with the points list open](../screenshots/effort-blind-check-before.jpg)
 
 _The create form on production at `dcdc7e2`, 2026-10-07, with the points list open._
+
+**After, 2026-10-08.** Before the run, all five places on production at `297674f` (Vercel
+deployment 6932434123) read "Effort": the form, the filter, the card, the list row and the
+list's column header. The task card: "Create a task for a teammate. Then say, in one sentence,
+what the Effort field means." The agent's steps:
+
+1. Opened the board, which held 7 seeded tasks. The help line already showed under the effort
+   filter.
+2. Pressed the "+" button ("Create task"). The dialog opened.
+3. Typed a title.
+4. Opened the Effort list, which started at "Effort 0". The options read "Effort 0", "Effort 1",
+   "Effort 2", "Effort 4" and "Effort 8". The open list covered the help line.
+5. Picked "Effort 2".
+6. Opened the assignee picker, and paused to work out which user was the current one.
+7. Picked a teammate.
+8. Left the label empty and the status and due date as they were, and pressed "Create". "Task
+   created" showed.
+9. Found the new card on the board. It read "Effort 2".
+
+The agent's answer, verbatim:
+
+> Effort is an estimate of how much work a task takes (not how urgent it is), picked from 0, 1,
+> 2, 4 or 8, where 0 is tiny and 8 is big.
+
+It took the answer from the help line, which it read under the filter and under the field.
+
+**What this pass means.** The answer restates the help line, and the run before also passed. So
+the agent runs show only that the new words are read and do not break understanding. They
+cannot show that the change helps a person who is not a developer. The human run planned
+above is still the real measure, and it is still planned, not done.
+
+**Friction with the field, after.**
+
+- The open Effort list covers its own help line, so the value is picked with no explanation in
+  view.
+- The field starts at "Effort 0", and 0 also means "tiny". An effort nobody chose looks the same
+  as a tiny one.
+- Nothing gives a unit, or says why the steps double: 1, 2, 4, 8.
+
+![The create form after the change, with the Effort list open over its help line](../screenshots/effort-blind-check-after.jpg)
+
+_The create form on production at `297674f`, 2026-10-08. The open Effort list covers the help
+line._
