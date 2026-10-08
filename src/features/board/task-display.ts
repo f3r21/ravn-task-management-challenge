@@ -3,12 +3,12 @@ import { assertNever } from '@/lib/assert-never'
 import type { PointEstimate, Status, TaskTag } from './task-types'
 
 /**
- * Turning API enums into the words and colours the design shows.
+ * Turning API values into the words and colours the board shows.
  *
- * Every function here closes its `switch` with `assertNever`, so adding a member
- * to any of these unions — the API gaining a sixth status, say — becomes a
- * compile error listing exactly which mappings still need a case, instead of a
- * card silently rendering a raw `IN_PROGRESS` in the UI.
+ * Every function here that maps an enum closes its `switch` with `assertNever`,
+ * so adding a member to any of these unions — the API gaining a sixth status,
+ * say — becomes a compile error listing exactly which mappings still need a
+ * case, instead of a card silently rendering a raw `IN_PROGRESS` in the UI.
  *
  * Labels are stored in the case the design *reads* as, not the case it *renders*
  * as: the mockup shows "IOS APP" and "ANDROID" in caps, but that is
