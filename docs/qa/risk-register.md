@@ -4,7 +4,7 @@
 deployment.** Everything else here is known, written down, and either tested or accepted.
 
 Probability (P) and impact (I) run from 1 (low) to 3 (high). Score = P × I. Owner of every
-row: Fernando Ramirez. Reviewed 2026-10-06. R9 to R12 and R14 come from F1 (app#202), 2026-10-07.
+row: Fernando Ramirez. Reviewed 2026-10-06, updated 2026-10-08. R9 to R12 and R14 come from F1 (app#202), 2026-10-07.
 R13 comes from the interviews, 2026-10-07.
 
 | #   | Risk                                                                                                                                                | P   | I   | Score | Response                                                                                                                                                                                                                    | Known limit                                                                                                                                             |

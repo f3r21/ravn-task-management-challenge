@@ -6,8 +6,8 @@ then the problem statement read aloud, then a few minutes trying the deployed bo
 the assumptions in the proto-persona (`docs/product.md`). They do not prove that the app is
 usable for its real users.
 
-They replace the usability test planned earlier, and keep its file name. The same morning holds
-interviews for another project; they do not appear here.
+They replace the usability test planned earlier, and keep its file name. The same day holds
+one more interview, for another project; it does not appear here.
 
 Every method line comes from the course content of the cohort's PM week and Design week, and
 names its source. A line with no source is logistics.
