@@ -4,19 +4,23 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 
 ## This repo's rules (they win over the generic conventions below)
 
-- **Pull requests target `dev`**, the integration branch. `main` only receives promotions of a
-  verified-stable `dev`, and Vercel deploys `main` to production.
+- **Pull requests target `dev`**, the integration branch, and a direct push to `dev` is rejected.
+  `main` only receives promotions of a verified-stable `dev`, and Vercel deploys `main` to
+  production. An integration branch that `/implement-spec` creates is cut from `dev` and reaches
+  it through a pull request.
 - **`Closes #<n>` closes nothing here**, because GitHub fires it only on a merge into the default
-  branch (`main`). Keep the keyword for the link, then close the issue by hand after the merge:
-  `gh issue close <n> --comment "Closed by <merge-commit-sha>, PR #<pr>."`
+  branch (`main`). Keep the keyword for the link. Whoever merges the pull request closes the issue
+  by hand afterwards, as `/finish-issue` step 8 shows.
 - **Blocking edges are GitHub's native issue dependencies.** `/start-issue` reads them and stops
   on any open blocker, so record every edge there, not only as text.
+- **Read an issue with one command.** `gh issue view <n>` hides the comments and `--comments`
+  hides the body, so use the JSON read in `/start-issue` (body and comments together).
 - **`/start-issue` and `/finish-issue`** hold the branch, gate and handoff rules. Follow them.
 
 ## Conventions
 
 - **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
-- **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
+- **Read an issue**: `gh issue view <number> --json body,comments,labels`, then print the body and every comment (see the rule above).
 - **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
@@ -42,7 +46,7 @@ Create a GitHub issue.
 
 ## When a skill says "fetch the relevant ticket"
 
-Run `gh issue view <number> --comments`.
+Run `gh issue view <number> --json body,comments,labels` and read the body and every comment.
 
 ## Wayfinding operations
 
