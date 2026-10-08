@@ -52,11 +52,11 @@ assumptions above. Two people give a first signal, not a pattern.
 the interviews led to. Their findings are above, and the usability-pilot research doc records
 [what changes because of them](research/usability-pilot.md#what-changes-because-of-this).
 
-- **Problem.** A person who is not a developer must set a field called "Estimated points" to
-  create a task, and nothing says what points are. Both participants guessed that points meant
-  priority, so a task's size can be set and read as its urgency.
+- **Problem.** A person who is not a developer had to set a field called "Estimated points"
+  to create a task, and nothing said what points are. Both participants guessed that points
+  meant priority, so a task's size could be set and read as its urgency.
 - **Job story (assumption).** When I hand a piece of work to a teammate, I want to say how big
-  it is in words we both understand, so they know how much I am asking of them.
+  it is in words we both understand, so I can trust that they read it the way I meant it.
 
 ## What was built, and what was cut
 
@@ -104,12 +104,12 @@ method (PM week Thursday brief): RICE, MoSCoW, Value vs Effort and the North Sta
 
 **Why F1 and not custom labels**, which both participants also asked for. The two have the same
 reach, impact and confidence, so effort decides. F1 changes words only. Custom labels mean
-changing `enum TaskTag` in `schema.graphql` and the mock, away from RAVN's API, plus a colour
-rule for new labels, because the kit's tag has five colours. So F1 costs a sixth of the effort.
-F1 was also weighed a core problem in both sessions, and custom labels in one. The date-range
-filter scores second but moves neither the North Star nor a supporting signal, so it waits. The scores inform this call;
-they do not make it: the PM week Thursday brief names "Treating the score as the decision" as a
-trap.
+changing `enum TaskTag` in `schema.graphql` and the mock, away from RAVN's API, and they need a
+colour rule for new labels, because the kit's tag has five colours. So F1 costs a sixth of the
+effort. F1 was also weighed a core problem in both sessions, and custom labels in one. The
+date-range filter scores second but moves neither the North Star nor a supporting signal, so it
+waits. The scores inform this call; they do not make it: the PM week Thursday brief names
+"Treating the score as the decision" as a trap.
 
 ## Top three risks
 
@@ -189,8 +189,8 @@ Effort field means. F1 moves it, and F1's blind check below reads it.
 
 **Success measure: a blind check before and after.** An agent playing a first-time user sees
 only the app and one task: "Create a task for a teammate. Then say, in one sentence, what the
-Effort field means." It runs on production before the promotion, while the field still says
-"Estimated points", and again after it. It passes when the answer says amount or size of work,
+Effort field means." It runs on production once before the promotion, on the old "Estimated
+points" field, and once after it. It passes when the answer says amount or size of work,
 not priority or urgency. It is a rehearsal by an agent, not a user.
 
 - **Ship criteria:** the gate and the build are green in CI, F1's acceptance criteria pass, the
@@ -199,8 +199,9 @@ not priority or urgency. It is a rehearsal by an agent, not a user.
 - **Owner:** Fernando Ramirez.
 - **Rollback trigger:** a report that someone cannot create a task, or a create test red on
   `main`. **How:** Vercel Instant Rollback. A failed blind check opens a follow-up issue instead.
-- **Monitor:** the blind check, before and after. The usability-pilot research doc holds each
-  result with its date ([What changes because of this](research/usability-pilot.md#what-changes-because-of-this)).
+- **Monitor:** the blind check, before and after. Each result goes, with its date, in the
+  usability-pilot research doc,
+  [What changes because of this](research/usability-pilot.md#what-changes-because-of-this).
 - **Recommendation: go.** F1 changes words only, not the API, the data or the kit, so it is
   cheap to undo, and it fixes a core problem that both participants hit. The no-go above stands:
   the deployment stays a demo on seeded data.
