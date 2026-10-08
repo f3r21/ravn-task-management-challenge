@@ -72,8 +72,10 @@ export function BoardFiltersBar({
     [users],
   )
 
+  // Top-aligned, not centred. The effort filter has a help line under its chip,
+  // so it is taller than the others, and centring lifted its chip out of line.
   return (
-    <div className="flex flex-wrap items-center gap-4" role="group" aria-label="Filter tasks">
+    <div className="flex flex-wrap items-start gap-4" role="group" aria-label="Filter tasks">
       <OptionalSelect
         label="Filter by status"
         placeholder="Status"
