@@ -180,8 +180,8 @@ export const EFFORT_HELP = 'How much work it takes, not how urgent it is. 0 = ti
  *
  * One list for the form and the filter, so the two cannot offer different choices
  * or word them apart. Built once at import: each item object is a key in the
- * picker's collection cache (see `renderSelectOption`), so an array that keeps its
- * identity across renders is never rebuilt.
+ * picker's collection cache (see `renderSelectOption`), so a picker that gets the
+ * same array on every render does not rebuild its collection.
  */
 export const EFFORT_ITEMS: readonly SelectOption<PointEstimate>[] = ALL_POINT_ESTIMATES.map(
   (id) => ({ id, label: effortLabel(pointValue(id)) }),

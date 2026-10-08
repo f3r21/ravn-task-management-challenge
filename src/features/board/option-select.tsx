@@ -23,13 +23,13 @@ const NONE = '__none__'
  * Makes a select with a `description` exactly as wide as its trigger, so the
  * description wraps under the chip instead of widening the field.
  *
- * The kit's `Select` stacks the trigger and the description in one column, which
- * takes the width of the description on one line, and stretches the trigger to fill
- * it. That is a kit gap, ravn-ui-kit#166. The effort help line is about 400px on
- * one line, so the effort chip grew to 400px and pushed the filter bar onto two
- * rows. `w-min` sizes the column to its widest part that cannot wrap, which is the
- * chip, so the chip keeps its own width and the line wraps under it. The line is
- * still the control's accessible description: only its width changes.
+ * The kit's `Select` stacks the trigger and the description in one column. The
+ * column takes the width of the description on one line, and the trigger stretches
+ * to fill it: a kit gap, ravn-ui-kit#166. The effort help line is about 400px on one
+ * line, so the effort field was 400px wide and pushed the filter bar onto two rows.
+ * `w-min` sizes the column to its widest part that cannot wrap, which is the chip,
+ * so the chip keeps its own width and the line wraps under it. The line is still the
+ * control's accessible description: only its width changes.
  *
  * Passed only with a description, the one case it was checked for. jsdom loads no
  * CSS, so this was measured in a browser, not by a test: `docs/design.md`, "F1: the
