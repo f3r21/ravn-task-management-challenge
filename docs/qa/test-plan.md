@@ -73,7 +73,7 @@ The plan for app#202. Everything above still applies.
   effort 8 and Netflix redesign the one with effort 0.
 - **Entry.** The branch is cut from `feat/202-effort`, and `npm run gate` is green before the
   change.
-- **Exit.** The four acceptance-criterion tests in the
+- **Exit.** The tests for the four acceptance criteria in the
   [test map](test-map.md#f1-one-row-per-acceptance-criterion) pass; `npm run gate` and
   `npm run build` are green; three green local runs of the gate are logged in the pull request
   into `dev`.
