@@ -61,6 +61,15 @@ change, and it will still fail its last assertion.
 **Adding a second spec is almost always the wrong move.** Everything else is already covered in
 jsdom, faster and more precisely, and each extra flow is more live mutation.
 
+# Tests the docs cite
+
+`docs/qa/test-map.md` and the "Checked by" column of `docs/product.md` cite tests as
+`` `file`: 'title' ``. `gate` runs `scripts/check-test-citations.mjs`, which fails when a cited
+title is no longer a test in that file and names the doc line. **Rename a cited test and its doc
+line in the same commit.** A title quoted in prose without its file is not checked, so a new
+citation names its file. In a table, a cell may leave the file out when the cell above it in that
+column names one.
+
 # Traps this project has already paid for
 
 **jsdom and the browser disagree, in both directions.** jsdom does not reflect the `inert`
