@@ -22,11 +22,13 @@ const NONE = '__none__'
 /**
  * Keeps the trigger at its own width when a `description` sits under it.
  *
- * The kit's `Select` stacks the trigger and the description in a column that
- * stretches its children. A description is wider than the chip, so the chip
- * stretched to the width of the sentence, with its arrow far from its value. With
- * no description this changes nothing, because the trigger is the only child in
- * the flow.
+ * A kit gap, ravn-ui-kit#166: the kit's `Select` stacks the trigger and the
+ * description in a column that stretches its children. A description is wider than
+ * the chip, so the chip stretched to the width of the sentence, with its arrow far
+ * from its value. `docs/design.md`, "F1: the effort field", records it.
+ *
+ * Passed only with a description, the one case it was checked for. jsdom loads no
+ * CSS, so this was checked in a browser, not by a test.
  */
 const KEEP_TRIGGER_WIDTH = 'items-start'
 
@@ -93,7 +95,7 @@ export function OptionalSelect<T extends string>({
       placeholder={placeholder}
       icon={icon}
       description={description}
-      className={KEEP_TRIGGER_WIDTH}
+      className={description ? KEEP_TRIGGER_WIDTH : undefined}
       aria-describedby={describedBy}
       items={items}
       selectedKey={value ?? NONE}
@@ -149,7 +151,7 @@ export function RequiredSelect<T extends string>({
       placeholder={placeholder}
       icon={icon}
       description={description}
-      className={KEEP_TRIGGER_WIDTH}
+      className={description ? KEEP_TRIGGER_WIDTH : undefined}
       items={options}
       selectedKey={value}
       onSelectionChange={(key) => {

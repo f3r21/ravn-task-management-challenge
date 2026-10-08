@@ -131,6 +131,11 @@ fix goes in the kit. F1 changes no code for them.
   line, the card and the row is a kit token, except `text-xs` (above).
 - **Accessibility check: 6 meet, 3 do not**, all 3 in the kit (the table above).
 
+**A kit gap: the trigger stretches to the width of its description** (ravn-ui-kit#166). The kit
+`Select` stacks the chip and the help line in one column that stretches its children, so the chip
+grew to the width of the sentence. The app passes `items-start` to a select only when it gives it a
+description, so the chip keeps its own width.
+
 **The help line costs layout, and that is accepted.** The line is about 400px wide, so the effort
 filter is too. At 1280px the due-date filter moves to a second row, at 1440px "Clear filters"
 does when a filter is set, and at 375px the line wraps after "0 =". The filter row aligns its
