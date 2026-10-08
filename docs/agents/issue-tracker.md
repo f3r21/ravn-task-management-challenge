@@ -15,7 +15,7 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
   branch (`main`). Keep the keyword for the link. Whoever merges the pull request closes the issue
   by hand afterwards, as `/finish-issue` step 8 shows.
 - **Blocking edges are GitHub's native issue dependencies.** `/start-issue` reads them and stops
-  on any open blocker, so record every edge there, not only as text.
+  on an unresolved blocker, so record every edge there, not only as text.
 - **Read an issue with one command.** `gh issue view <n>` hides the comments and `--comments`
   hides the body, so use the JSON read in `/start-issue` (body and comments together).
 - **`/start-issue` and `/finish-issue`** hold the branch, gate and handoff rules. Follow them.
