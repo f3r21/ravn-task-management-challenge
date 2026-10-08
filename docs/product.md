@@ -50,8 +50,9 @@ assumptions above. Two people give a first signal, not a pattern.
   developers. P1 created a task; P2 created none.
 
 **F1: the estimate field says Effort and explains itself (app#202).** It is the first change
-the interviews led to. Their findings are above, and the usability-pilot research doc records
-[what changes because of them](research/usability-pilot.md#what-changes-because-of-this).
+the interviews led to. Their findings are above. The usability-pilot research doc holds F1's
+blind check, under
+[What changes because of this](research/usability-pilot.md#what-changes-because-of-this).
 
 - **Problem.** The create form showed a chip that read "0 Points", with no visible label, and
   nothing said what points are. "Estimated points" was only its accessible name. Both
