@@ -4,8 +4,8 @@
 deployment.** Everything else here is known, written down, and either tested or accepted.
 
 Probability (P) and impact (I) run from 1 (low) to 3 (high). Score = P × I. Owner of every
-row: Fernando Ramirez. Reviewed 2026-10-06. R9 to R12 come from F1 (app#202), 2026-10-07. R13
-comes from the interviews, 2026-10-07.
+row: Fernando Ramirez. Reviewed 2026-10-06. R9 to R12 and R14 come from F1 (app#202), 2026-10-07.
+R13 comes from the interviews, 2026-10-07.
 
 | #   | Risk                                                                                                                                                  | P   | I   | Score | Response                                                                                                                                                                                | Known limit                                                                                                                                             |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --- | --- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -22,6 +22,7 @@ comes from the interviews, 2026-10-07.
 | R11 | The help line stops showing or loses contrast, and no test sees it, because jsdom loads no CSS                                                        | 2   | 2   | 4     | Measured once in a browser, and it passed ([design](../design.md#f1-the-effort-field))                                                                                                  | Nothing measures it again; a kit bump could change it unseen (R4)                                                                                       |
 | R12 | Kit controls miss F1's accessibility bar: chips are 32px and options 36px tall against 44×44, and the list's headers are not table headers            | 3   | 1   | 3     | Accepted: the fix goes in the kit. The chips meet WCAG 2.2 AA's 24×24, and the effort cell reads "Effort 4" on its own                                                                  | No test checks target size or header roles                                                                                                              |
 | R13 | Custom labels are not built: the five tech-stack tags assume developers, a core problem in one interview (P1, P2 both asked for labels)               | 2   | 2   | 4     | Ranked after F1 ([product](../product.md#after-the-interviews-what-to-build-first)): it changes `enum TaskTag` in `schema.graphql` and the mock, and needs a colour rule for new labels | Until it is built, a team that is not developers labels its work with tags that do not fit it; production stays no-go while it is open                  |
+| R14 | The promotion of F1 to `main` breaks creating a task on production                                                                                    | 1   | 3   | 3     | The promotion pull request merges only on green CI; Vercel Instant Rollback undoes a bad deploy (`docs/deployment.md`, "Rolling back")                                                  | CI runs against the mock, and the E2E spec that would test production cannot pass while the API is offline (R1)                                         |
 
 ## What changes a score
 
