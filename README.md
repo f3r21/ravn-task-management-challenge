@@ -31,7 +31,9 @@ The email field in that screenshot reads `[email redacted]`. The API's seeded pr
 belongs to a real person at RAVN. This repository is public, so the screenshot masks the
 address instead of publishing it. No other screenshot is altered. All five were captured on
 2026-08-09 from the deployed build while it still reached RAVN's API. The deployment now
-serves seeded mock data, so its tasks and signed-in user differ from these images.
+serves seeded mock data, so its tasks and signed-in user differ from these images. They also
+predate F1, so they show "N Pts", "N Points", "Any estimate" and an "Estimate" header where the
+app now says Effort.
 
 - **Board** — five status columns. Each task card shows a name, tags, a due date, its
   effort ("Effort 4"), an assignee, and an options menu. Loading, error, and empty states are three separate
