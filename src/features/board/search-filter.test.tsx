@@ -294,8 +294,9 @@ describe('filters in the URL', () => {
   })
 
   it('reads an effort from the address and shows it on the filter', async () => {
-    // Only the words changed, so a link shared before the rename still opens the
-    // same view: the key is still `points` and the value is still the API's.
+    // The words changed, not the values, so a link shared before the rename still
+    // opens the same view: the key is still `points` and the value is still the
+    // API's.
     const inputs = recordTaskQueries()
     await renderBoard('/?points=EIGHT')
 

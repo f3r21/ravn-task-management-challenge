@@ -64,8 +64,9 @@ describe('creating a task', () => {
   })
 
   it('offers efforts 0 to 8 and still sends the API value of the one picked', async () => {
-    // Only the words changed. The option reads "Effort 4" and the mutation still
-    // carries `FOUR`, so the data on the server means what it meant before.
+    // The words changed, not the values. The option reads "Effort 4" and the
+    // mutation still carries `FOUR`, so the data on the server means what it meant
+    // before.
     const sent: CreateTaskMutationVariables['input'][] = []
     server.use(
       graphql.mutation<Record<string, unknown>, CreateTaskMutationVariables>(

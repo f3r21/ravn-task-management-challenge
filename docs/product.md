@@ -103,11 +103,11 @@ method (PM week Thursday brief): RICE, MoSCoW, Value vs Effort and the North Sta
 | Smaller type and a sidebar that folds (P1, P2) | 8                                           | 0.25: a preference                        | L, 0.3                | 8 × 0.25 × 0.5 ÷ 0.3 = **3.3** | Won't       | Money pit       | Moves nothing                     |
 
 **Why F1 and not custom labels**, which both participants also asked for. The two have the same
-reach, impact and confidence, so effort decides. F1 changes words only. Custom labels mean
-changing `enum TaskTag` in `schema.graphql` and the mock, away from RAVN's API, and they need a
-colour rule for new labels, because the kit's tag has five colours. So F1 costs a sixth of the
-effort. F1 was also weighed a core problem in both sessions, and custom labels in one. The
-date-range filter scores second but moves neither the North Star nor a supporting signal, so it
+reach, impact and confidence, so effort decides. F1 changes only the words and one help line.
+Custom labels mean changing `enum TaskTag` in `schema.graphql` and the mock, away from RAVN's API,
+and they need a colour rule for new labels, because the kit's tag has five colours. So F1 costs a
+sixth of the effort. F1 was also weighed a core problem in both sessions, and custom labels in one.
+The date-range filter scores second but moves neither the North Star nor a supporting signal, so it
 waits. The scores inform this call; they do not make it: the PM week Thursday brief names
 "Treating the score as the decision" as a trap.
 
@@ -209,9 +209,9 @@ is the real measure.
 - **Monitor:** the blind check, before and after. Each result goes, with its date, in the
   usability-pilot research doc,
   [The effort field: blind check, before and after](research/usability-pilot.md#the-effort-field-blind-check-before-and-after).
-- **Recommendation: go.** F1 changes words only, not the API, the data or the kit, so it is
-  cheap to undo, and it fixes a core problem that both participants hit. The no-go above stands:
-  the deployment stays a demo on seeded data.
+- **Recommendation: go.** F1 changes only the words and one help line, not the API, the data or
+  the kit, so it is cheap to undo, and it fixes a core problem that both participants hit. The
+  no-go above stands: the deployment stays a demo on seeded data.
 
 ## Validated by
 
