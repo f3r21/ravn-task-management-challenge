@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pointsLabel, pointValue, statusLabel, tagAccent, tagLabel } from './task-display'
+import { effortLabel, pointValue, statusLabel, tagAccent, tagLabel } from './task-display'
 import { ALL_POINT_ESTIMATES, ALL_TAGS, BOARD_STATUSES, type Status } from './task-types'
 
 describe('statusLabel', () => {
@@ -46,13 +46,16 @@ describe('pointValue', () => {
   it('maps each estimate to its number', () => {
     expect(ALL_POINT_ESTIMATES.map(pointValue)).toEqual([0, 1, 2, 4, 8])
   })
+})
 
-  it('labels an estimate the way the card shows it', () => {
-    expect(pointsLabel('FOUR')).toBe('4 Points')
-    expect(pointsLabel('ZERO')).toBe('0 Points')
-  })
-
-  it('says "1 Point", not "1 Points"', () => {
-    expect(pointsLabel('ONE')).toBe('1 Point')
+describe('effortLabel', () => {
+  it('writes every effort value as "Effort N", 0 and 1 included', () => {
+    expect(ALL_POINT_ESTIMATES.map(pointValue).map(effortLabel)).toEqual([
+      'Effort 0',
+      'Effort 1',
+      'Effort 2',
+      'Effort 4',
+      'Effort 8',
+    ])
   })
 })

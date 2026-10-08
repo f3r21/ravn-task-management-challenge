@@ -19,10 +19,23 @@ import { ALL_TAGS, type TaskTag } from './task-types'
  */
 const NONE = '__none__'
 
+/**
+ * Keeps the trigger at its own width when a `description` sits under it.
+ *
+ * The kit's `Select` stacks the trigger and the description in a column that
+ * stretches its children. A description is wider than the chip, so the chip
+ * stretched to the width of the sentence, with its arrow far from its value. With
+ * no description this changes nothing, because the trigger is the only child in
+ * the flow.
+ */
+const KEEP_TRIGGER_WIDTH = 'items-start'
+
 interface OptionalSelectProps<T extends string> {
   label: string
   placeholder: string
   icon?: ReactNode
+  /** One line shown under the field, which is also the control's accessible description. */
+  description?: string
   /** The real choices. The "none" entry is this component's business, not yours. */
   options: readonly SelectOption<T>[]
   /** What "no choice" reads as — "Any status", "Unassigned". */
@@ -58,6 +71,7 @@ export function OptionalSelect<T extends string>({
   label,
   placeholder,
   icon,
+  description,
   options,
   noneLabel,
   value,
@@ -78,6 +92,8 @@ export function OptionalSelect<T extends string>({
       label={label}
       placeholder={placeholder}
       icon={icon}
+      description={description}
+      className={KEEP_TRIGGER_WIDTH}
       aria-describedby={describedBy}
       items={items}
       selectedKey={value ?? NONE}
@@ -97,6 +113,8 @@ interface RequiredSelectProps<T extends string> {
   label: string
   placeholder: string
   icon?: ReactNode
+  /** One line shown under the field, which is also the control's accessible description. */
+  description?: string
   options: readonly SelectOption<T>[]
   value: T
   onChange: (value: T) => void
@@ -105,7 +123,7 @@ interface RequiredSelectProps<T extends string> {
 /**
  * The same control where every choice is a real one.
  *
- * The create/edit form's status and estimate are required — the server has no
+ * The create/edit form's status and effort are required — the server has no
  * "unset" for either — so offering a "none" entry would collect a value the
  * mutation could not send. Kept as a separate component rather than a
  * `noneLabel?` on the one above, because the difference is in the *types*: this
@@ -120,6 +138,7 @@ export function RequiredSelect<T extends string>({
   label,
   placeholder,
   icon,
+  description,
   options,
   value,
   onChange,
@@ -129,6 +148,8 @@ export function RequiredSelect<T extends string>({
       label={label}
       placeholder={placeholder}
       icon={icon}
+      description={description}
+      className={KEEP_TRIGGER_WIDTH}
       items={options}
       selectedKey={value}
       onSelectionChange={(key) => {

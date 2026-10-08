@@ -3,12 +3,12 @@ import { assertNever } from '@/lib/assert-never'
 import type { PointEstimate, Status, TaskTag } from './task-types'
 
 /**
- * Turning API enums into the words and colours the design shows.
+ * Turning API values into the words and colours the board shows.
  *
- * Every function here closes its `switch` with `assertNever`, so adding a member
- * to any of these unions — the API gaining a sixth status, say — becomes a
- * compile error listing exactly which mappings still need a case, instead of a
- * card silently rendering a raw `IN_PROGRESS` in the UI.
+ * Every function here that maps an enum closes its `switch` with `assertNever`,
+ * so adding a member to any of these unions — the API gaining a sixth status,
+ * say — becomes a compile error listing exactly which mappings still need a
+ * case, instead of a card silently rendering a raw `IN_PROGRESS` in the UI.
  *
  * Labels are stored in the case the design *reads* as, not the case it *renders*
  * as: the mockup shows "IOS APP" and "ANDROID" in caps, but that is
@@ -130,7 +130,7 @@ export function tagAccent(tag: TaskTag): AccentColor {
   }
 }
 
-/** The numeric value behind a point estimate, for display as "4 Points". */
+/** The number behind a point estimate. `effortLabel` turns it into words. */
 export function pointValue(estimate: PointEstimate): number {
   switch (estimate) {
     case 'ZERO':
@@ -149,12 +149,27 @@ export function pointValue(estimate: PointEstimate): number {
 }
 
 /**
- * "4 Points", but "1 Point" — the one estimate where the plural is wrong.
+ * How a person reads a point estimate: "Effort 4".
  *
- * Zero takes the plural, which is what English does with it ("0 Points"), so the
- * singular is the single case rather than the default.
+ * The one place that owns this wording, so no two places that show it can drift
+ * apart. People who are not developers read "points" as priority, so the word is
+ * Effort.
+ *
+ * It takes the number, not the `PointEstimate` enum. That also makes it a kit
+ * `PointsFormatter`, which fits the `formatPoints` prop of `TaskCard` and the table
+ * row with no wrapper. Code that holds the enum goes through `pointValue` first.
+ *
+ * Every value reads the same way, 0 and 1 included. The word comes before the
+ * number, so there is no plural to get wrong.
  */
-export function pointsLabel(estimate: PointEstimate): string {
-  const points = pointValue(estimate)
-  return `${String(points)} ${points === 1 ? 'Point' : 'Points'}`
+export function effortLabel(points: number): string {
+  return `Effort ${String(points)}`
 }
+
+/**
+ * The line shown under the effort field, which is also its accessible description.
+ *
+ * It says what the field is not, because people new to it read it as priority. It
+ * also says which end of the scale is small.
+ */
+export const EFFORT_HELP = 'How much work it takes, not how urgent it is. 0 = tiny, 8 = big.'

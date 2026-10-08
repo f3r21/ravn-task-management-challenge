@@ -354,7 +354,20 @@ describe('editing a task', () => {
     })
   })
 
-  it('keeps the points list open past the first frame it opens in', async () => {
+  it('labels the effort field "Effort" and explains it, as the create dialog does', async () => {
+    // The same field must mean the same thing in both dialogs. See the create check in
+    // create-task.test.tsx for why the query goes by label text.
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Edit')
+    const dialog = await screen.findByRole('dialog')
+
+    const effort = within(dialog).getByLabelText('Effort', { selector: 'button' })
+    expect(effort).toHaveAccessibleDescription(
+      'How much work it takes, not how urgent it is. 0 = tiny, 8 = big.',
+    )
+  })
+
+  it('keeps the effort list open past the first frame it opens in', async () => {
     // Regression canary for the cross-module FocusScope bug the kit's Modal used
     // to have — see the identical check in create-task.test.tsx for the full
     // explanation.
@@ -362,10 +375,10 @@ describe('editing a task', () => {
     await chooseAction(user, 'Slack', 'Edit')
     const dialog = await screen.findByRole('dialog')
 
-    await user.click(within(dialog).getByRole('button', { name: /estimated points/i }))
-    expect(await screen.findByRole('option', { name: '1 Point' })).toBeInTheDocument()
+    await user.click(within(dialog).getByLabelText('Effort', { selector: 'button' }))
+    expect(await screen.findByRole('option', { name: 'Effort 1' })).toBeInTheDocument()
     await new Promise((resolve) => setTimeout(resolve, 50))
-    expect(screen.getByRole('option', { name: '1 Point' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Effort 1' })).toBeInTheDocument()
   })
 
   it('keeps the tags list open past the first frame it opens in', async () => {
