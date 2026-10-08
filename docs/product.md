@@ -84,7 +84,7 @@ method (PM week Thursday brief): RICE, MoSCoW, Value vs Effort and the North Sta
 - **The course's part.** The formula: RICE = Reach × Impact × Confidence ÷ Effort. The impact
   scale: 3 = massive, 2 = high, 1 = medium, 0.5 = low, 0.25 = minimal. The confidence anchors:
   100, 80 or 50% ("Prioritization frameworks", Atlassian, PM week Thursday). Effort is in
-  person-weeks.
+  person-weeks. Here, Effort means the work to build a change, not the task field F1 renames.
 - **Confidence is 50% in every row.** Two interviews with friends of the moderator are low data,
   and "low data means low confidence" (PM week Thursday brief).
 - **Our estimates, never measured.** Reach: of 10 people like the persona, how many meet this in
@@ -109,9 +109,9 @@ method (PM week Thursday brief): RICE, MoSCoW, Value vs Effort and the North Sta
 reach, impact and confidence, so effort decides. F1 changes only the words and one help line.
 Custom labels mean changing `enum TaskTag` in `schema.graphql` and the mock, away from RAVN's API,
 and they need a colour rule for new labels, because the kit's tag has five colours. So F1 costs a
-sixth of the effort. F1 was also weighed a core problem in both sessions, and custom labels in one.
-The date-range filter scores second but moves neither the North Star nor a supporting signal, so it
-waits. The scores inform this call; they do not make it: the PM week Thursday brief names
+sixth of the effort. F1 was also weighed as a core problem in both sessions, and custom labels in
+one. The date-range filter scores second but moves neither the North Star nor a supporting signal,
+so it waits. The scores inform this call; they do not make it: the PM week Thursday brief names
 "Treating the score as the decision" as a trap.
 
 ## Top three risks
