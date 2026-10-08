@@ -61,10 +61,12 @@ data rather than the live API", `board-page.test.tsx`).
 | Partial           | Cannot happen: the options are not fetched, so none can be missing                              | As on the board: a failed refresh keeps the cards on screen, with a notice                                                   |
 | Permission denied | Cannot happen: the app has no login, and the options need no request                            | As on the board: a rejected token gets the error block with no Try again                                                     |
 
-Checked by: the form's success line in `create-task.test.tsx` and `update-delete-task.test.tsx`;
-the filter's first four lines in `search-filter.test.tsx`, and its last two by the board's tests
-above. A "Cannot happen" line comes from the code: `task-form-dialog.tsx` sets the start value, and
-the options are a constant in `board-filters.tsx` and the form.
+Checked by: for the form's success line, `create-task.test.tsx` and `update-delete-task.test.tsx`
+check the label, the description and the option names. The chip's text and the help line's place
+under it are checked in a browser only (the layout check below). The filter's first four lines
+are checked in `search-filter.test.tsx`, and its last two by the board's tests above. A "Cannot
+happen" line comes from the code: `task-form-dialog.tsx` sets the start value, and the options are
+one constant, `EFFORT_ITEMS` in `task-display.ts`, for the form and the filter.
 
 ## Where the build differs from Figma
 
