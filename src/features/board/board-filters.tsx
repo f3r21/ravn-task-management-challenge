@@ -1,17 +1,11 @@
 import { useId, useMemo } from 'react'
 import { AssigneeIcon, CalendarIcon, PointsIcon, TextButton } from '@ravn/ui-kit'
-import { EFFORT_HELP, effortLabel, pointValue, statusLabel } from './task-display'
+import { EFFORT_HELP, EFFORT_ITEMS, statusLabel } from './task-display'
 import { IconField } from './icon-field'
 import { OptionalSelect, TagMultiSelect } from './option-select'
 import type { SelectOption } from './select-option'
 import type { BoardFilters } from './use-board-filters'
-import {
-  ALL_POINT_ESTIMATES,
-  BOARD_STATUSES,
-  type PointEstimate,
-  type Status,
-  type User,
-} from './task-types'
+import { BOARD_STATUSES, type Status, type User } from './task-types'
 
 interface BoardFiltersBarProps {
   filters: BoardFilters
@@ -29,18 +23,13 @@ interface BoardFiltersBarProps {
   directoryUnavailable: boolean
 }
 
-// Derived from module constants, so these are built once at import rather than on
-// every render of the bar. The "any" entry is no longer here: `OptionalSelect`
-// owns that sentinel and the round trip back out of it, so these lists hold only
-// real choices and stay typed as their own enums.
+// Derived from module constants, so it is built once at import rather than on
+// every render of the bar, as `EFFORT_ITEMS` is. The "any" entry is not here:
+// `OptionalSelect` owns that sentinel and the round trip back out of it, so the
+// option lists hold only real choices and stay typed as their own enums.
 const STATUS_ITEMS: SelectOption<Status>[] = BOARD_STATUSES.map((id) => ({
   id,
   label: statusLabel(id),
-}))
-
-const POINT_ITEMS: SelectOption<PointEstimate>[] = ALL_POINT_ESTIMATES.map((id) => ({
-  id,
-  label: effortLabel(pointValue(id)),
 }))
 
 /**
@@ -100,7 +89,7 @@ export function BoardFiltersBar({
         placeholder="Effort"
         icon={<PointsIcon className="size-6 shrink-0" />}
         description={EFFORT_HELP}
-        options={POINT_ITEMS}
+        options={EFFORT_ITEMS}
         noneLabel="Any effort"
         value={filters.pointEstimate ?? null}
         onChange={(pointEstimate) => {

@@ -1,6 +1,7 @@
 import type { AccentColor } from '@ravn/ui-kit'
 import { assertNever } from '@/lib/assert-never'
-import type { PointEstimate, Status, TaskTag } from './task-types'
+import type { SelectOption } from './select-option'
+import { ALL_POINT_ESTIMATES, type PointEstimate, type Status, type TaskTag } from './task-types'
 
 /**
  * Turning API values into the words and colours the board shows.
@@ -173,3 +174,15 @@ export function effortLabel(points: number): string {
  * also says which end of the scale is small.
  */
 export const EFFORT_HELP = 'How much work it takes, not how urgent it is. 0 = tiny, 8 = big.'
+
+/**
+ * The five effort choices, smallest first, each with the words a person reads.
+ *
+ * One list for the form and the filter, so the two cannot offer different choices
+ * or word them apart. Built once at import: each item object is a key in the
+ * picker's collection cache (see `renderSelectOption`), so an array that keeps its
+ * identity across renders is never rebuilt.
+ */
+export const EFFORT_ITEMS: readonly SelectOption<PointEstimate>[] = ALL_POINT_ESTIMATES.map(
+  (id) => ({ id, label: effortLabel(pointValue(id)) }),
+)
