@@ -89,6 +89,10 @@ how the `resolved` check above reaches `package-lock.json` under a deny rule of 
 Deliberate friction, not a boundary. Component and icon counts are derived from that `.d.ts`
 file, never remembered.
 
+**To read the kit's source, fetch it at the pinned tag:**
+`gh api 'repos/f3r21/ravn-ui-kit/contents/<path>?ref=<tag>' --jq .content | base64 -d`, with
+`<tag>` read from `package.json` as above. Keep the quotes, because zsh reads a bare `?` as a glob.
+
 **`vite.config.ts`'s `dedupe` list is a no-op as committed, and kept anyway.** npm packs only
 what the kit's `files: ["dist"]` names and never installs a dependency's devDependencies, so
 `node_modules/@ravn/ui-kit` has no `node_modules` of its own and every bare specifier resolves up
