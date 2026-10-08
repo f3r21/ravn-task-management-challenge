@@ -328,6 +328,22 @@ describe('filters in the URL', () => {
     expect(inputs.at(-1)).toEqual({})
   })
 
+  it('drops an effort that is not one of the five, and shows "Any effort"', async () => {
+    // A hand-edited or stale link with a wrong effort opens the whole board, with
+    // the filter on its "no choice" entry, not an error screen or an empty board.
+    const inputs = recordTaskQueries()
+    await renderBoard('/?points=nonsense')
+
+    await waitFor(() => {
+      expect(inputs.length).toBeGreaterThan(0)
+    })
+    expect(inputs.at(-1)).toEqual({})
+    expect(screen.getByRole('button', { name: /filter by effort/i })).toHaveTextContent(
+      'Any effort',
+    )
+    expect(screen.getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
+  })
+
   it('drops a due date that is not a date, rather than sending it on', async () => {
     // `?due=nonsense` was concatenated into `nonsenseT00:00:00.000Z` and sent as a
     // `DateTime`, so the API rejected the request and a typo in a shared link became
