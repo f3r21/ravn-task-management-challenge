@@ -7,7 +7,10 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 - **Pull requests target `dev`**, the integration branch, and a direct push to `dev` is rejected.
   `main` only receives promotions of a verified-stable `dev`, and Vercel deploys `main` to
   production. An integration branch that `/implement-spec` creates is cut from `dev` and reaches
-  it through a pull request.
+  it through a pull request. Its ticket branches stay local: worktrees share the repo's refs, so
+  the orchestrator merges each one from its local branch and pushes only the integration branch.
+  Only a merged pull request deletes a remote branch, so a pushed ticket branch stays on origin
+  and reads as unmerged work.
 - **`Closes #<n>` closes nothing here**, because GitHub fires it only on a merge into the default
   branch (`main`). Keep the keyword for the link. Whoever merges the pull request closes the issue
   by hand afterwards, as `/finish-issue` step 8 shows.
