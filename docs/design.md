@@ -93,7 +93,8 @@ own on its composed pages; that gap is in [the risk register](qa/risk-register.m
 
 **Decision.** The field is called Effort and has one help line under it, in the form and in the
 filter, because P1 and P2 read "points" as priority. Only the words and one help line change;
-the API value, the data and the kit stay the same.
+the API value, the data and the kit stay the same. The address keeps its `points` key and the
+API's values, so a link shared before F1 still opens the same view.
 
 **Tokens.** The app adds no colour, size or token of its own. The kit's components set every
 value below.
