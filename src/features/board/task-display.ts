@@ -163,8 +163,8 @@ export function pointValue(estimate: PointEstimate): number {
  * Every value reads the same way, 0 and 1 included. The word comes before the
  * number, so there is no plural to get wrong.
  */
-export function effortLabel(points: number): string {
-  return `Effort ${String(points)}`
+export function effortLabel(effort: number): string {
+  return `Effort ${String(effort)}`
 }
 
 /**
