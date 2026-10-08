@@ -110,21 +110,22 @@ describe('the effort on a task, over the mock', () => {
    * Spec app#202's Seam 1 is the board as a person meets it, over the MSW mock.
    * `board-column.test.tsx` hands `Board` its tasks directly; this goes through the
    * query, the cache and the view switcher, and reads both views of one seeded task.
+   * Netflix redesign is the one seed task at effort 0, the low end of the scale.
    */
-  it.each([['Slack', 'Effort 4']])(
-    'shows %s as "%s" on its card and on its list row',
-    async (name, effort) => {
-      const user = userEvent.setup()
-      renderApp('/')
-      await waitForBoard()
+  it.each([
+    ['Slack', 'Effort 4'],
+    ['Netflix redesign', 'Effort 0'],
+  ])('shows %s as "%s" on its card and on its list row', async (name, effort) => {
+    const user = userEvent.setup()
+    renderApp('/')
+    await waitForBoard()
 
-      expect(within(screen.getByRole('article', { name })).getByText(effort)).toBeInTheDocument()
+    expect(within(screen.getByRole('article', { name })).getByText(effort)).toBeInTheDocument()
 
-      await user.click(screen.getByRole('radio', { name: /list view/i }))
+    await user.click(screen.getByRole('radio', { name: /list view/i }))
 
-      const row = screen.getAllByRole('row').find((r) => within(r).queryByRole('heading', { name }))
-      expect(row).toBeDefined()
-      expect(within(row as HTMLElement).getByText(effort)).toBeInTheDocument()
-    },
-  )
+    const row = screen.getAllByRole('row').find((r) => within(r).queryByRole('heading', { name }))
+    expect(row).toBeDefined()
+    expect(within(row as HTMLElement).getByText(effort)).toBeInTheDocument()
+  })
 })
