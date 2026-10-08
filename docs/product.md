@@ -45,16 +45,18 @@ assumptions above. Two people give a first signal, not a pattern.
 - **Second persona (untested).** A non-developer who hands work to developers.
 - **Problem: complicated.** P2 has the problem. P1 says a tool already meets that need. Nobody
   probed or tried its second half: a way to hand a teammate exactly the slice they need.
-- **The board.** The "Estimated points" field confused both participants. P1 found that the
-  tech-stack labels assume developers. P1 created a task; P2 created none.
+- **The board.** The points field confused both participants. On screen it read only "0 Points";
+  "Estimated points" was its accessible name. P1 found that the tech-stack labels assume
+  developers. P1 created a task; P2 created none.
 
 **F1: the estimate field says Effort and explains itself (app#202).** It is the first change
 the interviews led to. Their findings are above, and the usability-pilot research doc records
 [what changes because of them](research/usability-pilot.md#what-changes-because-of-this).
 
-- **Problem.** A person who is not a developer had to set a field called "Estimated points"
-  to create a task, and nothing said what points are. Both participants guessed that points
-  meant priority, so a task's size could be set and read as its urgency.
+- **Problem.** The create form showed a chip that read "0 Points", with no visible label, and
+  nothing said what points are. "Estimated points" was only its accessible name. Both
+  participants guessed that points meant priority, so a task's size could be set and read as its
+  urgency.
 - **Job story (assumption).** When I hand a piece of work to a teammate, I want to say how big
   it is in words we both understand, so I can trust that they read it the way I meant it.
 
