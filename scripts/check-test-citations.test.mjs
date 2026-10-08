@@ -21,13 +21,19 @@ const roots = []
 afterAll(() => roots.forEach((root) => rmSync(root, { recursive: true, force: true })))
 
 /**
- * Runs the real script over a throwaway tree. Both docs are written empty unless
- * a case gives them content, or `null` to leave one out.
+ * Runs the real script over a throwaway tree. A doc a case does not give is
+ * written with one citation that holds, because a doc citing nothing is itself a
+ * failure. Pass `null` to leave a doc out.
  */
 function run(files) {
   const root = mkdtempSync(join(tmpdir(), 'check-test-citations-'))
   roots.push(root)
-  const tree = { 'docs/product.md': '', 'docs/qa/test-map.md': '', ...files }
+  const tree = {
+    'docs/product.md': FILLER_DOC,
+    'docs/qa/test-map.md': FILLER_DOC,
+    'src/filler/filler.test.ts': "it('is cited', () => {})\n",
+    ...files,
+  }
   for (const [path, content] of Object.entries(tree)) {
     if (content === null) continue
     mkdirSync(dirname(join(root, path)), { recursive: true })
@@ -40,6 +46,8 @@ const table = (...rows) =>
   ['| Criterion | Test |', '| --- | --- |', ...rows.map((row) => `| ${row.join(' | ')} |`)].join(
     '\n',
   )
+
+const FILLER_DOC = table(['filler', "`filler.test.ts`: 'is cited'"])
 
 describe('check-test-citations.mjs', () => {
   it('names the doc line of a cited title its file does not have', () => {
@@ -57,7 +65,7 @@ describe('check-test-citations.mjs', () => {
       'src/features/create-task.test.tsx': "it('labels the effort field', () => {})\n",
     })
     expect(r.status, r.stderr).toBe(0)
-    expect(r.stdout).toMatch(/^test citations checked: 1, all found$/m)
+    expect(r.stdout).toMatch(/^docs\/qa\/test-map\.md: test citations checked: 1, all found$/m)
   })
 
   it('reads a title in double quotes', () => {
@@ -66,7 +74,7 @@ describe('check-test-citations.mjs', () => {
       'src/features/create-task.test.tsx': 'it("keeps the user\'s draft", () => {})\n',
     })
     expect(r.status, r.stderr).toBe(0)
-    expect(r.stdout).toMatch(/checked: 1,/)
+    expect(r.stdout).toMatch(/^docs\/qa\/test-map\.md: test citations checked: 1,/m)
   })
 
   it('matches an it.each title by its %s placeholders', () => {
@@ -78,7 +86,7 @@ describe('check-test-citations.mjs', () => {
       'src/features/board-page.test.tsx': `it.each([['Slack', 'Effort 4']])('shows %s as "%s" on its card', () => {})\n`,
     })
     expect(r.status, r.stderr).toBe(0)
-    expect(r.stdout).toMatch(/checked: 1,/)
+    expect(r.stdout).toMatch(/^docs\/qa\/test-map\.md: test citations checked: 1,/m)
   })
 
   it('reads a test title the source writes in backticks', () => {
@@ -95,7 +103,7 @@ describe('check-test-citations.mjs', () => {
       'e2e/deployed-proxy.spec.ts': "test('creates a task', async () => {})\n",
     })
     expect(r.status, r.stderr).toBe(0)
-    expect(r.stdout).toMatch(/checked: 1,/)
+    expect(r.stdout).toMatch(/^docs\/product\.md: test citations checked: 1,/m)
   })
 
   it('does not count the title when it is only text in the file, not a test', () => {
@@ -143,7 +151,7 @@ describe('check-test-citations.mjs', () => {
       'src/lib/task-display.test.ts': "it('writes every effort value', () => {})\n",
     })
     expect(r.status, r.stderr).toBe(0)
-    expect(r.stdout).toMatch(/checked: 2,/)
+    expect(r.stdout).toMatch(/^docs\/qa\/test-map\.md: test citations checked: 2,/m)
   })
 
   it('gives a table cell that starts with a title the file cited above it in its column', () => {
@@ -200,15 +208,32 @@ describe('check-test-citations.mjs', () => {
     expect(r.stderr).toMatch(/^docs\/qa\/test-map\.md: missing, so nothing in it was checked$/m)
   })
 
+  it('fails by name when one doc cites nothing it can read, though the other does', () => {
+    // The review's case: one doc's citation format changes, so it yields zero, and
+    // a total across both docs still reads as a pass on the other doc's count.
+    const r = run({
+      'docs/product.md': table(['open', "`create-task.test.tsx`: 'opens a named dialog'"]),
+      'docs/qa/test-map.md': table(['1', "`create-task.test.tsx` - 'labels the effort field'"]),
+      'src/features/create-task.test.tsx': [
+        "it('opens a named dialog', () => {})",
+        "it('labels the effort field', () => {})",
+        '',
+      ].join('\n'),
+    })
+    expect(r.status).toBe(1)
+    expect(r.stderr).toMatch(/^docs\/qa\/test-map\.md: found no test citations/m)
+    expect(r.stderr).not.toMatch(/docs\/product\.md/)
+  })
+
   it('fails rather than pass on zero when neither doc cites a test it can read', () => {
     const r = run({
+      'docs/product.md': table(['open', 'create-task.test.tsx: "opens a named dialog"']),
       'docs/qa/test-map.md': table(['1', 'create-task.test.tsx, "labels the effort field"']),
       'src/features/create-task.test.tsx': "it('labels the effort field', () => {})\n",
     })
     expect(r.status).toBe(1)
-    expect(r.stderr).toMatch(
-      /found no test citations in docs\/product\.md or docs\/qa\/test-map\.md/,
-    )
+    expect(r.stderr).toMatch(/^docs\/product\.md: found no test citations/m)
+    expect(r.stderr).toMatch(/^docs\/qa\/test-map\.md: found no test citations/m)
   })
 })
 

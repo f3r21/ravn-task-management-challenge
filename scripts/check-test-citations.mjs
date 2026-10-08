@@ -9,7 +9,7 @@
 //
 // `npm run gate` runs this through `scripts/check-test-citations.test.mjs`, the way
 // it runs `scripts/hooks.test.mjs`. By hand: `node scripts/check-test-citations.mjs`.
-// It prints how many citations it checked, so a pass says what it covered.
+// It prints how many citations it checked in each doc, so a pass says what it covered.
 //
 // **What it reads as a citation.** A backticked test file, a colon, and a run of
 // quoted titles:
@@ -167,7 +167,7 @@ function testTitlesIn(path) {
 
 const testFiles = [...testFilesUnder('src'), ...testFilesUnder('e2e')].sort()
 const problems = []
-let checked = 0
+const counts = []
 
 for (const doc of DOCS) {
   // A doc that moved would otherwise leave this checking one doc and passing.
@@ -175,8 +175,18 @@ for (const doc of DOCS) {
     problems.push(`${doc}: missing, so nothing in it was checked`)
     continue
   }
-  for (const { line, file, title } of citationsIn(readFileSync(join(ROOT, doc), 'utf8'))) {
-    checked++
+  const citations = citationsIn(readFileSync(join(ROOT, doc), 'utf8'))
+  // Zero is what a change to the citation format looks like from here: every
+  // citation stops matching and nothing is left to fail. It is counted per doc,
+  // because a total lets one doc's citations stand in for the other's. A review
+  // changed `file`: to `file` - in a copy of the test map, and the total read
+  // "checked: 12, all found", exit 0, with that doc's 11 citations unchecked.
+  if (citations.length === 0) {
+    problems.push(`${doc}: found no test citations; has the citation format changed?`)
+    continue
+  }
+  counts.push(`${doc}: test citations checked: ${citations.length}, all found`)
+  for (const { line, file, title } of citations) {
     const paths = testFiles.filter(
       (candidate) => candidate === file || candidate.endsWith(`/${file}`),
     )
@@ -193,12 +203,6 @@ for (const doc of DOCS) {
   }
 }
 
-// Zero is what a change to the citation format looks like from here: every
-// citation stops matching and nothing is left to fail. So zero fails.
-if (checked === 0 && problems.length === 0) {
-  problems.push(`found no test citations in ${DOCS.join(' or ')}; has the citation format changed?`)
-}
-
 for (const problem of problems) console.error(problem)
 if (problems.length > 0) process.exit(1)
-console.log(`test citations checked: ${checked}, all found`)
+for (const count of counts) console.log(count)
