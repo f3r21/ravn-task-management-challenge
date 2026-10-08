@@ -323,6 +323,10 @@ showed. So these agent runs, before and after, can show only that the new words 
 understanding. The real measure still needs a first-time human user. The pass rule stays as the
 spec wrote it.
 
+**Planned, not done: one human run.** On Thursday 2026-10-08, before the recording and if time
+allows, one person who is not a developer does the same task card. That run is the real measure,
+under the same pass rule.
+
 **Friction with the field.** It has no visible label and no meaning on screen. The form shows
 only a +/- icon and "0 Points". "Estimated points" is only its accessible name, and hovering
 shows nothing.
