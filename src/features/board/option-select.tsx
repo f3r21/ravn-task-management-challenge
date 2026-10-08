@@ -20,17 +20,22 @@ import { ALL_TAGS, type TaskTag } from './task-types'
 const NONE = '__none__'
 
 /**
- * Keeps the trigger at its own width when a `description` sits under it.
+ * Makes a select with a `description` exactly as wide as its trigger, so the
+ * description wraps under the chip instead of widening the field.
  *
- * A kit gap, ravn-ui-kit#166: the kit's `Select` stacks the trigger and the
- * description in a column that stretches its children. A description is wider than
- * the chip, so the chip stretched to the width of the sentence, with its arrow far
- * from its value. `docs/design.md`, "F1: the effort field", records it.
+ * The kit's `Select` stacks the trigger and the description in one column, which
+ * takes the width of the description on one line, and stretches the trigger to fill
+ * it. That is a kit gap, ravn-ui-kit#166. The effort help line is about 400px on
+ * one line, so the effort chip grew to 400px and pushed the filter bar onto two
+ * rows. `w-min` sizes the column to its widest part that cannot wrap, which is the
+ * chip, so the chip keeps its own width and the line wraps under it. The line is
+ * still the control's accessible description: only its width changes.
  *
  * Passed only with a description, the one case it was checked for. jsdom loads no
- * CSS, so this was checked in a browser, not by a test.
+ * CSS, so this was measured in a browser, not by a test: `docs/design.md`, "F1: the
+ * effort field", has the widths and the gap.
  */
-const KEEP_TRIGGER_WIDTH = 'items-start'
+const FIT_TO_TRIGGER = 'w-min'
 
 interface OptionalSelectProps<T extends string> {
   label: string
@@ -95,7 +100,7 @@ export function OptionalSelect<T extends string>({
       placeholder={placeholder}
       icon={icon}
       description={description}
-      className={description ? KEEP_TRIGGER_WIDTH : undefined}
+      className={description ? FIT_TO_TRIGGER : undefined}
       aria-describedby={describedBy}
       items={items}
       selectedKey={value ?? NONE}
@@ -151,7 +156,7 @@ export function RequiredSelect<T extends string>({
       placeholder={placeholder}
       icon={icon}
       description={description}
-      className={description ? KEEP_TRIGGER_WIDTH : undefined}
+      className={description ? FIT_TO_TRIGGER : undefined}
       items={options}
       selectedKey={value}
       onSelectionChange={(key) => {

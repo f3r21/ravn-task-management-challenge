@@ -125,24 +125,32 @@ fix goes in the kit. F1 changes no code for them.
 
 - **Side by side with the reference screen: the intended change only.** The reference is
   `docs/screenshots/create-task.jpg`, the dialog before F1. The chip read "0 Points" and now reads
-  "Effort 0", with the help line under it, so the owner and label pickers move down to the status
-  picker's row. Any other difference is older than F1.
+  "Effort 0", with the help line under it in three lines. The pickers keep their rows. Any other
+  difference is older than F1.
 - **Token check: pass, with one note.** Every colour, type size and radius on the chip, the help
   line, the card and the row is a kit token, except `text-xs` (above).
 - **Accessibility check: 6 meet, 3 do not**, all 3 in the kit (the table above).
+- **Layout check: pass after one fix.** Measured on 2026-10-07 in Chromium through Playwright, on
+  `npm run dev`, at 1280, 1366 and 1440px, each with no filter set and with a status filter set.
+  Before the fix, the effort filter was 397px wide, as wide as its help line on one line, and the
+  filter bar took two rows in five of the six cases. After it (`w-min`, below), the filter is as
+  wide as its chip, 163px, and the bar takes one row in all six. One case still takes two rows: at
+  1280px with the effort filter set, "Clear filters" needs 5px more than the row has. That was so
+  before F1 too, because "8 Points" is wider than "Effort 8". At 375px the bar wraps, as it did
+  before F1. No text is cut or hidden, and no page scrolls sideways. The form was checked at 1440
+  and 375px.
 
 **A kit gap: the trigger stretches to the width of its description** (ravn-ui-kit#166). The kit
-`Select` stacks the chip and the help line in one column that stretches its children, so the chip
-grew to the width of the sentence. The app passes `items-start` to a select only when it gives it a
-description, so the chip keeps its own width.
+`Select` stacks the chip and the help line in one column, as wide as the help line on one line,
+about 400px, and stretches the chip to fill it. The app passes `w-min` to a select only when it
+gives it a description. The column is then as wide as the chip, so the chip keeps its own width
+and the help line wraps under it. The line is still the control's accessible description.
 
-**The help line costs layout, and that is accepted.** The line is about 400px wide, so the effort
-filter is too. At 1280px the due-date filter moves to a second row, at 1440px "Clear filters"
-does when a filter is set, and at 375px the line wraps after "0 =". The filter row aligns its
-items to the top, so the chips stay in line. In the form, the effort chip takes a row of its own.
-The reason: the line is the fix. P2 asked for an explanation, the spec rules out a tooltip or an
-info icon, and a shorter line would drop "not how urgent it is", the part that answers the
-priority reading.
+**The help line costs height, not width, and that is accepted.** It adds three lines under the
+effort chip, so the filter bar and the form's first row are taller. The filter row aligns its
+items to the top, so the chips stay in line. The reason: the line is the fix. P2 asked for an
+explanation, the spec rules out a tooltip or an info icon, and a shorter line would drop "not how
+urgent it is", the part that answers the priority reading.
 
 **Unresolved.**
 
