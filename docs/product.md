@@ -129,7 +129,7 @@ F1's top three risks, on the same scale:
 | ------------------------------------------------------------------ | --------- | --------------------------------------------------------------------------------------------- |
 | A first-time user still reads Effort as priority                   | 2 × 2 = 4 | The help line says "not how urgent it is", and the blind check before and after reads it      |
 | The promotion to `main` breaks creating a task on production       | 1 × 3 = 3 | The promotion PR merges only on green CI; Vercel Instant Rollback undoes a bad deploy         |
-| One place keeps the old words, or Figma's "N Pts" comes back later | 1 × 2 = 2 | One formatter owns the wording, tests read all four places, the design doc records the reason |
+| One place keeps the old words, or Figma's "N Pts" comes back later | 1 × 2 = 2 | One formatter owns the wording, tests read all five places, the design doc records the reason |
 
 ## The core flow: create a task
 
@@ -137,7 +137,8 @@ F1's top three risks, on the same scale:
 checks it.
 
 - **Functional.** The field reads "Effort" wherever a person meets it: the form, the filter, the
-  card and the list row. Its values read "Effort N", for 0, 1, 2, 4 and 8.
+  card, the list row and the list's column header. Its values read "Effort N", for 0, 1, 2, 4
+  and 8.
 - **Functional.** The form and the filter show one help line under the field, "How much work it
   takes, not how urgent it is. 0 = tiny, 8 = big.", and a screen reader reads it as the field's
   description.
@@ -201,7 +202,7 @@ is the real measure.
 
 - **Ship criteria:** the gate and the build are green in CI, F1's acceptance criteria pass, the
   change is reviewed before it merges, and production shows "Effort" in the form, the filter,
-  the cards and the list rows.
+  the cards, the list rows and the list's column header.
 - **Owner:** Fernando Ramirez.
 - **Rollback trigger:** a report that someone cannot create a task, or a create test red on
   `main`. **How:** Vercel Instant Rollback. A failed blind check opens a follow-up issue instead.
