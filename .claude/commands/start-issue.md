@@ -10,7 +10,7 @@ sessions have open and which `git worktree list` will name for you:
 
 ```bash
 # Is the WORK startable? Everything below this line asks about the branch; this asks about the
-# issue. Any output → STOP, do not continue.
+# issue. Any output → STOP, do not continue. The first rule below holds the one exception.
 gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/issues/<n>/dependencies/blocked_by" \
    --jq '[.[] | select(.state == "open") | "#\(.number) \(.title)"] | .[]'
 
@@ -46,9 +46,14 @@ PR. Five rules, in the order the commands above apply them:
   read as available while the dependency graph said otherwise — permissively, which is the direction
   that gets acted on. The rule is `select(.state == "open")`: **a closed blocker is not a blocker.**
   `#30` carries one blocker and it is closed, so it is startable; filtering on whether a dependency
-  exists at all would refuse it. A lookup that fails is not a clear verdict — read the issue before
-  starting. `check-blocked.py` in the orchestration toolkit is the same endpoint and the same filter
-  with exit codes, for anything scripted.
+  exists at all would refuse it. **Under an integration branch (`/implement-spec`), a blocker
+  whose work is merged into that branch counts as resolved**, since its issue closes only once
+  that work reaches `dev`. Check it with
+  `git branch -a --merged <integration-branch> --list '*/<blocker>-*'`: any output means merged.
+  `-a` keeps a pushed ticket branch in view. A lookup that fails is not a clear verdict — read the
+  issue before starting. `check-blocked.py` in the orchestration toolkit is the same endpoint and
+  the same filter with exit codes, for anything scripted. It does not apply the integration-branch
+  exception.
 
   Re-derive the example rather than trusting it — these move, and this one already has:
 

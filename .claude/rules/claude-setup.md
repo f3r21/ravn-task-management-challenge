@@ -122,7 +122,7 @@ this, CI was decorative and a dependency PR merged straight into `main` unreview
   every merge into `dev` staleness-marks the other lane's open PR. A PR at
   `mergeStateStatus: BEHIND` is this rule, not a broken build.
 
-Merged branches delete themselves, so a branch still on the remote means unmerged work.
+A merged pull request deletes its branch, so a branch still on the remote means unmerged work.
 
 ## The lane provisioner
 
