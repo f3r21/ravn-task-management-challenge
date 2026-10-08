@@ -373,8 +373,8 @@ The agent's answer, verbatim:
 It took the answer from the help line, which it read under the filter and under the field.
 
 **What this pass means.** The answer restates the help line, and the run before also passed. So
-the agent runs show that the new words are read and understood, and that they break nothing.
-They cannot show that the change helps a person who is not a developer. The human run planned
+the agent runs show only that the new words are read and do not break understanding. They
+cannot show that the change helps a person who is not a developer. The human run planned
 above is still the real measure, and it is still planned, not done.
 
 **Friction with the field, after.**

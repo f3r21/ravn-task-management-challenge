@@ -211,9 +211,9 @@ is the real measure.
   `main`. **How:** Vercel Instant Rollback. A failed blind check opens a follow-up issue instead.
 - **Monitor:** the blind check, a rehearsal by an agent, not a user. Before, 2026-10-07 on
   `dcdc7e2`: pass; the agent said size and effort. After, 2026-10-08 on `297674f`: pass; the
-  agent restated the help line: how much work, not how urgent. Both pass, so the runs show that
-  the new words are read, understood and break nothing, not that they help a non-developer.
-  Planned, not done: on Thursday 2026-10-08, before the recording and if time allows, one
+  agent said how much work, not how urgent. Both pass, so the runs show only that the new words
+  are read and do not break understanding, not that they help a non-developer. Planned, not
+  done: on Thursday 2026-10-08, before the recording and if time allows, one
   person who is not a developer does the same task card, and that run is the real measure. Each
   result is in the usability-pilot research doc,
   [The effort field: blind check, before and after](research/usability-pilot.md#the-effort-field-blind-check-before-and-after).
@@ -234,8 +234,9 @@ unclear. Two people are a first signal, not a pattern.
 
 ## Now, next, later
 
-- **Now:** F1, the field says Effort and explains itself (app#202). It ranked first of
-  the eight findings ([what to build first](#after-the-interviews-what-to-build-first)). The two
+- **Now:** F1, the field says Effort and explains itself (app#202). It has been on production
+  since 2026-10-08 (`297674f`); the human run is still to do. It ranked first of the eight
+  findings ([what to build first](#after-the-interviews-what-to-build-first)). The two
   interviews are done, and their findings are in
   [The user and the problem](#the-user-and-the-problem). Keep the deployment on mock data with
   its banner. Keep CI green.
