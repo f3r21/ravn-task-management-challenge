@@ -6,8 +6,8 @@ evidence.
 
 Written on 2026-10-06, after the app was built. It reads the product back from what this
 repository already says. Every line that is inferred rather than recorded says
-**assumption**. Updated 2026-10-07 with the interview findings, paraphrased from a synthesis
-kept outside this repository, and with F1, the first change they led to.
+**assumption**. Updated 2026-10-07 and 2026-10-08 with the interview findings, paraphrased
+from a synthesis kept outside this repository, and with F1, the first change they led to.
 
 ## The user and the problem
 
@@ -52,7 +52,7 @@ assumptions above. Two people give a first signal, not a pattern.
 **F1: the field says Effort and explains itself (app#202).** It is the first change
 the interviews led to. Their findings are above. The usability-pilot research doc holds F1's
 blind check, under
-[What changes because of this](research/usability-pilot.md#what-changes-because-of-this).
+[The effort field: blind check, before and after](research/usability-pilot.md#the-effort-field-blind-check-before-and-after).
 
 - **Problem.** The create form showed a chip that read "0 Points", with no visible label
   ("Estimated points" was only its accessible name), and nothing said what points are. Both
@@ -128,11 +128,11 @@ product risks and are not in the QA register.
 
 F1's top three risks, on the same scale:
 
-| Risk                                                               | L × I     | Mitigation                                                                                    |
-| ------------------------------------------------------------------ | --------- | --------------------------------------------------------------------------------------------- |
-| A first-time user still reads Effort as priority                   | 2 × 2 = 4 | The help line says "not how urgent it is", and the blind check before and after reads it      |
-| The promotion to `main` breaks creating a task on production       | 1 × 3 = 3 | The promotion PR merges only on green CI; Vercel Instant Rollback undoes a bad deploy         |
-| One place keeps the old words, or Figma's "N Pts" comes back later | 1 × 2 = 2 | One formatter owns the wording, tests read all five places, the design doc records the reason |
+| Risk                                                               | L × I     | Mitigation                                                                                                                                                                 |
+| ------------------------------------------------------------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A first-time user still reads Effort as priority                   | 2 × 2 = 4 | The help line says "not how urgent it is", and the blind check before and after reads it                                                                                   |
+| The promotion to `main` breaks creating a task on production       | 1 × 3 = 3 | The promotion PR merges only on green CI; Vercel Instant Rollback undoes a bad deploy. Closed 2026-10-08: #212 promoted `297674f` on green CI, and the after check passed. |
+| One place keeps the old words, or Figma's "N Pts" comes back later | 1 × 2 = 2 | One formatter owns the wording, tests read all five places, the design doc records the reason                                                                              |
 
 ## The core flow: create a task
 
@@ -173,9 +173,9 @@ Every row but the E2E one runs in CI against the mock on every pull request.
 - **The one test of the deployment cannot pass.** Its last run, on 2026-10-06, failed 4 of
   5 tests because the API answered 404 (Actions run 37415458012). Its automatic trigger is
   off (`.github/workflows/e2e.yml`).
-- **What is green.** CI on 2026-10-06 (main run 37486098648): 489 tests in 39 files; coverage
-  97.72% of statements and 90.95% of branches against an 85% gate; 0 vulnerabilities in
-  production dependencies.
+- **What is green.** CI run 37812483869 on 2026-10-08 (the code on `dev`, and on `main` after
+  the promotion): 519 tests in 40 files; coverage 97.91% of statements and 91.28% of branches
+  against an 85% gate; 0 vulnerabilities in production dependencies.
 - **Two people outside the project have used it.** P1 and P2 each used the deployed board for
   a few minutes near the end of their interviews on 2026-10-07 ([Validated by](#validated-by)).
 
@@ -195,13 +195,13 @@ Effort field means. F1 moves it, and F1's blind check below reads it.
 
 ### F1's go or no-go
 
-**Success measure: a blind check before and after.** An agent playing a first-time user sees
-only the app and one task: "Create a task for a teammate. Then say, in one sentence, what the
-Effort field means." It runs on production once before the promotion, on the old "Estimated
-points" field, and once after it. It passes when the answer says amount or size of work,
-not priority or urgency. It is a rehearsal by an agent, not a user. An agent that knows "story
-points" can show only that the new words do not break understanding; a first-time human user
-is the real measure.
+**Success measure: a blind check before and after.** A rehearsal plays a first-time user who
+sees only the app and one task: "Create a task for a teammate. Then say, in one sentence, what
+the Effort field means." It runs on production once before the promotion, on the old
+"Estimated points" field, and once after it. It passes when the answer says amount or size of
+work, not priority or urgency. It is a rehearsal, not a user session. The rehearsal knows the
+term "story points", so it can show only that the new words do not break understanding; a
+first-time human user is the real measure.
 
 - **Ship criteria:** the gate and the build are green in CI, F1's acceptance criteria pass, the
   change is reviewed before it merges, and production shows "Effort" in the form, the filter,
@@ -209,12 +209,11 @@ is the real measure.
 - **Owner:** Fernando Ramirez.
 - **Rollback trigger:** a report that someone cannot create a task, or a create test red on
   `main`. **How:** Vercel Instant Rollback. A failed blind check opens a follow-up issue instead.
-- **Monitor:** the blind check, a rehearsal by an agent, not a user. Before, 2026-10-07 on
-  `dcdc7e2`: pass; the agent said size and effort. After, 2026-10-08 on `297674f`: pass; the
-  agent said how much work, not how urgent. Both pass, so the runs show only that the new words
-  are read and do not break understanding, not that they help a non-developer. Planned, not
-  done: on Thursday 2026-10-08, before the recording and if time allows, one
-  person who is not a developer does the same task card, and that run is the real measure. Each
+- **Monitor:** the blind check, a rehearsal, not a user session. Before, 2026-10-07 on
+  `dcdc7e2`: pass; the answer said size and effort. After, 2026-10-08 on `297674f`: pass; the
+  answer said how much work, not how urgent. Both pass, so the runs show only that the new
+  words are read and do not break understanding, not that they help a non-developer. The
+  human run: not run. A first-time human user is still the real measure and has no date. Each
   result is in the usability-pilot research doc,
   [The effort field: blind check, before and after](research/usability-pilot.md#the-effort-field-blind-check-before-and-after).
 - **Recommendation: go.** F1 changes only the words and one help line, not the API, the data or
@@ -235,8 +234,9 @@ unclear. Two people are a first signal, not a pattern.
 ## Now, next, later
 
 - **Now:** F1, the field says Effort and explains itself (app#202). It has been on production
-  since 2026-10-08 (`297674f`); the human run is still to do. It ranked first of the eight
-  findings ([what to build first](#after-the-interviews-what-to-build-first)). The two
+  since 2026-10-08 (`297674f`). The human run: not run. A first-time human user is still the
+  real measure and has no date. It ranked first of the eight findings
+  ([what to build first](#after-the-interviews-what-to-build-first)). The two
   interviews are done, and their findings are in
   [The user and the problem](#the-user-and-the-problem). Keep the deployment on mock data with
   its banner. Keep CI green.

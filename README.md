@@ -18,6 +18,8 @@ schema's wording, at no cost.
 
 ![The dashboard](docs/screenshots/dashboard.jpg)
 
+_Captured 2026-08-09, before F1: the board now says Effort where this shows Pts._
+
 ## What it does
 
 |                                                                                                         |                                                   |
@@ -125,9 +127,9 @@ then shows its error state instead of tasks. There is no separate "live mode" sw
 | **date-fns**                                               | This app uses date-fns to parse and validate API dates. It uses `Intl` with an explicit `timeZone` to format dates. See the UTC note below. It explains why a date library that reads local fields was the wrong tool for formatting.                                                                                                                                                         |
 | **clsx + tailwind-merge**                                  | One `cn` helper, so a component's class can override a variant's class instead of both landing in the output.                                                                                                                                                                                                                                                                                 |
 
-RAVN publishes these rules at [`ravnhq/ai-toolkit`](https://github.com/ravnhq/ai-toolkit):
-`platform-frontend`, `tech-react`, `design-frontend`, `tech-vitest`, `lang-typescript`,
-`figma-to-react-components`.
+RAVN published these rules at [`ravnhq/ai-toolkit`](https://github.com/ravnhq/ai-toolkit)
+(archived since June 2026): `platform-frontend`, `tech-react`, `design-frontend`,
+`tech-vitest`, `lang-typescript`, `figma-to-react-components`.
 
 ### Structure
 
@@ -196,7 +198,7 @@ same `updateTask` mutation a drop would call.
 This is the only checkbox the API's shape prevents. Two more differences follow. Both are
 the same kind of surprise. Neither one costs anything:
 
-- **§5 calls the points filter `EstimatedPoints`.** The schema names this field
+- **§5 calls the effort filter `EstimatedPoints`.** The schema names this field
   `pointEstimate` instead. The app's code follows the schema's name. On screen, the filter
   says Effort, since F1 ([Product](docs/product.md)). The filter itself works exactly as the
   brief asks. Only the name differs.
@@ -276,7 +278,7 @@ Three topics need more detail than a first read gives them. Each one has its own
 ## Product, design and QA
 
 What the app is for, how it looks and how it is tested, each read back after the build and
-dated 2026-10-06. F1 (Effort) was added to them on 2026-10-07:
+dated 2026-10-06. F1 (Effort) was added to them on 2026-10-07 and 2026-10-08:
 
 - **[Product](docs/product.md)**: the proto-persona (an assumption), what was built and cut,
   the go/no-go for production, and what comes next.
@@ -347,8 +349,8 @@ dated 2026-10-06. F1 (Effort) was added to them on 2026-10-07:
 - **Only Chromium has run in a real browser**, through the E2E spec, which cannot pass today.
   Firefox and Safari are declared in `browserslist` and checked by lint, but no test runs
   them, and no accessibility scan runs on the app's own pages.
-- **Development tooling carries known advisories:** 42 high and 1 critical in the full audit
-  on 2026-10-06. CI blocks only on production dependencies, which have none.
+- **Development tooling carries known advisories:** 38 high and 1 critical in the full audit
+  on 2026-10-08. CI blocks only on production dependencies, which have none.
 - **The next kit release breaks the build.** `@ravn/ui-kit` is pinned to `v0.9.0`; its
   unreleased renames cause five type errors and one tag colour regression (app#157).
 - **There is no sign-in.** The app shows one fixed user, and the deployment's `/api/graphql`
