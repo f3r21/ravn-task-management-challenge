@@ -50,17 +50,33 @@ Two more states from the Design week list, and where they live:
 A banner says when the board runs on mock data ("says when the board is running on mocked
 data rather than the live API", `board-page.test.tsx`).
 
+**The effort field and the effort filter (F1).** One line per state. "Cannot happen" says why.
+
+| State             | The effort field, in the create or edit form                                                    | The effort filter                                                                                                            |
+| ----------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Empty             | Cannot happen: a new task starts at "Effort 0", and the API has no value for "unset"            | "Any effort", so nothing is filtered. A filter that matches nothing shows "No tasks match these filters" and keeps its value |
+| Loading           | Cannot happen: the five options are built into the app, so nothing loads                        | The options never load. After a pick, the current cards stay until the narrowed list arrives                                 |
+| Error             | Cannot happen for the field: every option is a valid value. A failed save is the dialog's error | A failed query shows the board's error block, not the no-results state                                                       |
+| Success           | The chip reads "Effort N", with the help line under it                                          | Only the tasks with that effort; the choice is in the URL                                                                    |
+| Partial           | Cannot happen: the options are not fetched, so none can be missing                              | As on the board: a failed refresh keeps the cards on screen, with a notice                                                   |
+| Permission denied | Cannot happen: the app has no login, and the options need no request                            | As on the board: a rejected token gets the error block with no Try again                                                     |
+
+Checked by: the form's success line in `create-task.test.tsx` and `update-delete-task.test.tsx`;
+the filter's first four lines in `search-filter.test.tsx`, and its last two by the board's tests
+above. A "Cannot happen" line comes from the code: `task-form-dialog.tsx` sets the start value, and
+the options are a constant in `board-filters.tsx` and the form.
+
 ## Where the build differs from Figma
 
-| Figma draws                                           | The build                                                            | Why                                                                                                      | Written in                                                      |
-| ----------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| White on `primary-4` for the main button              | Ships as drawn, 3.83:1, below AA's 4.5:1                             | No colour in the palette fixes it; only a darker red would, and that is a brand change                   | `README.md`, "Decisions worth explaining"; kit Decisions §3     |
-| Three status columns                                  | Five columns at the drawn 348px, and the row scrolls sideways        | The brief lists five statuses; the mockup predates the schema                                            | `README.md`, "Decisions worth explaining"                       |
-| A search bar that is a `<button>`                     | A text field                                                         | A button cannot take typed text                                                                          | `README.md`, "Decisions worth explaining"                       |
-| "4 Pts" on the card, "4 Points" in the list row       | "Effort 4" on both, from the one effort formatter                    | P1 and P2 read points as priority in the interviews. Effort is a word they already know                  | `docs/product.md`; spec app#202                                 |
-| No field labels                                       | Every field has a label, visually hidden by default                  | A screen-reader user would otherwise meet an unnamed input                                               | kit Decisions §4                                                |
-| Tag and badge labels in the same colour as their fill | The fill stays as drawn; the label changes colour until it clears AA | The kit's rule: where Figma and accessibility collide, accessibility wins, and the ratio is written down | kit Decisions §2                                                |
-| A `Position` field on the settings page               | Not shown                                                            | The API's `User` type has no such field                                                                  | `README.md`, "Things the brief asks for that the API cannot do" |
+| Figma draws                                                  | The build                                                            | Why                                                                                                      | Written in                                                      |
+| ------------------------------------------------------------ | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| White on `primary-4` for the main button                     | Ships as drawn, 3.83:1, below AA's 4.5:1                             | No colour in the palette fixes it; only a darker red would, and that is a brand change                   | `README.md`, "Decisions worth explaining"; kit Decisions §3     |
+| Three status columns                                         | Five columns at the drawn 348px, and the row scrolls sideways        | The brief lists five statuses; the mockup predates the schema                                            | `README.md`, "Decisions worth explaining"                       |
+| A search bar that is a `<button>`                            | A text field                                                         | A button cannot take typed text                                                                          | `README.md`, "Decisions worth explaining"                       |
+| "4 Pts" on the card; "4 Points" under "Estimate" in the list | "Effort 4" on both, from the one effort formatter, under "Effort"    | P1 and P2 read points as priority in the interviews. Effort is a word they already know                  | `docs/product.md`; spec app#202                                 |
+| No field labels                                              | Every field has a label, visually hidden by default                  | A screen-reader user would otherwise meet an unnamed input                                               | kit Decisions §4                                                |
+| Tag and badge labels in the same colour as their fill        | The fill stays as drawn; the label changes colour until it clears AA | The kit's rule: where Figma and accessibility collide, accessibility wins, and the ratio is written down | kit Decisions §2                                                |
+| A `Position` field on the settings page                      | Not shown                                                            | The API's `User` type has no such field                                                                  | `README.md`, "Things the brief asks for that the API cannot do" |
 
 **The call-to-action is the one place "accessibility wins" does not win.** The kit's first
 rule is that no design value is invented, and the only fix here is a red Figma does not
@@ -69,3 +85,64 @@ contain. So it ships failing, the failure is asserted in the kit's
 
 **What is not checked.** The kit runs axe over every story in CI. The app runs no axe of its
 own on its composed pages; that gap is in [the risk register](qa/risk-register.md).
+
+## F1: the effort field
+
+**Decision.** The field is called Effort and has one help line under it, in the form and in the
+filter, because P1 and P2 read "points" as priority. Only the words change; the API value, the
+data and the kit stay the same.
+
+**Tokens.** The app adds no colour, size or token of its own. The kit's components set every
+value below.
+
+- The help line is the kit `Select`'s `description`: `text-muted-on-dark`
+  (`transparent-light-65`, white at 65%), 12px from `text-xs`. `text-xs` is Tailwind's own size,
+  not a kit token; the kit uses it for every field description.
+- The chip is the kit `Select` trigger: `bg-neutral-2/10`, `rounded-4`, `h-8` (32px),
+  `text-body-m` (15px) at weight 600, `text-main`.
+- The card and the row: `text-main` on `surface-panel`, 15px, weight 600 on the card and 400 in
+  the row.
+
+**Accessibility, measured on 2026-10-07** in Chromium through Playwright, on `npm run dev` at
+1440px. Contrast is against the background the text actually sits on.
+
+| Check                              | Bar                       | Measured                                                                                 | Result                                                                                                                                                           |
+| ---------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Help line contrast, form           | 4.5:1                     | 5.12:1 on `surface-overlay` (#393D41)                                                    | Meets                                                                                                                                                            |
+| Help line contrast, filter         | 4.5:1                     | 6.55:1 on `surface-shell` (#222528)                                                      | Meets                                                                                                                                                            |
+| "Effort 4" on the card and the row | 4.5:1                     | 13.45:1 on `surface-panel` (#2C2F33)                                                     | Meets                                                                                                                                                            |
+| Options in the open list           | 4.5:1                     | 10.95:1, and 6.67:1 for the picked one                                                   | Meets                                                                                                                                                            |
+| Help line is the description       | A screen reader reads it  | `aria-describedby` points at it, in the form and the filter                              | Meets. Tests: criterion 1 in the [test map](qa/test-map.md#f1-one-row-per-acceptance-criterion), and "explains the effort filter with the same line as the form" |
+| Target size, the chip              | 44×44                     | 144×32 in the form, 163×32 in the filter                                                 | **Does not meet**: 32px tall, as Figma draws the chip. It meets WCAG 2.2 AA's 24×24                                                                              |
+| Target size, an option             | 44×44                     | 160×36                                                                                   | **Does not meet**: 36px tall                                                                                                                                     |
+| Never colour alone                 | No meaning in colour only | The effort is a word and a number. The picked option also has a check mark and bold text | Meets                                                                                                                                                            |
+| List headers tied to cells         | WCAG 1.3.1                | The header row is plain `div`s outside the `table`, with no `th`                         | **Does not meet**. The cell still reads "Effort 4", so it names itself                                                                                           |
+
+The three that do not meet are in the kit's `Select`, its option list and its `TaskTable`, so a
+fix goes in the kit. F1 changes no code for them.
+
+**Verification pass.**
+
+- **Side by side with the reference screen: the intended change only.** The reference is
+  `docs/screenshots/create-task.jpg`, the dialog before F1. The chip read "0 Points" and now reads
+  "Effort 0", with the help line under it, so the owner and label pickers move down to the status
+  picker's row. Any other difference is older than F1.
+- **Token check: pass, with one note.** Every colour, type size and radius on the chip, the help
+  line, the card and the row is a kit token, except `text-xs` (above).
+- **Accessibility check: 6 meet, 3 do not**, all 3 in the kit (the table above).
+
+**The help line costs layout, and that is accepted.** The line is about 400px wide, so the effort
+filter is too. At 1280px the due-date filter moves to a second row, at 1440px "Clear filters"
+does when a filter is set, and at 375px the line wraps after "0 =". The filter row aligns its
+items to the top, so the chips stay in line. In the form, the effort chip takes a row of its own.
+The reason: the line is the fix. P2 asked for an explanation, the spec rules out a tooltip or an
+info icon, and a shorter line would drop "not how urgent it is", the part that answers the
+priority reading.
+
+**Unresolved.**
+
+- **The Figma file.** This repo does not link it, and it could not be opened here. The Figma
+  values above (the 32px chip, "Pts", "Points" and "Estimate") come from the kit's source, which
+  quotes Figma, not from the file.
+- **The help line's size and spacing.** Figma draws no help line, so there is no design value to
+  check them against. The line uses the kit's style for every field description.
