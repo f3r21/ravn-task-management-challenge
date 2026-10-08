@@ -274,7 +274,7 @@ Three topics need more detail than a first read gives them. Each one has its own
 ## Product, design and QA
 
 What the app is for, how it looks and how it is tested, each read back after the build and
-dated 2026-10-06:
+dated 2026-10-06. F1 (Effort) was added to them on 2026-10-07:
 
 - **[Product](docs/product.md)**: the proto-persona (an assumption), what was built and cut,
   the go/no-go for production, and what comes next.
