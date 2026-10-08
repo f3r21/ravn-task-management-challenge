@@ -95,9 +95,9 @@ data and the kit stay the same.
 **Tokens.** The app adds no colour, size or token of its own. The kit's components set every
 value below.
 
-- The help line is the kit `Select`'s `description`: `text-muted-on-dark`
-  (`transparent-light-65`, white at 65%), 12px from `text-xs`. `text-xs` is Tailwind's own size,
-  not a kit token; the kit uses it for every field description.
+- The help line is the kit `Select`'s `description`: `text-muted-on-dark` (`transparent-light-65`,
+  `rgba(239, 240, 246, 0.65)`: #EFF0F6 at 65%), 12px from `text-xs`. `text-xs` is Tailwind's own
+  size, not a kit token; the kit uses it for every field description.
 - The chip is the kit `Select` trigger: `bg-neutral-2/10`, `rounded-4`, `h-8` (32px),
   `text-body-m` (15px) at weight 600, `text-main`.
 - The card and the row: `text-main` on `surface-panel`, 15px, weight 600 on the card and 400 in
@@ -111,7 +111,7 @@ value below.
 | Help line contrast, form           | 4.5:1                     | 5.12:1 on `surface-overlay` (#393D41)                                                    | Meets                                                                                                                                                                               |
 | Help line contrast, filter         | 4.5:1                     | 6.55:1 on `surface-shell` (#222528)                                                      | Meets                                                                                                                                                                               |
 | "Effort 4" on the card and the row | 4.5:1                     | 13.45:1 on `surface-panel` (#2C2F33)                                                     | Meets                                                                                                                                                                               |
-| Options in the open list           | 4.5:1                     | 10.95:1, and 6.67:1 for the picked one                                                   | Meets                                                                                                                                                                               |
+| Options in the open list           | 4.5:1                     | 10.95:1. The picked one: 5.43:1, and 6.67:1 under focus                                  | Meets                                                                                                                                                                               |
 | Help line is the description       | A screen reader reads it  | `aria-describedby` points at it, in the form and the filter                              | Meets. Tests: criterion 1 in the [test map](qa/test-map.md#f1-one-row-per-acceptance-criterion), and 'labels the effort filter "Filter by effort" and explains it as the form does' |
 | Target size, the chip              | 44×44                     | 144×32 in the form, 163×32 in the filter                                                 | **Does not meet**: 32px tall, as Figma draws the chip. It meets WCAG 2.2 AA's 24×24                                                                                                 |
 | Target size, an option             | 44×44                     | 160×36                                                                                   | **Does not meet**: 36px tall                                                                                                                                                        |
