@@ -285,7 +285,8 @@ dated 2026-10-06. F1 (Effort) was added to them on 2026-10-07:
   each suite proves and does not prove.
 - **[Front interviews](docs/research/usability-pilot.md)**: P1 and P2, neither of them a
   developer, on 2026-10-07. A story-based interview, the problem statement read aloud, then a
-  few minutes on the deployed board. Results pending.
+  few minutes on the deployed board. The findings are in
+  [Product](docs/product.md#the-user-and-the-problem).
 
 ## Notes
 
