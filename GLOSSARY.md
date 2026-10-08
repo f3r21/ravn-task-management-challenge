@@ -1,6 +1,6 @@
 # Task board
 
-A board where a team lead creates tasks, gives them to teammates and follows them by status.
+A board where a small team creates tasks, gives them to teammates and follows them by status.
 
 ## Language
 

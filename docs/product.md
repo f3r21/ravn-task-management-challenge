@@ -45,16 +45,19 @@ assumptions above. Two people give a first signal, not a pattern.
 - **Second persona (untested).** A non-developer who hands work to developers.
 - **Problem: complicated.** P2 has the problem. P1 says a tool already meets that need. Nobody
   probed or tried its second half: a way to hand a teammate exactly the slice they need.
-- **The board.** The "Estimated points" field confused both participants. P1 found that the
-  tech-stack labels assume developers. P1 created a task; P2 created none.
+- **The board.** The points field confused both participants. On screen it read only "0 Points";
+  "Estimated points" was its accessible name. P1 found that the tech-stack labels assume
+  developers. P1 created a task; P2 created none.
 
-**F1: the estimate field says Effort and explains itself (app#202).** It is the first change
-the interviews led to. Their findings are above, and the usability-pilot research doc records
-[what changes because of them](research/usability-pilot.md#what-changes-because-of-this).
+**F1: the field says Effort and explains itself (app#202).** It is the first change
+the interviews led to. Their findings are above. The usability-pilot research doc holds F1's
+blind check, under
+[What changes because of this](research/usability-pilot.md#what-changes-because-of-this).
 
-- **Problem.** A person who is not a developer had to set a field called "Estimated points"
-  to create a task, and nothing said what points are. Both participants guessed that points
-  meant priority, so a task's size could be set and read as its urgency.
+- **Problem.** The create form showed a chip that read "0 Points", with no visible label, and
+  nothing said what points are. "Estimated points" was only its accessible name. Both
+  participants guessed that points meant priority, so a task's size could be set and read as its
+  urgency.
 - **Job story (assumption).** When I hand a piece of work to a teammate, I want to say how big
   it is in words we both understand, so I can trust that they read it the way I meant it.
 
@@ -81,7 +84,7 @@ method (PM week Thursday brief): RICE, MoSCoW, Value vs Effort and the North Sta
 - **The course's part.** The formula: RICE = Reach × Impact × Confidence ÷ Effort. The impact
   scale: 3 = massive, 2 = high, 1 = medium, 0.5 = low, 0.25 = minimal. The confidence anchors:
   100, 80 or 50% ("Prioritization frameworks", Atlassian, PM week Thursday). Effort is in
-  person-weeks.
+  person-weeks. Here, Effort means the work to build a change, not the task field F1 renames.
 - **Confidence is 50% in every row.** Two interviews with friends of the moderator are low data,
   and "low data means low confidence" (PM week Thursday brief).
 - **Our estimates, never measured.** Reach: of 10 people like the persona, how many meet this in
@@ -93,7 +96,7 @@ method (PM week Thursday brief): RICE, MoSCoW, Value vs Effort and the North Sta
 
 | Finding (seen in)                              | Reach                                       | Impact                                    | Effort (person-weeks) | RICE = R × I × C ÷ E           | MoSCoW      | Value vs Effort | North Star check                  |
 | ---------------------------------------------- | ------------------------------------------- | ----------------------------------------- | --------------------- | ------------------------------ | ----------- | --------------- | --------------------------------- |
-| F1: the estimate field is unclear (P1, P2)     | 8: set on every create, shown on every card | 1: friction when creating; nobody blocked | S, 0.05               | 8 × 1 × 0.5 ÷ 0.05 = **80**    | Should      | Quick win       | Moves it: creating a task         |
+| F1: what the field means is unclear (P1, P2)   | 8: set on every create, shown on every card | 1: friction when creating; nobody blocked | S, 0.05               | 8 × 1 × 0.5 ÷ 0.05 = **80**    | Should      | Quick win       | Moves it: creating a task         |
 | A date-range filter (P2)                       | 5: people who filter by date                | 1: "when it is due" is in the problem     | M, 0.1                | 5 × 1 × 0.5 ÷ 0.1 = **25**     | Could       | Quick win       | Orphan: filtering creates no task |
 | Custom labels (P1, P2)                         | 8: on every create and every card           | 1: a better fit, not a block              | L, 0.3                | 8 × 1 × 0.5 ÷ 0.3 = **13.3**   | Should      | Big bet         | Indirect, through creating        |
 | A + button per column (P1)                     | 8                                           | 0.25: a preference                        | M, 0.1                | 8 × 0.25 × 0.5 ÷ 0.1 = **10**  | Won't       | Do last         | Moves nothing                     |
@@ -103,12 +106,12 @@ method (PM week Thursday brief): RICE, MoSCoW, Value vs Effort and the North Sta
 | Smaller type and a sidebar that folds (P1, P2) | 8                                           | 0.25: a preference                        | L, 0.3                | 8 × 0.25 × 0.5 ÷ 0.3 = **3.3** | Won't       | Money pit       | Moves nothing                     |
 
 **Why F1 and not custom labels**, which both participants also asked for. The two have the same
-reach, impact and confidence, so effort decides. F1 changes words only. Custom labels mean
-changing `enum TaskTag` in `schema.graphql` and the mock, away from RAVN's API, and they need a
-colour rule for new labels, because the kit's tag has five colours. So F1 costs a sixth of the
-effort. F1 was also weighed a core problem in both sessions, and custom labels in one. The
-date-range filter scores second but moves neither the North Star nor a supporting signal, so it
-waits. The scores inform this call; they do not make it: the PM week Thursday brief names
+reach, impact and confidence, so effort decides. F1 changes only the words and one help line.
+Custom labels mean changing `enum TaskTag` in `schema.graphql` and the mock, away from RAVN's API,
+and they need a colour rule for new labels, because the kit's tag has five colours. So F1 costs a
+sixth of the effort. F1 was also weighed as a core problem in both sessions, and custom labels in
+one. The date-range filter scores second but moves neither the North Star nor a supporting signal,
+so it waits. The scores inform this call; they do not make it: the PM week Thursday brief names
 "Treating the score as the decision" as a trap.
 
 ## Top three risks
@@ -129,7 +132,7 @@ F1's top three risks, on the same scale:
 | ------------------------------------------------------------------ | --------- | --------------------------------------------------------------------------------------------- |
 | A first-time user still reads Effort as priority                   | 2 × 2 = 4 | The help line says "not how urgent it is", and the blind check before and after reads it      |
 | The promotion to `main` breaks creating a task on production       | 1 × 3 = 3 | The promotion PR merges only on green CI; Vercel Instant Rollback undoes a bad deploy         |
-| One place keeps the old words, or Figma's "N Pts" comes back later | 1 × 2 = 2 | One formatter owns the wording, tests read all four places, the design doc records the reason |
+| One place keeps the old words, or Figma's "N Pts" comes back later | 1 × 2 = 2 | One formatter owns the wording, tests read all five places, the design doc records the reason |
 
 ## The core flow: create a task
 
@@ -137,24 +140,25 @@ F1's top three risks, on the same scale:
 checks it.
 
 - **Functional.** The field reads "Effort" wherever a person meets it: the form, the filter, the
-  card and the list row. Its values read "Effort N", for 0, 1, 2, 4 and 8.
+  card, the list row and the list's column header. Its values read "Effort N", for 0, 1, 2, 4
+  and 8.
 - **Functional.** The form and the filter show one help line under the field, "How much work it
   takes, not how urgent it is. 0 = tiny, 8 = big.", and a screen reader reads it as the field's
   description.
 - **Non-functional.** The help line has a contrast ratio of at least 4.5:1 against its
   background.
 
-| Given                                 | When                                                 | Then                                                                                 | Checked by                                                                                                                     |
-| ------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| the board is open                     | I press the + button                                 | a dialog named "Create task" opens with focus in the title field                     | `create-task.test.tsx`: "opens a named dialog from the + button", "puts focus in the title field so the user can start typing" |
-| the title is empty                    | I submit                                             | nothing is sent, and the form says why                                               | "refuses to submit an empty title and says why"                                                                                |
-| the form is valid                     | I submit                                             | the card is on the board by the time "Task created" shows                            | "adds the created task to the board", 'has the card on the board by the time it says "Task created"'                           |
-| the API rejects the request           | I submit                                             | the dialog stays open and shows the reason                                           | "keeps the dialog open and shows the reason when the mutation fails"                                                           |
-| a real deployment and a reachable API | a browser creates, filters, edits and deletes a task | each step shows its notification and the task is gone at the end                     | `e2e/deployed-proxy.spec.ts`: "creates, filters, edits and deletes a task on the deployed proxy". **Cannot pass today**        |
-| F1: the create dialog is open         | I reach the effort field                             | it is labelled "Effort", and its accessible description is the help line             | `create-task.test.tsx`: 'labels the effort field "Effort" and explains it in one line'                                         |
-| F1: a task has effort 4               | the board and the list view show it                  | the card and the row both read "Effort 4"                                            | `board-column.test.tsx`: 'reads the effort as "Effort 4" (%s view)', run in the grid and the list view                         |
-| F1: tasks have different efforts      | I filter by "Effort 8"                               | only the tasks with effort 8 stay on the board                                       | `search-filter.test.tsx`: "sends a chosen effort to the API and keeps only the tasks with that effort"                         |
-| F1, unhappy: no task has effort 8     | I filter by "Effort 8"                               | the board says "No tasks match these filters", and the filter still reads "Effort 8" | "says nothing matches an effort no task has, and still shows the effort picked"                                                |
+| Given                                 | When                                                 | Then                                                                                 | Checked by                                                                                                                                                               |
+| ------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| the board is open                     | I press the + button                                 | a dialog named "Create task" opens with focus in the title field                     | `create-task.test.tsx`: "opens a named dialog from the + button", "puts focus in the title field so the user can start typing"                                           |
+| the title is empty                    | I submit                                             | nothing is sent, and the form says why                                               | "refuses to submit an empty title and says why"                                                                                                                          |
+| the form is valid                     | I submit                                             | the card is on the board by the time "Task created" shows                            | "adds the created task to the board", 'has the card on the board by the time it says "Task created"'                                                                     |
+| the API rejects the request           | I submit                                             | the dialog stays open and shows the reason                                           | "keeps the dialog open and shows the reason when the mutation fails"                                                                                                     |
+| a real deployment and a reachable API | a browser creates, filters, edits and deletes a task | each step shows its notification and the task is gone at the end                     | `e2e/deployed-proxy.spec.ts`: "creates, filters, edits and deletes a task on the deployed proxy". **Cannot pass today**                                                  |
+| F1: the create dialog is open         | I reach the effort field                             | it is labelled "Effort", and its accessible description is the help line             | `create-task.test.tsx`: 'labels the effort field "Effort" and explains it in one line'                                                                                   |
+| F1: a task has effort 4               | the board and the list view show it                  | the card and the row both read "Effort 4"                                            | `board-page.test.tsx`: 'shows %s as "%s" on its card and on its list row', for Slack, over the mock; `board-column.test.tsx`: 'reads the effort as "Effort 4" (%s view)' |
+| F1: tasks have different efforts      | I filter by "Effort 8"                               | only the tasks with effort 8 stay on the board                                       | `search-filter.test.tsx`: "sends a chosen effort to the API and keeps only the tasks with that effort (%s)", at 8 and at 0                                               |
+| F1, unhappy: no task has effort 8     | I filter by "Effort 8"                               | the board says "No tasks match these filters", and the filter still reads "Effort 8" | "says nothing matches an effort no task has, and still shows the effort picked"                                                                                          |
 
 Every row but the E2E one runs in CI against the mock on every pull request.
 [`qa/test-map.md`](qa/test-map.md) says what each suite proves and what it does not.
@@ -169,7 +173,7 @@ Every row but the E2E one runs in CI against the mock on every pull request.
 - **The one test of the deployment cannot pass.** Its last run, on 2026-10-06, failed 4 of
   5 tests because the API answered 404 (Actions run 37415458012). Its automatic trigger is
   off (`.github/workflows/e2e.yml`).
-- **What is green.** CI on 2026-10-06 (run 37479127953): 489 tests in 39 files; coverage
+- **What is green.** CI on 2026-10-06 (main run 37486098648): 489 tests in 39 files; coverage
   97.72% of statements and 90.95% of branches against an 85% gate; 0 vulnerabilities in
   production dependencies.
 - **Two people outside the project have used it.** P1 and P2 each used the deployed board for
@@ -201,16 +205,19 @@ is the real measure.
 
 - **Ship criteria:** the gate and the build are green in CI, F1's acceptance criteria pass, the
   change is reviewed before it merges, and production shows "Effort" in the form, the filter,
-  the cards and the list rows.
+  the cards, the list rows and the list's column header.
 - **Owner:** Fernando Ramirez.
 - **Rollback trigger:** a report that someone cannot create a task, or a create test red on
   `main`. **How:** Vercel Instant Rollback. A failed blind check opens a follow-up issue instead.
-- **Monitor:** the blind check, before and after. Each result goes, with its date, in the
+- **Monitor:** the blind check, a rehearsal by an agent, not a user. Before, 2026-10-07 on
+  `dcdc7e2`: pass; the agent said size and effort. After: pending (app#209). Planned, not done:
+  on Thursday 2026-10-08, before the recording and if time allows, one person who is not a
+  developer does the same task card, and that run is the real measure. Each result is in the
   usability-pilot research doc,
   [The effort field: blind check, before and after](research/usability-pilot.md#the-effort-field-blind-check-before-and-after).
-- **Recommendation: go.** F1 changes words only, not the API, the data or the kit, so it is
-  cheap to undo, and it fixes a core problem that both participants hit. The no-go above stands:
-  the deployment stays a demo on seeded data.
+- **Recommendation: go.** F1 changes only the words and one help line, not the API, the data or
+  the kit, so it is cheap to undo, and it fixes a core problem that both participants hit. The
+  no-go above stands: the deployment stays a demo on seeded data.
 
 ## Validated by
 
@@ -225,12 +232,13 @@ unclear. Two people are a first signal, not a pattern.
 
 ## Now, next, later
 
-- **Now:** F1, the estimate field says Effort and explains itself (app#202). It ranked first of
+- **Now:** F1, the field says Effort and explains itself (app#202). It ranked first of
   the eight findings ([what to build first](#after-the-interviews-what-to-build-first)). The two
   interviews are done, and their findings are in
   [The user and the problem](#the-user-and-the-problem). Keep the deployment on mock data with
   its banner. Keep CI green.
-- **Next:** write the interviews' findings into the risk register. When the API returns, point
+- **Next:** decide on custom labels, the one core problem from the interviews that F1 does not
+  fix (R13 in the [risk register](qa/risk-register.md)). When the API returns, point
   `VITE_API_URL` back at the proxy and turn the E2E trigger on. Bump the kit past its breaking
   renames (app#157).
 - **Later:** drag and drop, if people are seen changing status often; the 2026-10-07 interviews

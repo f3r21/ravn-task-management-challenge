@@ -307,9 +307,21 @@ These runs are a rehearsal by an agent (`pilot-runner`), not by a user.
 | After  | Pending, app#209 | Pending           | Pending            | Pending         | Pending |
 
 **Before, 2026-10-07.** The task card: "Create a task for a teammate. Then say, in one sentence,
-what the Estimated points field means." The agent created the task in 9 actions and 1 minute 45
-seconds, with 4 hesitations. The rule against quotes above is for participants, so the agent's
-answer stays verbatim:
+what the Estimated points field means." The agent's steps:
+
+1. Opened the board, which held 7 seeded tasks.
+2. Pressed the "+" button ("Create task"). The dialog opened.
+3. Typed a title.
+4. Opened the chip that read "0 Points". The options read "0 Points", "1 Point", "2 Points",
+   "4 Points" and "8 Points".
+5. Picked "2 Points".
+6. Hovered the chip to look for an explanation. Nothing appeared.
+7. Opened the assignee picker: "Unassigned" and four seeded users.
+8. Picked a teammate.
+9. Left the label empty and the status and due date as they were, and pressed "Create". The
+   dialog closed and "Task created" showed.
+
+The rule against quotes above is for participants, so the agent's answer stays verbatim:
 
 > Estimated points is the guessed size of a task, meaning how much effort it should take, picked
 > from a 0, 1, 2, 4 or 8 scale and shown on each card as 'Pts', although the app never says what
@@ -322,6 +334,10 @@ change. An agent that knows the term "story points" does not show the confusion 
 showed. So these agent runs, before and after, can show only that the new words do not break
 understanding. The real measure still needs a first-time human user. The pass rule stays as the
 spec wrote it.
+
+**Planned, not done: one human run.** On Thursday 2026-10-08, before the recording and if time
+allows, one person who is not a developer does the same task card. That run is the real measure,
+under the same pass rule.
 
 **Friction with the field.** It has no visible label and no meaning on screen. The form shows
 only a +/- icon and "0 Points". "Estimated points" is only its accessible name, and hovering

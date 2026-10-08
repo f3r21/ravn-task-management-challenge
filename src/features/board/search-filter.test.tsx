@@ -131,12 +131,16 @@ describe('filtering', () => {
     })
   })
 
-  it('explains the effort filter with the same line as the form', async () => {
+  it('labels the effort filter "Filter by effort" and explains it as the form does', async () => {
     // A person may filter before they ever open the form, so the filter carries
     // the explanation too, as what a screen reader says on reaching the control.
+    // The label is matched exactly, as the form's is: a pattern would also pass on
+    // a longer label that only starts with these words.
     await renderBoard()
 
-    expect(screen.getByRole('button', { name: /filter by effort/i })).toHaveAccessibleDescription(
+    expect(
+      screen.getByLabelText('Filter by effort', { selector: 'button' }),
+    ).toHaveAccessibleDescription(
       'How much work it takes, not how urgent it is. 0 = tiny, 8 = big.',
     )
   })
@@ -159,24 +163,31 @@ describe('filtering', () => {
   // The three filters below had no test of any kind: their handlers were the only
   // uncovered lines in the file, so a crossed wire between two adjacent controls
   // would not have been caught by anything.
-  it('sends a chosen effort to the API and keeps only the tasks with that effort', async () => {
-    // Samsung is the one seed task with effort 8. The board must hold it and
-    // nothing else, so every card heading is compared, not just one that left.
-    const inputs = recordTaskQueries()
-    const { user } = await renderBoard()
+  it.each([
+    ['Effort 8', 'EIGHT', 'Samsung'],
+    ['Effort 0', 'ZERO', 'Netflix redesign'],
+  ])(
+    'sends a chosen effort to the API and keeps only the tasks with that effort (%s)',
+    async (option, apiValue, onlyTask) => {
+      // The two ends of the scale. Samsung is the one seed task with effort 8 and
+      // Netflix redesign the one with effort 0. The board must hold that task and
+      // nothing else, so every card heading is compared, not just one that left.
+      const inputs = recordTaskQueries()
+      const { user } = await renderBoard()
 
-    await user.click(screen.getByRole('button', { name: /filter by effort/i }))
-    await user.click(await screen.findByRole('option', { name: 'Effort 8' }))
+      await user.click(screen.getByRole('button', { name: /filter by effort/i }))
+      await user.click(await screen.findByRole('option', { name: option }))
 
-    await waitFor(() => {
-      expect(inputs.at(-1)).toMatchObject({ pointEstimate: 'EIGHT' })
-    })
-    await waitFor(() => {
-      expect(
-        screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent),
-      ).toEqual(['Samsung'])
-    })
-  })
+      await waitFor(() => {
+        expect(inputs.at(-1)).toMatchObject({ pointEstimate: apiValue })
+      })
+      await waitFor(() => {
+        expect(
+          screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent),
+        ).toEqual([onlyTask])
+      })
+    },
+  )
 
   it('says nothing matches an effort no task has, and still shows the effort picked', async () => {
     // The filter keeps its value on an empty board, so the person can see why the
@@ -283,8 +294,9 @@ describe('filters in the URL', () => {
   })
 
   it('reads an effort from the address and shows it on the filter', async () => {
-    // Only the words changed, so a link shared before the rename still opens the
-    // same view: the key is still `points` and the value is still the API's.
+    // The words changed, not the values, so a link shared before the rename still
+    // opens the same view: the key is still `points` and the value is still the
+    // API's.
     const inputs = recordTaskQueries()
     await renderBoard('/?points=EIGHT')
 
@@ -315,6 +327,22 @@ describe('filters in the URL', () => {
       expect(inputs.length).toBeGreaterThan(0)
     })
     expect(inputs.at(-1)).toEqual({})
+  })
+
+  it('drops an effort that is not one of the five, and shows "Any effort"', async () => {
+    // A hand-edited or stale link with a wrong effort opens the whole board, with
+    // the filter on its "no choice" entry, not an error screen or an empty board.
+    const inputs = recordTaskQueries()
+    await renderBoard('/?points=nonsense')
+
+    await waitFor(() => {
+      expect(inputs.length).toBeGreaterThan(0)
+    })
+    expect(inputs.at(-1)).toEqual({})
+    expect(screen.getByRole('button', { name: /filter by effort/i })).toHaveTextContent(
+      'Any effort',
+    )
+    expect(screen.getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
   })
 
   it('drops a due date that is not a date, rather than sending it on', async () => {

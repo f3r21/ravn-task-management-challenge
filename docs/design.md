@@ -51,6 +51,8 @@ A banner says when the board runs on mock data ("says when the board is running 
 data rather than the live API", `board-page.test.tsx`).
 
 **The effort field and the effort filter (F1).** One line per state. "Cannot happen" says why.
+The placeholder "Effort" never shows: the form starts at "Effort 0" and the filter at "Any
+effort".
 
 | State             | The effort field, in the create or edit form                                                    | The effort filter                                                                                                            |
 | ----------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -61,10 +63,12 @@ data rather than the live API", `board-page.test.tsx`).
 | Partial           | Cannot happen: the options are not fetched, so none can be missing                              | As on the board: a failed refresh keeps the cards on screen, with a notice                                                   |
 | Permission denied | Cannot happen: the app has no login, and the options need no request                            | As on the board: a rejected token gets the error block with no Try again                                                     |
 
-Checked by: the form's success line in `create-task.test.tsx` and `update-delete-task.test.tsx`;
-the filter's first four lines in `search-filter.test.tsx`, and its last two by the board's tests
-above. A "Cannot happen" line comes from the code: `task-form-dialog.tsx` sets the start value, and
-the options are a constant in `board-filters.tsx` and the form.
+Checked by: for the form's success line, `create-task.test.tsx` and `update-delete-task.test.tsx`
+check the label, the description and the option names. The chip's text and the help line's place
+under it are checked only in Chromium through Playwright (the layout check below). The filter's
+first four lines are checked in `search-filter.test.tsx`, and its last two by the board's tests
+above. A "Cannot happen" line comes from the code: `task-form-dialog.tsx` sets the start value,
+and the options are one constant, `EFFORT_ITEMS` in `task-display.ts`, for the form and the filter.
 
 ## Where the build differs from Figma
 
@@ -74,6 +78,7 @@ the options are a constant in `board-filters.tsx` and the form.
 | Three status columns                                         | Five columns at the drawn 348px, and the row scrolls sideways        | The brief lists five statuses; the mockup predates the schema                                            | `README.md`, "Decisions worth explaining"                       |
 | A search bar that is a `<button>`                            | A text field                                                         | A button cannot take typed text                                                                          | `README.md`, "Decisions worth explaining"                       |
 | "4 Pts" on the card; "4 Points" under "Estimate" in the list | "Effort 4" on both, from the one effort formatter, under "Effort"    | P1 and P2 read points as priority in the interviews. Effort is a word they already know                  | `docs/product.md`; spec app#202                                 |
+| No help line under a field                                   | One help line under the effort field, in the form and the filter     | P2 asked for an explanation of the field, and the spec rules out a tooltip or an info icon               | `docs/product.md`; spec app#202                                 |
 | No field labels                                              | Every field has a label, visually hidden by default                  | A screen-reader user would otherwise meet an unnamed input                                               | kit Decisions §4                                                |
 | Tag and badge labels in the same colour as their fill        | The fill stays as drawn; the label changes colour until it clears AA | The kit's rule: where Figma and accessibility collide, accessibility wins, and the ratio is written down | kit Decisions §2                                                |
 | A `Position` field on the settings page                      | Not shown                                                            | The API's `User` type has no such field                                                                  | `README.md`, "Things the brief asks for that the API cannot do" |
@@ -89,15 +94,16 @@ own on its composed pages; that gap is in [the risk register](qa/risk-register.m
 ## F1: the effort field
 
 **Decision.** The field is called Effort and has one help line under it, in the form and in the
-filter, because P1 and P2 read "points" as priority. Only the words change; the API value, the
-data and the kit stay the same.
+filter, because P1 and P2 read "points" as priority. Only the words and one help line change;
+the API value, the data and the kit stay the same. The address keeps its `points` key and the
+API's values, so a link shared before F1 still opens the same view.
 
 **Tokens.** The app adds no colour, size or token of its own. The kit's components set every
 value below.
 
-- The help line is the kit `Select`'s `description`: `text-muted-on-dark`
-  (`transparent-light-65`, white at 65%), 12px from `text-xs`. `text-xs` is Tailwind's own size,
-  not a kit token; the kit uses it for every field description.
+- The help line is the kit `Select`'s `description`: `text-muted-on-dark` (`transparent-light-65`,
+  `rgba(239, 240, 246, 0.65)`: #EFF0F6 at 65%), 12px from `text-xs`. `text-xs` is Tailwind's own
+  size, not a kit token; the kit uses it for every field description.
 - The chip is the kit `Select` trigger: `bg-neutral-2/10`, `rounded-4`, `h-8` (32px),
   `text-body-m` (15px) at weight 600, `text-main`.
 - The card and the row: `text-main` on `surface-panel`, 15px, weight 600 on the card and 400 in
@@ -106,17 +112,17 @@ value below.
 **Accessibility, measured on 2026-10-07** in Chromium through Playwright, on `npm run dev` at
 1440px. Contrast is against the background the text actually sits on.
 
-| Check                              | Bar                       | Measured                                                                                 | Result                                                                                                                                                           |
-| ---------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Help line contrast, form           | 4.5:1                     | 5.12:1 on `surface-overlay` (#393D41)                                                    | Meets                                                                                                                                                            |
-| Help line contrast, filter         | 4.5:1                     | 6.55:1 on `surface-shell` (#222528)                                                      | Meets                                                                                                                                                            |
-| "Effort 4" on the card and the row | 4.5:1                     | 13.45:1 on `surface-panel` (#2C2F33)                                                     | Meets                                                                                                                                                            |
-| Options in the open list           | 4.5:1                     | 10.95:1, and 6.67:1 for the picked one                                                   | Meets                                                                                                                                                            |
-| Help line is the description       | A screen reader reads it  | `aria-describedby` points at it, in the form and the filter                              | Meets. Tests: criterion 1 in the [test map](qa/test-map.md#f1-one-row-per-acceptance-criterion), and "explains the effort filter with the same line as the form" |
-| Target size, the chip              | 44×44                     | 144×32 in the form, 163×32 in the filter                                                 | **Does not meet**: 32px tall, as Figma draws the chip. It meets WCAG 2.2 AA's 24×24                                                                              |
-| Target size, an option             | 44×44                     | 160×36                                                                                   | **Does not meet**: 36px tall                                                                                                                                     |
-| Never colour alone                 | No meaning in colour only | The effort is a word and a number. The picked option also has a check mark and bold text | Meets                                                                                                                                                            |
-| List headers tied to cells         | WCAG 1.3.1                | The header row is plain `div`s outside the `table`, with no `th`                         | **Does not meet**. The cell still reads "Effort 4", so it names itself                                                                                           |
+| Check                              | Bar                       | Measured                                                                                 | Result                                                                                                                                                                              |
+| ---------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Help line contrast, form           | 4.5:1                     | 5.12:1 on `surface-overlay` (#393D41)                                                    | Meets                                                                                                                                                                               |
+| Help line contrast, filter         | 4.5:1                     | 6.55:1 on `surface-shell` (#222528)                                                      | Meets                                                                                                                                                                               |
+| "Effort 4" on the card and the row | 4.5:1                     | 13.45:1 on `surface-panel` (#2C2F33)                                                     | Meets                                                                                                                                                                               |
+| Options in the open list           | 4.5:1                     | 10.95:1. The picked one: 5.43:1, and 6.67:1 under focus                                  | Meets                                                                                                                                                                               |
+| Help line is the description       | A screen reader reads it  | `aria-describedby` points at it, in the form and the filter                              | Meets. Tests: criterion 1 in the [test map](qa/test-map.md#f1-one-row-per-acceptance-criterion), and 'labels the effort filter "Filter by effort" and explains it as the form does' |
+| Target size, the chip              | 44×44                     | 144×32 in the form, 163×32 in the filter                                                 | **Does not meet**: 32px tall, as Figma draws the chip. It meets WCAG 2.2 AA's 24×24                                                                                                 |
+| Target size, an option             | 44×44                     | 160×36                                                                                   | **Does not meet**: 36px tall                                                                                                                                                        |
+| Never colour alone                 | No meaning in colour only | The effort is a word and a number. The picked option also has a check mark and bold text | Meets                                                                                                                                                                               |
+| List headers tied to cells         | WCAG 1.3.1                | The header row is plain `div`s outside the `table`, with no `th`                         | **Does not meet**. The cell still reads "Effort 4", so it names itself                                                                                                              |
 
 The three that do not meet are in the kit's `Select`, its option list and its `TaskTable`, so a
 fix goes in the kit. F1 changes no code for them.
@@ -125,19 +131,32 @@ fix goes in the kit. F1 changes no code for them.
 
 - **Side by side with the reference screen: the intended change only.** The reference is
   `docs/screenshots/create-task.jpg`, the dialog before F1. The chip read "0 Points" and now reads
-  "Effort 0", with the help line under it, so the owner and label pickers move down to the status
-  picker's row. Any other difference is older than F1.
+  "Effort 0", with the help line under it in three lines. The pickers keep their rows. Any other
+  difference is older than F1.
 - **Token check: pass, with one note.** Every colour, type size and radius on the chip, the help
   line, the card and the row is a kit token, except `text-xs` (above).
 - **Accessibility check: 6 meet, 3 do not**, all 3 in the kit (the table above).
+- **Layout check: pass after one fix.** Measured on 2026-10-07 in Chromium through Playwright, on
+  `npm run dev`, at 1280, 1366 and 1440px, each with no filter set and with a status filter set.
+  Before the fix, the effort filter was 397px wide, as wide as its help line on one line, and the
+  filter bar took two rows in five of the six cases. After it (`w-min`, below), the filter is as
+  wide as its chip, 163px, and the bar takes one row in all six. One case still takes two rows: at
+  1280px with the effort filter set, "Clear filters" needs 5px more than the row has. That was so
+  before F1 too, because "8 Points" is wider than "Effort 8". At 375px the bar wraps, as it did
+  before F1. No text is cut or hidden, and no page scrolls sideways. The form was checked at 1440
+  and 375px.
 
-**The help line costs layout, and that is accepted.** The line is about 400px wide, so the effort
-filter is too. At 1280px the due-date filter moves to a second row, at 1440px "Clear filters"
-does when a filter is set, and at 375px the line wraps after "0 =". The filter row aligns its
-items to the top, so the chips stay in line. In the form, the effort chip takes a row of its own.
-The reason: the line is the fix. P2 asked for an explanation, the spec rules out a tooltip or an
-info icon, and a shorter line would drop "not how urgent it is", the part that answers the
-priority reading.
+**A kit gap: the trigger stretches to the width of its description** (ravn-ui-kit#166). The kit
+`Select` stacks the chip and the help line in one column, as wide as the help line on one line,
+about 400px, and stretches the chip to fill it. The app passes `w-min` to a select only when it
+gives it a description. The column is then as wide as the chip, so the chip keeps its own width
+and the help line wraps under it. The line is still the control's accessible description.
+
+**The help line costs height, not width, and that is accepted.** It adds three lines under the
+effort chip, so the filter bar and the form's first row are taller. The filter row aligns its
+items to the top, so the chips stay in line. The reason: the line is the fix. P2 asked for an
+explanation, the spec rules out a tooltip or an info icon, and a shorter line would drop "not how
+urgent it is", the part that answers the priority reading.
 
 **Unresolved.**
 

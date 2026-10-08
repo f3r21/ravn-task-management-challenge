@@ -20,15 +20,22 @@ import { ALL_TAGS, type TaskTag } from './task-types'
 const NONE = '__none__'
 
 /**
- * Keeps the trigger at its own width when a `description` sits under it.
+ * Makes a select with a `description` exactly as wide as its trigger, so the
+ * description wraps under the chip instead of widening the field.
  *
- * The kit's `Select` stacks the trigger and the description in a column that
- * stretches its children. A description is wider than the chip, so the chip
- * stretched to the width of the sentence, with its arrow far from its value. With
- * no description this changes nothing, because the trigger is the only child in
- * the flow.
+ * The kit's `Select` stacks the trigger and the description in one column. The
+ * column takes the width of the description on one line, and the trigger stretches
+ * to fill it: a kit gap, ravn-ui-kit#166. The effort help line is about 400px on one
+ * line, so the effort field was 400px wide and pushed the filter bar onto two rows.
+ * `w-min` sizes the column to its widest part that cannot wrap, which is the chip,
+ * so the chip keeps its own width and the line wraps under it. The line is still the
+ * control's accessible description: only its width changes.
+ *
+ * Passed only with a description, the one case it was checked for. jsdom loads no
+ * CSS, so this was measured in a browser, not by a test: `docs/design.md`, "F1: the
+ * effort field", has the widths and the gap.
  */
-const KEEP_TRIGGER_WIDTH = 'items-start'
+const FIT_TO_TRIGGER = 'w-min'
 
 interface OptionalSelectProps<T extends string> {
   label: string
@@ -93,7 +100,7 @@ export function OptionalSelect<T extends string>({
       placeholder={placeholder}
       icon={icon}
       description={description}
-      className={KEEP_TRIGGER_WIDTH}
+      className={description ? FIT_TO_TRIGGER : undefined}
       aria-describedby={describedBy}
       items={items}
       selectedKey={value ?? NONE}
@@ -149,7 +156,7 @@ export function RequiredSelect<T extends string>({
       placeholder={placeholder}
       icon={icon}
       description={description}
-      className={KEEP_TRIGGER_WIDTH}
+      className={description ? FIT_TO_TRIGGER : undefined}
       items={options}
       selectedKey={value}
       onSelectionChange={(key) => {

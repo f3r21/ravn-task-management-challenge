@@ -5,15 +5,9 @@ import { toDateInputValue } from '@/lib/due-date'
 import { IconField } from './icon-field'
 import { OptionalSelect, RequiredSelect, TagMultiSelect } from './option-select'
 import type { SelectOption } from './select-option'
-import { EFFORT_HELP, effortLabel, pointValue, statusLabel } from './task-display'
+import { EFFORT_HELP, EFFORT_ITEMS, statusLabel } from './task-display'
 import { taskFormReducer, validateTaskForm, type TaskFormFields } from './task-form-state'
-import {
-  ALL_POINT_ESTIMATES,
-  BOARD_STATUSES,
-  type PointEstimate,
-  type Status,
-  type User,
-} from './task-types'
+import { BOARD_STATUSES, type Status, type User } from './task-types'
 
 interface TaskFormDialogProps {
   state: OverlayTriggerState
@@ -42,16 +36,11 @@ interface TaskFormDialogProps {
   mode?: 'create' | 'edit'
 }
 
-// Built once at import rather than on every render of the form. This dialog
-// re-renders on every keystroke in the task title, and each of these arrays
-// reaching a picker with a new identity rebuilds that picker's whole
-// react-stately collection. See `renderSelectOption` for why the label is baked
-// into the item instead of computed by the render function.
-const POINT_ITEMS: SelectOption<PointEstimate>[] = ALL_POINT_ESTIMATES.map((id) => ({
-  id,
-  label: effortLabel(pointValue(id)),
-}))
-
+// Built once at import rather than on every render of the form, as `EFFORT_ITEMS`
+// is. This dialog re-renders on every keystroke in the task title, and an array
+// reaching a picker with a new identity rebuilds that picker's whole react-stately
+// collection. See `renderSelectOption` for why the label is baked into the item
+// instead of computed by the render function.
 const STATUS_ITEMS: SelectOption<Status>[] = BOARD_STATUSES.map((id) => ({
   id,
   label: statusLabel(id),
@@ -183,7 +172,7 @@ export function TaskFormDialog({
             placeholder="Effort"
             icon={<PointsIcon className="size-6 shrink-0" />}
             description={EFFORT_HELP}
-            options={POINT_ITEMS}
+            options={EFFORT_ITEMS}
             value={fields.pointEstimate}
             onChange={(pointEstimate) => {
               dispatch({ type: 'set-point-estimate', pointEstimate })
