@@ -291,3 +291,42 @@ your potential users" ("The Product Management Problem Statement: How to Get it 
   and its "Validated by" section.
 - In `docs/qa/risk-register.md`: a row for each core problem in the feedback table.
 - In the roadmap's Next: what to build or fix first.
+
+#### The effort field: blind check, before and after
+
+Spec app#202 renames the "Estimated points" field to "Effort" and adds a help line. Its success
+measure is a blind check: a first-time user sees only the app and one task card, then says in
+one sentence what the field means. **Pass:** the answer says amount or size of work, not
+priority or urgency.
+
+These runs are a rehearsal by an agent (`pilot-runner`), not by a user.
+
+| Run    | Date             | Production commit | Field name         | The answer says | Result  |
+| ------ | ---------------- | ----------------- | ------------------ | --------------- | ------- |
+| Before | 2026-10-07       | `dcdc7e2`         | "Estimated points" | size and effort | Pass    |
+| After  | Pending, app#209 | Pending           | Pending            | Pending         | Pending |
+
+**Before, 2026-10-07.** The task card: "Create a task for a teammate. Then say, in one sentence,
+what the Estimated points field means." The agent created the task in 9 actions and 1 minute 45
+seconds, with 4 hesitations. The rule against quotes above is for participants, so the agent's
+answer stays verbatim:
+
+> Estimated points is the guessed size of a task, meaning how much effort it should take, picked
+> from a 0, 1, 2, 4 or 8 scale and shown on each card as 'Pts', although the app never says what
+> one point stands for.
+
+It added that the answer was a guess, because nothing on screen defines the field.
+
+**What this pass means.** The answer says size and effort, so the field passes before the
+change. An agent that knows the term "story points" does not show the confusion P1 and P2
+showed. So these agent runs, before and after, can show only that the new words do not break
+understanding. The real measure still needs a first-time human user. The pass rule stays as the
+spec wrote it.
+
+**Friction with the field.** It has no visible label and no meaning on screen. The form shows
+only a +/- icon and "0 Points". "Estimated points" is only its accessible name, and hovering
+shows nothing.
+
+![The create form before the change, with the points list open](../screenshots/effort-blind-check-before.jpg)
+
+_The create form on production at `dcdc7e2`, 2026-10-07, with the points list open._
