@@ -80,12 +80,13 @@ The plan for app#202. Everything above still applies.
 - **Scenarios.** Positive, negative and boundary (0 and 8), each with the test that checks it, are
   in the [test map](test-map.md#f1-one-row-per-acceptance-criterion).
 - **Environments.** Vitest in jsdom over the MSW mock, in CI and locally. `npm run dev` in
-  Chromium, by hand, for contrast, target size and layout. Production, for the blind check.
+  Chromium through Playwright, for contrast, target size and layout. Production, for the blind
+  check.
 - **Queries.** Tests find controls by role and label, never by a test id. The repo rule wins over
   the QA course advice to add `data-testid`.
 - **Claim.** A test reads each of the five places F1 changes: the form and the filter by role,
   label and accessible description, and the card, the row and the list's column header by their
   text.
 - **Limitation.** jsdom loads no CSS, so no test sees whether the help line shows, its contrast or
-  its layout. Those were measured once in a browser ([design](../design.md#f1-the-effort-field)),
-  and nothing checks them again.
+  its layout. Those were measured in Chromium through Playwright on 2026-10-07
+  ([design](../design.md#f1-the-effort-field)), and nothing checks them again.
