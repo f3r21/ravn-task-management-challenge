@@ -51,6 +51,8 @@ A banner says when the board runs on mock data ("says when the board is running 
 data rather than the live API", `board-page.test.tsx`).
 
 **The effort field and the effort filter (F1).** One line per state. "Cannot happen" says why.
+The placeholder "Effort" never shows: the form starts at "Effort 0" and the filter at "Any
+effort".
 
 | State             | The effort field, in the create or edit form                                                    | The effort filter                                                                                                            |
 | ----------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
