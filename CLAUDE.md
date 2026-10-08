@@ -46,3 +46,19 @@ keyword only on a merge into the default branch, which is `main`. Issues are clo
 `.claude/rules/` is path-scoped, so each file loads when you touch what it governs.
 `/start-issue` and `/finish-issue` hold this project's process rules and are the only copy of
 most of them.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues; PRs target `dev` and issues are closed by hand. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`,
+`wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the root, created when first needed. See
+`docs/agents/domain.md`.
