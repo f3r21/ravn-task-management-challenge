@@ -19,10 +19,30 @@ import { ALL_TAGS, type TaskTag } from './task-types'
  */
 const NONE = '__none__'
 
+/**
+ * Makes a select with a `description` exactly as wide as its trigger, so the
+ * description wraps under the chip instead of widening the field.
+ *
+ * The kit's `Select` stacks the trigger and the description in one column. The
+ * column takes the width of the description on one line, and the trigger stretches
+ * to fill it: a kit gap, ravn-ui-kit#166. The effort help line is about 400px on one
+ * line, so the effort field was 400px wide and pushed the filter bar onto two rows.
+ * `w-min` sizes the column to its widest part that cannot wrap, which is the chip,
+ * so the chip keeps its own width and the line wraps under it. The line is still the
+ * control's accessible description: only its width changes.
+ *
+ * Passed only with a description, the one case it was checked for. jsdom loads no
+ * CSS, so this was measured in a browser, not by a test: `docs/design.md`, "F1: the
+ * effort field", has the widths and the gap.
+ */
+const FIT_TO_TRIGGER = 'w-min'
+
 interface OptionalSelectProps<T extends string> {
   label: string
   placeholder: string
   icon?: ReactNode
+  /** One line shown under the field, which is also the control's accessible description. */
+  description?: string
   /** The real choices. The "none" entry is this component's business, not yours. */
   options: readonly SelectOption<T>[]
   /** What "no choice" reads as — "Any status", "Unassigned". */
@@ -58,6 +78,7 @@ export function OptionalSelect<T extends string>({
   label,
   placeholder,
   icon,
+  description,
   options,
   noneLabel,
   value,
@@ -78,6 +99,8 @@ export function OptionalSelect<T extends string>({
       label={label}
       placeholder={placeholder}
       icon={icon}
+      description={description}
+      className={description ? FIT_TO_TRIGGER : undefined}
       aria-describedby={describedBy}
       items={items}
       selectedKey={value ?? NONE}
@@ -97,6 +120,8 @@ interface RequiredSelectProps<T extends string> {
   label: string
   placeholder: string
   icon?: ReactNode
+  /** One line shown under the field, which is also the control's accessible description. */
+  description?: string
   options: readonly SelectOption<T>[]
   value: T
   onChange: (value: T) => void
@@ -105,7 +130,7 @@ interface RequiredSelectProps<T extends string> {
 /**
  * The same control where every choice is a real one.
  *
- * The create/edit form's status and estimate are required — the server has no
+ * The create/edit form's status and effort are required — the server has no
  * "unset" for either — so offering a "none" entry would collect a value the
  * mutation could not send. Kept as a separate component rather than a
  * `noneLabel?` on the one above, because the difference is in the *types*: this
@@ -120,6 +145,7 @@ export function RequiredSelect<T extends string>({
   label,
   placeholder,
   icon,
+  description,
   options,
   value,
   onChange,
@@ -129,6 +155,8 @@ export function RequiredSelect<T extends string>({
       label={label}
       placeholder={placeholder}
       icon={icon}
+      description={description}
+      className={description ? FIT_TO_TRIGGER : undefined}
       items={options}
       selectedKey={value}
       onSelectionChange={(key) => {

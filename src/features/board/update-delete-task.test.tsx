@@ -177,7 +177,7 @@ describe('editing a task', () => {
     // Every field the form holds is resent on save, so dropping one from the payload
     // — or seeding it wrongly — silently wipes it. Renaming a task is the cheapest way
     // to prove the fields it does not touch survive the round trip. Slack carries two
-    // tags, 4 points, a due date and an assignee, none of which this edit changes.
+    // tags, effort 4, a due date and an assignee, none of which this edit changes.
     const user = await renderBoard()
     await chooseAction(user, 'Slack', 'Edit')
     const dialog = await screen.findByRole('dialog')
@@ -194,17 +194,7 @@ describe('editing a task', () => {
     const within_ = within(card as HTMLElement)
     expect(within_.getByText('iOS app')).toBeInTheDocument()
     expect(within_.getByText('Android')).toBeInTheDocument()
-    // "4 Pts", not "4 Points": the board renders `@ravn/ui-kit`'s `TaskCard`, and this is
-    // the one place in the migration where the *app* was the thing that was wrong — the kit
-    // derives "N Pts" from the Figma card's own "Timer" row, and the app had been spelling
-    // it out. The table's `EstimationCell` still says "N Points"; that difference is the
-    // kit's reading of the design, not the drift ravn-ui-kit#94 reported, which was the
-    // missing singular and is fixed as of v0.8.0.
-    //
-    // The wording *is* configurable now — v0.8.0 added a `formatPoints` prop — and this app
-    // deliberately does not pass one, so these strings are the kit's defaults. Overriding
-    // them here would put the app back to spelling out a wording the design owns.
-    expect(within_.getByText('4 Pts')).toBeInTheDocument()
+    expect(within_.getByText('Effort 4')).toBeInTheDocument()
     expect(within_.getByText('14 August, 2026')).toBeInTheDocument()
     expect(within_.getByRole('img', { name: 'Alicia Koch' })).toBeInTheDocument()
   })
@@ -354,7 +344,20 @@ describe('editing a task', () => {
     })
   })
 
-  it('keeps the points list open past the first frame it opens in', async () => {
+  it('labels the effort field "Effort" and explains it, as the create dialog does', async () => {
+    // The same field must mean the same thing in both dialogs. See the create check in
+    // create-task.test.tsx for why the query goes by label text.
+    const user = await renderBoard()
+    await chooseAction(user, 'Slack', 'Edit')
+    const dialog = await screen.findByRole('dialog')
+
+    const effort = within(dialog).getByLabelText('Effort', { selector: 'button' })
+    expect(effort).toHaveAccessibleDescription(
+      'How much work it takes, not how urgent it is. 0 = tiny, 8 = big.',
+    )
+  })
+
+  it('keeps the effort list open past the first frame it opens in', async () => {
     // Regression canary for the cross-module FocusScope bug the kit's Modal used
     // to have — see the identical check in create-task.test.tsx for the full
     // explanation.
@@ -362,10 +365,10 @@ describe('editing a task', () => {
     await chooseAction(user, 'Slack', 'Edit')
     const dialog = await screen.findByRole('dialog')
 
-    await user.click(within(dialog).getByRole('button', { name: /estimated points/i }))
-    expect(await screen.findByRole('option', { name: '1 Point' })).toBeInTheDocument()
+    await user.click(within(dialog).getByLabelText('Effort', { selector: 'button' }))
+    expect(await screen.findByRole('option', { name: 'Effort 1' })).toBeInTheDocument()
     await new Promise((resolve) => setTimeout(resolve, 50))
-    expect(screen.getByRole('option', { name: '1 Point' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Effort 1' })).toBeInTheDocument()
   })
 
   it('keeps the tags list open past the first frame it opens in', async () => {

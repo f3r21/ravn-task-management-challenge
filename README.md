@@ -31,10 +31,12 @@ The email field in that screenshot reads `[email redacted]`. The API's seeded pr
 belongs to a real person at RAVN. This repository is public, so the screenshot masks the
 address instead of publishing it. No other screenshot is altered. All five were captured on
 2026-08-09 from the deployed build while it still reached RAVN's API. The deployment now
-serves seeded mock data, so its tasks and signed-in user differ from these images.
+serves seeded mock data, so its tasks and signed-in user differ from these images. They also
+predate F1, so they show "N Pts", "N Points", "Any estimate" and an "Estimate" header where the
+app now says Effort.
 
-- **Board** — five status columns. Each task card shows a name, tags, a due date, points,
-  an assignee, and an options menu. Loading, error, and empty states are three separate
+- **Board** — five status columns. Each task card shows a name, tags, a due date, its
+  effort ("Effort 4"), an assignee, and an options menu. Loading, error, and empty states are three separate
   states.
 - **Create, edit, delete** — one modal handles create and edit. A confirmation dialog
   handles delete. Each action shows a notification.
@@ -195,8 +197,9 @@ This is the only checkbox the API's shape prevents. Two more differences follow.
 the same kind of surprise. Neither one costs anything:
 
 - **§5 calls the points filter `EstimatedPoints`.** The schema names this field
-  `pointEstimate` instead. This app follows the schema's name. The filter itself works
-  exactly as the brief asks. Only the name differs.
+  `pointEstimate` instead. The app's code follows the schema's name. On screen, the filter
+  says Effort, since F1 ([Product](docs/product.md)). The filter itself works exactly as the
+  brief asks. Only the name differs.
 
 - **`CreateTaskInput` has no `position` field, and the brief never asks for one on
   create.** The server assigns this value automatically. So the field appears only in the
@@ -273,7 +276,7 @@ Three topics need more detail than a first read gives them. Each one has its own
 ## Product, design and QA
 
 What the app is for, how it looks and how it is tested, each read back after the build and
-dated 2026-10-06:
+dated 2026-10-06. F1 (Effort) was added to them on 2026-10-07:
 
 - **[Product](docs/product.md)**: the proto-persona (an assumption), what was built and cut,
   the go/no-go for production, and what comes next.
@@ -284,7 +287,8 @@ dated 2026-10-06:
   each suite proves and does not prove.
 - **[Front interviews](docs/research/usability-pilot.md)**: P1 and P2, neither of them a
   developer, on 2026-10-07. A story-based interview, the problem statement read aloud, then a
-  few minutes on the deployed board. Results pending.
+  few minutes on the deployed board. The findings are in
+  [Product](docs/product.md#the-user-and-the-problem).
 
 ## Notes
 

@@ -2,7 +2,7 @@ import { isInaccessible } from '@testing-library/dom'
 import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react'
 import { graphql, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
-import type { TasksQueryVariables } from '@/graphql/generated/graphql'
+import type { CreateTaskMutationVariables, TasksQueryVariables } from '@/graphql/generated/graphql'
 import { server } from '@/mocks/server'
 import { taskStore } from '@/mocks/task-store'
 import { renderApp, userEvent } from '@/test/test-utils'
@@ -49,6 +49,53 @@ describe('creating a task', () => {
     const { dialog } = await openCreateDialog()
 
     expect(within(dialog).queryByRole('spinbutton', { name: /position/i })).not.toBeInTheDocument()
+  })
+
+  it('labels the effort field "Effort" and explains it in one line', async () => {
+    // By label text rather than by the trigger's name, because React Aria names a
+    // select trigger by its value and then its label. The label is the part this
+    // test is about, so it is the part the query pins.
+    const { dialog } = await openCreateDialog()
+
+    const effort = within(dialog).getByLabelText('Effort', { selector: 'button' })
+    expect(effort).toHaveAccessibleDescription(
+      'How much work it takes, not how urgent it is. 0 = tiny, 8 = big.',
+    )
+  })
+
+  it('offers efforts 0 to 8 and still sends the API value of the one picked', async () => {
+    // The words changed, not the values. The option reads "Effort 4" and the
+    // mutation still carries `FOUR`, so the data on the server means what it meant
+    // before.
+    const sent: CreateTaskMutationVariables['input'][] = []
+    server.use(
+      graphql.mutation<Record<string, unknown>, CreateTaskMutationVariables>(
+        'CreateTask',
+        ({ variables }) => {
+          sent.push(variables.input)
+          return HttpResponse.json({ data: { createTask: taskStore.createTask(variables.input) } })
+        },
+      ),
+    )
+    const { user, dialog } = await openCreateDialog()
+
+    await user.type(screen.getByRole('textbox', { name: /task title/i }), 'Sized task')
+    await user.click(within(dialog).getByLabelText('Effort', { selector: 'button' }))
+    // By accessible name, in order. `textContent` would also pick up the check mark
+    // the kit draws, hidden from assistive tech, beside the selected option.
+    const options = await screen.findAllByRole('option')
+    const names = ['Effort 0', 'Effort 1', 'Effort 2', 'Effort 4', 'Effort 8']
+    expect(options).toHaveLength(names.length)
+    names.forEach((name, index) => {
+      expect(options[index]).toHaveAccessibleName(name)
+    })
+    await user.click(screen.getByRole('option', { name: 'Effort 4' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Create' }))
+
+    await waitFor(() => {
+      expect(sent).toHaveLength(1)
+    })
+    expect(sent[0]).toMatchObject({ name: 'Sized task', pointEstimate: 'FOUR' })
   })
 
   it('keeps Tab inside the dialog instead of letting it reach the page behind', async () => {
@@ -215,7 +262,7 @@ describe('creating a task', () => {
     expect(await within(done).findByRole('heading', { name: 'Ship it' })).toBeInTheDocument()
   })
 
-  it('keeps the points list open past the first frame it opens in', async () => {
+  it('keeps the effort list open past the first frame it opens in', async () => {
     // Regression canary for the cross-module FocusScope bug: the kit's Modal once
     // resolved a different react-aria module instance than this app's own Select,
     // so a popover it nested lost focus-scope recognition and snapped shut a
@@ -225,10 +272,10 @@ describe('creating a task', () => {
     // waits past that frame before re-checking.
     const { user, dialog } = await openCreateDialog()
 
-    await user.click(within(dialog).getByRole('button', { name: /estimated points/i }))
-    expect(await screen.findByRole('option', { name: '1 Point' })).toBeInTheDocument()
+    await user.click(within(dialog).getByLabelText('Effort', { selector: 'button' }))
+    expect(await screen.findByRole('option', { name: 'Effort 1' })).toBeInTheDocument()
     await new Promise((resolve) => setTimeout(resolve, 50))
-    expect(screen.getByRole('option', { name: '1 Point' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Effort 1' })).toBeInTheDocument()
   })
 
   it('keeps the assignee list open past the first frame it opens in', async () => {
