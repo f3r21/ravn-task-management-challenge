@@ -2,12 +2,13 @@ import {
   statusToIndicatorColor,
   type AccentColor,
   type DueDateUrgency,
+  type PointsFormatter,
   type TaskCardProps,
   type TaskTableRowProps,
 } from '@ravn/ui-kit'
 import { avatarSrcUnlessDecommissioned } from '@/lib/decommissioned-avatar'
 import { dueDateTone, formatDueDate, parseApiDate } from '@/lib/due-date'
-import { pointValue, tagAccent, tagLabel } from '../task-display'
+import { effortLabel, pointValue, tagAccent, tagLabel } from '../task-display'
 import type { Task } from '../task-types'
 
 /**
@@ -20,7 +21,7 @@ import type { Task } from '../task-types'
  * `points`/`estimationPoints`, `dueDateText`/`dueDate` — and that switch is gone.
  *
  * What replaces it is this: the two exported functions below compute *nothing*. They take
- * these seven fields and rename them. A field that reaches one view and not the other is
+ * these eight fields and rename them. A field that reaches one view and not the other is
  * caught twice over, and neither check is a matter of remembering:
  *
  * - `KIT_FIELD_NAMES` is `satisfies Record<keyof TaskPresentation, …>`, so adding a field
@@ -35,6 +36,8 @@ import type { Task } from '../task-types'
 interface TaskPresentation {
   title: string
   points: number
+  /** How `points` reads. The same function in both views, so they cannot word it apart. */
+  formatPoints: PointsFormatter
   /** `undefined` when the API sent a date that does not parse — the tag is then hidden. */
   dueDateText: string | undefined
   dueDateUrgency: DueDateUrgency
@@ -47,6 +50,7 @@ interface TaskPresentation {
 export const KIT_FIELD_NAMES = {
   title: { card: 'title', row: 'title' },
   points: { card: 'points', row: 'estimationPoints' },
+  formatPoints: { card: 'formatPoints', row: 'formatPoints' },
   dueDateText: { card: 'dueDateText', row: 'dueDate' },
   dueDateUrgency: { card: 'dueDateUrgency', row: 'dueDateUrgency' },
   tags: { card: 'tags', row: 'tags' },
@@ -67,6 +71,10 @@ function taskPresentation(task: Task, now: Date): TaskPresentation {
   return {
     title: task.name,
     points: pointValue(task.pointEstimate),
+    // The kit's defaults are Figma's "4 Pts" on the card and "4 Points" in the row. Passing
+    // `effortLabel` instead is a deliberate deviation, recorded with its reason in
+    // `docs/design.md`, "Where the build differs from Figma".
+    formatPoints: effortLabel,
     dueDateText: dueDate ? formatDueDate(dueDate, now) : undefined,
     // Assigned straight across, with no map in between. The app's `DueDateTone` and the
     // kit's `DueDateUrgency` are the same three members — the kit renamed its `warning` to
@@ -105,6 +113,7 @@ export function toKitCardProps(task: Task, now: Date, options: CardOptions = {})
   return {
     title: shown.title,
     points: shown.points,
+    formatPoints: shown.formatPoints,
     dueDateText: shown.dueDateText,
     dueDateUrgency: shown.dueDateUrgency,
     tags: shown.tags,
@@ -155,6 +164,7 @@ export function toKitTableRowProps(task: Task, now: Date, options: RowOptions): 
   return {
     title: shown.title,
     estimationPoints: shown.points,
+    formatPoints: shown.formatPoints,
     dueDate: shown.dueDateText,
     dueDateUrgency: shown.dueDateUrgency,
     tags: shown.tags,

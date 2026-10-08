@@ -5,7 +5,7 @@ import { KIT_FIELD_NAMES, toKitCardProps, toKitTableRowProps } from './to-kit-pr
 const now = new Date('2026-08-02T12:00:00.000Z')
 
 describe('toKitCardProps', () => {
-  it('spells the point estimate out as a number, leaving the wording to the kit', () => {
+  it('passes the point estimate as a number, which the effort formatter turns into words', () => {
     expect(toKitCardProps(makeTask({ pointEstimate: 'EIGHT' }), now).points).toBe(8)
   })
 
