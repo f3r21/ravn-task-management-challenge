@@ -237,7 +237,8 @@ unclear. Two people are a first signal, not a pattern.
   interviews are done, and their findings are in
   [The user and the problem](#the-user-and-the-problem). Keep the deployment on mock data with
   its banner. Keep CI green.
-- **Next:** write the interviews' findings into the risk register. When the API returns, point
+- **Next:** decide on custom labels, the one core problem from the interviews that F1 does not
+  fix (R13 in the [risk register](qa/risk-register.md)). When the API returns, point
   `VITE_API_URL` back at the proxy and turn the E2E trigger on. Bump the kit past its breaking
   renames (app#157).
 - **Later:** drag and drop, if people are seen changing status often; the 2026-10-07 interviews
