@@ -5,8 +5,11 @@ import { KIT_FIELD_NAMES, toKitCardProps, toKitTableRowProps } from './to-kit-pr
 const now = new Date('2026-08-02T12:00:00.000Z')
 
 describe('toKitCardProps', () => {
-  it('passes the point estimate as a number, which the effort formatter turns into words', () => {
-    expect(toKitCardProps(makeTask({ pointEstimate: 'EIGHT' }), now).points).toBe(8)
+  it('passes the effort as a number, with a formatter that turns it into "Effort 8"', () => {
+    const props = toKitCardProps(makeTask({ pointEstimate: 'EIGHT' }), now)
+
+    expect(props.points).toBe(8)
+    expect(props.formatPoints?.(8)).toBe('Effort 8')
   })
 
   it('names the due date rather than dating it when it is today', () => {
