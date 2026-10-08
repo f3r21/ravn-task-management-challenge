@@ -195,8 +195,9 @@ This is the only checkbox the API's shape prevents. Two more differences follow.
 the same kind of surprise. Neither one costs anything:
 
 - **§5 calls the points filter `EstimatedPoints`.** The schema names this field
-  `pointEstimate` instead. This app follows the schema's name. The filter itself works
-  exactly as the brief asks. Only the name differs.
+  `pointEstimate` instead. The app's code follows the schema's name. On screen, the filter
+  says Effort, since F1 ([Product](docs/product.md)). The filter itself works exactly as the
+  brief asks. Only the name differs.
 
 - **`CreateTaskInput` has no `position` field, and the brief never asks for one on
   create.** The server assigns this value automatically. So the field appears only in the
