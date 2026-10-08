@@ -483,7 +483,7 @@ interface BoardReading {
  *
  * Not asserted: that the board never scrolls. Five 348px columns need 1868px, and the
  * 348px pin is a written decision `board.tsx` argues for — five equal shares of 1440px
- * leave ~200px cards, at which point the points label, the date badge and the tag row
+ * leave ~200px cards, at which point the effort label, the date badge and the tag row
  * all wrap. Below ~2130px scrolling is correct behaviour, not a defect.
  *
  * One `goto`, four viewports: this is pure CSS, so a resize re-lays out and three more

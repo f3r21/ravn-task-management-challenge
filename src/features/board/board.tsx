@@ -51,7 +51,7 @@ function groupByStatus(tasks: Task[]): Map<Status, Task[]> {
  * and the row scrolls sideways, rather than being divided into five equal shares
  * of the viewport. The brief asks for five statuses where the mockup shows three,
  * and five equal shares of 1440px leaves each card around 200px — narrow enough
- * that the points label, the date badge and the tag row all start wrapping and
+ * that the effort label, the date badge and the tag row all start wrapping and
  * the card stops resembling the design at all. Sideways scrolling is also what a
  * board is expected to do.
  *
