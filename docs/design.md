@@ -145,7 +145,10 @@ fix goes in the kit. F1 changes no code for them.
   1280px with the effort filter set to "Effort 8", takes two rows: "Clear filters" needs 5px more
   than the row has. That was so before F1 too, because "8 Points" is wider than "Effort 8". At
   375px the bar wraps, as it did before F1. No text is cut or hidden, and no page scrolls sideways.
-  The form was checked at 1440 and 375px.
+  The form was checked at 1440 and 375px. The card and the row were checked at 1440 and 375px when
+  app#207 was built (Chromium through Playwright, 2026-10-07): "Effort 4" stays on one line in
+  both, nothing overflows its box, and the page does not scroll sideways. On a phone the list
+  view's table scrolls inside its own box, as it did before F1.
 
 **A kit gap: the trigger stretches to the width of its description** (ravn-ui-kit#166). The kit
 `Select` stacks the chip and the help line in one column, as wide as the help line on one line,
