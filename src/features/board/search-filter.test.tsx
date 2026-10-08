@@ -139,7 +139,7 @@ describe('filtering', () => {
     const { user } = await renderBoard()
 
     await user.click(screen.getByRole('button', { name: /filter by estimated points/i }))
-    await user.click(await screen.findByRole('option', { name: '8 Points' }))
+    await user.click(await screen.findByRole('option', { name: 'Effort 8' }))
 
     await waitFor(() => {
       expect(inputs.at(-1)).toMatchObject({ pointEstimate: 'EIGHT' })

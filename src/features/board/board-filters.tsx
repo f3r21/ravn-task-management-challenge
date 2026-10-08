@@ -1,6 +1,6 @@
 import { useId, useMemo } from 'react'
 import { AssigneeIcon, CalendarIcon, PointsIcon, TextButton } from '@ravn/ui-kit'
-import { pointsLabel, statusLabel } from './task-display'
+import { effortLabel, pointValue, statusLabel } from './task-display'
 import { IconField } from './icon-field'
 import { OptionalSelect, TagMultiSelect } from './option-select'
 import type { SelectOption } from './select-option'
@@ -40,7 +40,7 @@ const STATUS_ITEMS: SelectOption<Status>[] = BOARD_STATUSES.map((id) => ({
 
 const POINT_ITEMS: SelectOption<PointEstimate>[] = ALL_POINT_ESTIMATES.map((id) => ({
   id,
-  label: pointsLabel(id),
+  label: effortLabel(pointValue(id)),
 }))
 
 /**

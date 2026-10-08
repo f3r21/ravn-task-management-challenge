@@ -5,7 +5,7 @@ import { toDateInputValue } from '@/lib/due-date'
 import { IconField } from './icon-field'
 import { OptionalSelect, RequiredSelect, TagMultiSelect } from './option-select'
 import type { SelectOption } from './select-option'
-import { pointsLabel, statusLabel } from './task-display'
+import { EFFORT_HELP, effortLabel, pointValue, statusLabel } from './task-display'
 import { taskFormReducer, validateTaskForm, type TaskFormFields } from './task-form-state'
 import {
   ALL_POINT_ESTIMATES,
@@ -49,7 +49,7 @@ interface TaskFormDialogProps {
 // into the item instead of computed by the render function.
 const POINT_ITEMS: SelectOption<PointEstimate>[] = ALL_POINT_ESTIMATES.map((id) => ({
   id,
-  label: pointsLabel(id),
+  label: effortLabel(pointValue(id)),
 }))
 
 const STATUS_ITEMS: SelectOption<Status>[] = BOARD_STATUSES.map((id) => ({
@@ -179,9 +179,10 @@ export function TaskFormDialog({
 
         <div className="flex flex-wrap items-start gap-4">
           <RequiredSelect
-            label="Estimated points"
-            placeholder="Estimate"
+            label="Effort"
+            placeholder="Effort"
             icon={<PointsIcon className="size-6 shrink-0" />}
+            description={EFFORT_HELP}
             options={POINT_ITEMS}
             value={fields.pointEstimate}
             onChange={(pointEstimate) => {
