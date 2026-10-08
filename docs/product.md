@@ -54,8 +54,8 @@ the interviews led to. Their findings are above. The usability-pilot research do
 blind check, under
 [What changes because of this](research/usability-pilot.md#what-changes-because-of-this).
 
-- **Problem.** The create form showed a chip that read "0 Points", with no visible label, and
-  nothing said what points are. "Estimated points" was only its accessible name. Both
+- **Problem.** The create form showed a chip that read "0 Points", with no visible label
+  ("Estimated points" was only its accessible name), and nothing said what points are. Both
   participants guessed that points meant priority, so a task's size could be set and read as its
   urgency.
 - **Job story (assumption).** When I hand a piece of work to a teammate, I want to say how big
