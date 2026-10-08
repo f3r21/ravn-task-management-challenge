@@ -191,7 +191,9 @@ Effort field means. F1 moves it, and F1's blind check below reads it.
 only the app and one task: "Create a task for a teammate. Then say, in one sentence, what the
 Effort field means." It runs on production once before the promotion, on the old "Estimated
 points" field, and once after it. It passes when the answer says amount or size of work,
-not priority or urgency. It is a rehearsal by an agent, not a user.
+not priority or urgency. It is a rehearsal by an agent, not a user. An agent that knows "story
+points" can show only that the new words do not break understanding; a first-time human user
+is the real measure.
 
 - **Ship criteria:** the gate and the build are green in CI, F1's acceptance criteria pass, the
   change is reviewed before it merges, and production shows "Effort" in the form, the filter,
@@ -201,7 +203,7 @@ not priority or urgency. It is a rehearsal by an agent, not a user.
   `main`. **How:** Vercel Instant Rollback. A failed blind check opens a follow-up issue instead.
 - **Monitor:** the blind check, before and after. Each result goes, with its date, in the
   usability-pilot research doc,
-  [What changes because of this](research/usability-pilot.md#what-changes-because-of-this).
+  [The effort field: blind check, before and after](research/usability-pilot.md#the-effort-field-blind-check-before-and-after).
 - **Recommendation: go.** F1 changes words only, not the API, the data or the kit, so it is
   cheap to undo, and it fixes a core problem that both participants hit. The no-go above stands:
   the deployment stays a demo on seeded data.
