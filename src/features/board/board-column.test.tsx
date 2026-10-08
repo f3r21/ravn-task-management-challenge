@@ -144,6 +144,28 @@ describe('the board column, in either view', () => {
     },
   )
 
+  it.each<BoardView>(['grid', 'list'])('reads the effort as "Effort 4" (%s view)', (view) => {
+    // Not what Figma draws. Its card says "4 Pts" and its table says "4 Points", and those
+    // were the kit's defaults here. In the interviews, P1 and P2 read points as priority,
+    // so the app passes its one effort formatter to both views instead. The deviation is
+    // recorded in `docs/design.md`, "Where the build differs from Figma".
+    renderColumn([makeTask({ pointEstimate: 'FOUR' })], view)
+
+    expect(screen.getByText('Effort 4')).toBeInTheDocument()
+  })
+
+  it.each<BoardView>(['grid', 'list'])(
+    'reads effort 1 like any other value, with no singular (%s view)',
+    (view) => {
+      // 1 is the one value the kit's own wording treats apart: "1 Pt" on the card and
+      // "1 Point" in the row (ravn-ui-kit#94). The effort formatter puts the word before
+      // the number, so 1 has no singular to get wrong.
+      renderColumn([makeTask({ pointEstimate: 'ONE' })], view)
+
+      expect(screen.getByText('Effort 1')).toBeInTheDocument()
+    },
+  )
+
   it.each<BoardView>(['grid', 'list'])(
     'omits the due date when the API sends something unparseable (%s view)',
     (view) => {
@@ -218,34 +240,6 @@ describe('the board view', () => {
     expect(card).not.toHaveTextContent(/subtask|comment|attachment/i)
   })
 
-  it('spells the points out in the kit’s wording, not the app’s', () => {
-    // "4 Pts". This is the one assertion in the migration that changed because the *app*
-    // was wrong: the kit derives "N Pts" from the Figma card's own "Timer" row, and the app
-    // had been spelling it out.
-    //
-    // The card's short wording and the table's long one still differ, and that is the kit's
-    // deliberate reading of the design rather than the drift ravn-ui-kit#94 reported — no
-    // export file mixes the two. What #94 fixed is the singular; see the two one-point
-    // cases below, one per view.
-    renderColumn([makeTask({ pointEstimate: 'FOUR' })])
-
-    expect(screen.getByText('4 Pts')).toBeInTheDocument()
-  })
-
-  it('uses the card’s singular for a one-point task', () => {
-    // Unpinned until this bump, and the gap was invisible: `TaskCard` wrote `${points} Pts`
-    // with no singular at all, so a one-point card read "1 Pts" while the table beside it
-    // read "1 Point" — the same datum, two spellings, one of them ungrammatical.
-    // ravn-ui-kit#94 gave both a shared rule in v0.8.0.
-    //
-    // Asserted here because *nothing in this app failed when that string changed*. The
-    // suite went 455 green on the bump with only the #111 tripwire red, so a user-visible
-    // wording change on the board's own card passed through with no witness at all.
-    renderColumn([makeTask({ pointEstimate: 'ONE' })])
-
-    expect(screen.getByText('1 Pt')).toBeInTheDocument()
-  })
-
   it('counts the tasks in the heading, zero-padded like the design', () => {
     renderColumn([makeTask({ id: 'a' }), makeTask({ id: 'b' })])
 
@@ -280,21 +274,6 @@ describe('the list view', () => {
     const row = screen.getAllByRole('row').find((r) => within(r).queryByText('Slack'))
     expect(row).toBeDefined()
     expect(within(row as HTMLElement).getByRole('heading', { name: 'Slack' })).toBeInTheDocument()
-  })
-
-  it('spells the points out in full, which is what the kit’s own table does', () => {
-    renderColumn([makeTask({ pointEstimate: 'FOUR' })], 'list')
-
-    expect(screen.getByText('4 Points')).toBeInTheDocument()
-  })
-
-  it('uses the table’s singular for a one-point task', () => {
-    // The table has always pluralised; the card did not until ravn-ui-kit#94 shipped in
-    // v0.8.0. Both read one shared rule now, so the views can differ in wording — "Point"
-    // here, "Pt" on the card — without differing on whether one is singular.
-    renderColumn([makeTask({ pointEstimate: 'ONE' })], 'list')
-
-    expect(screen.getByText('1 Point')).toBeInTheDocument()
   })
 
   it('puts no select checkbox in the accessibility tree', () => {
