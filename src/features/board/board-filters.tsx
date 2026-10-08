@@ -1,6 +1,6 @@
 import { useId, useMemo } from 'react'
 import { AssigneeIcon, CalendarIcon, PointsIcon, TextButton } from '@ravn/ui-kit'
-import { effortLabel, pointValue, statusLabel } from './task-display'
+import { EFFORT_HELP, effortLabel, pointValue, statusLabel } from './task-display'
 import { IconField } from './icon-field'
 import { OptionalSelect, TagMultiSelect } from './option-select'
 import type { SelectOption } from './select-option'
@@ -94,11 +94,12 @@ export function BoardFiltersBar({
       />
 
       <OptionalSelect
-        label="Filter by estimated points"
-        placeholder="Estimate"
+        label="Filter by effort"
+        placeholder="Effort"
         icon={<PointsIcon className="size-6 shrink-0" />}
+        description={EFFORT_HELP}
         options={POINT_ITEMS}
-        noneLabel="Any estimate"
+        noneLabel="Any effort"
         value={filters.pointEstimate ?? null}
         onChange={(pointEstimate) => {
           setFilter('pointEstimate', pointEstimate ?? undefined)

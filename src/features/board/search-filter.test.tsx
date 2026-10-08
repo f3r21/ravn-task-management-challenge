@@ -131,23 +131,51 @@ describe('filtering', () => {
     })
   })
 
+  it('explains the effort filter with the same line as the form', async () => {
+    // A person may filter before they ever open the form, so the filter carries
+    // the explanation too, as what a screen reader says on reaching the control.
+    await renderBoard()
+
+    expect(screen.getByRole('button', { name: /filter by effort/i })).toHaveAccessibleDescription(
+      'How much work it takes, not how urgent it is. 0 = tiny, 8 = big.',
+    )
+  })
+
   // The three filters below had no test of any kind: their handlers were the only
   // uncovered lines in the file, so a crossed wire between two adjacent controls
   // would not have been caught by anything.
-  it('sends a chosen estimate to the API and narrows the board', async () => {
+  it('sends a chosen effort to the API and keeps only the tasks with that effort', async () => {
+    // Samsung is the one seed task with effort 8. The board must hold it and
+    // nothing else, so every card heading is compared, not just one that left.
     const inputs = recordTaskQueries()
     const { user } = await renderBoard()
 
-    await user.click(screen.getByRole('button', { name: /filter by estimated points/i }))
+    await user.click(screen.getByRole('button', { name: /filter by effort/i }))
     await user.click(await screen.findByRole('option', { name: 'Effort 8' }))
 
     await waitFor(() => {
       expect(inputs.at(-1)).toMatchObject({ pointEstimate: 'EIGHT' })
     })
-    expect(await screen.findByRole('heading', { name: 'Samsung' })).toBeInTheDocument()
     await waitFor(() => {
-      expect(screen.queryByRole('heading', { name: 'Slack' })).not.toBeInTheDocument()
+      expect(
+        screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent),
+      ).toEqual(['Samsung'])
     })
+  })
+
+  it('says nothing matches an effort no task has, and still shows the effort picked', async () => {
+    // The filter keeps its value on an empty board, so the person can see why the
+    // board is empty and which control to change.
+    for (const task of taskStore.listTasks({ pointEstimate: 'EIGHT' })) {
+      taskStore.deleteTask({ id: task.id })
+    }
+    const { user } = await renderBoard()
+
+    await user.click(screen.getByRole('button', { name: /filter by effort/i }))
+    await user.click(await screen.findByRole('option', { name: 'Effort 8' }))
+
+    expect(await screen.findByText(/no tasks match these filters/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /filter by effort/i })).toHaveTextContent('Effort 8')
   })
 
   it('sends a chosen owner to the API and narrows the board', async () => {
@@ -236,6 +264,29 @@ describe('filters in the URL', () => {
 
     await waitFor(() => {
       expect(inputs.at(-1)).toMatchObject({ status: 'DONE', tags: ['IOS'] })
+    })
+  })
+
+  it('reads an effort from the address and shows it on the filter', async () => {
+    // Only the words changed, so a link shared before the rename still opens the
+    // same view: the key is still `points` and the value is still the API's.
+    const inputs = recordTaskQueries()
+    await renderBoard('/?points=EIGHT')
+
+    await waitFor(() => {
+      expect(inputs.at(-1)).toMatchObject({ pointEstimate: 'EIGHT' })
+    })
+    expect(screen.getByRole('button', { name: /filter by effort/i })).toHaveTextContent('Effort 8')
+  })
+
+  it('writes a chosen effort into the address with the API value', async () => {
+    const { user, router } = await renderBoard()
+
+    await user.click(screen.getByRole('button', { name: /filter by effort/i }))
+    await user.click(await screen.findByRole('option', { name: 'Effort 8' }))
+
+    await waitFor(() => {
+      expect(router.state.location.search).toContain('points=EIGHT')
     })
   })
 
@@ -521,6 +572,23 @@ describe('removing a single filter', () => {
 
     await user.click(screen.getByRole('button', { name: /filter by owner/i }))
     await user.click(await screen.findByRole('option', { name: /any owner/i }))
+
+    await waitFor(() => {
+      expect(inputs.at(-1)).toEqual({})
+    })
+  })
+
+  it('lets an effort be unset with "Any effort"', async () => {
+    const inputs = recordTaskQueries()
+    const { user } = await renderBoard('/?points=EIGHT')
+    // The filter must be on before it can be taken off. Without this the test
+    // also passes when the address is ignored, since `{}` is then sent from the start.
+    await waitFor(() => {
+      expect(inputs.at(-1)).toMatchObject({ pointEstimate: 'EIGHT' })
+    })
+
+    await user.click(screen.getByRole('button', { name: /filter by effort/i }))
+    await user.click(await screen.findByRole('option', { name: 'Any effort' }))
 
     await waitFor(() => {
       expect(inputs.at(-1)).toEqual({})
