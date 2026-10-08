@@ -51,7 +51,7 @@ describe('creating a task', () => {
     expect(within(dialog).queryByRole('spinbutton', { name: /position/i })).not.toBeInTheDocument()
   })
 
-  it('labels the effort field "Effort" and explains it in a line', async () => {
+  it('labels the effort field "Effort" and explains it in one line', async () => {
     // By label text rather than by the trigger's name, because React Aria names a
     // select trigger by its value and then its label. The label is the part this
     // test is about, so it is the part the query pins.
