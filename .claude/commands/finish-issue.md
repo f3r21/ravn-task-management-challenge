@@ -29,6 +29,8 @@ Finish an issue and hand it off. Takes the issue number as an argument.
 
 3. Push the lane's branch — the one under review — then open or refresh its pull request into
    `dev`. (`dev` itself is the integration branch and the ruleset rejects a direct push to it.)
+   **Under `/implement-spec`, the ticket branch stays local:** its branch and sha go to the
+   orchestrator, which merges it into the integration branch.
 
    **Before waiting on any condition, name who can satisfy it, and confirm it is not you.** If the
    answer is "the party waiting on me", that is a deadlock rather than a dependency — push, and
@@ -102,7 +104,7 @@ Finish an issue and hand it off. Takes the issue number as an argument.
 ```markdown
 ### HANDOFF
 
-- **Pushed as:** <branch @ sha, PR #n — the reviewer records the merge, you cannot>
+- **Pushed as:** <branch @ sha, PR #n, or local branch @ sha under /implement-spec — whoever merges records the merge, you cannot>
 - **Touched:** <files, one line>
 - **Decided:** <decision → reason, one line each. Omit if none.>
 - **Now true that wasn't:** <new export / new script / changed contract. The other lane reads this.>
