@@ -98,7 +98,12 @@ function BoardListTableImpl({ grouped, now, onEditTask, onDeleteTask }: BoardLis
   // it is safe because the app knows this page portals its overlays, which is knowledge the
   // kit does not have — page-level overflow is the page's business, and that is where the
   // board keeps it too.
-  return <TaskTable groups={groups} className="contain-paint" />
+  //
+  // `columnLabels` renames one header. The kit's default for it is Figma's "Estimate", but
+  // the field is called Effort everywhere a person sees it.
+  return (
+    <TaskTable groups={groups} columnLabels={{ estimation: 'Effort' }} className="contain-paint" />
+  )
 }
 
 /**

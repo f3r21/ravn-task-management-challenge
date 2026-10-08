@@ -284,6 +284,19 @@ describe('the list view', () => {
 
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
   })
+
+  it('heads the effort column "Effort", the name the field has everywhere else', () => {
+    // The kit's default header is "Estimate". The kit draws the header row as plain
+    // elements, not `columnheader`s, so the test finds the row from its first header and
+    // asks only inside it. The exact match keeps "Effort 4" in the row below from counting.
+    renderColumn([makeTask({ pointEstimate: 'FOUR' })], 'list')
+
+    const headerRow = screen.getByText('# Task Name').parentElement?.parentElement
+    expect(headerRow).toBeInstanceOf(HTMLElement)
+    const headers = within(headerRow as HTMLElement)
+    expect(headers.getByText('Effort')).toBeInTheDocument()
+    expect(headers.queryByText('Estimate')).not.toBeInTheDocument()
+  })
 })
 
 describe('the overdue state', () => {
