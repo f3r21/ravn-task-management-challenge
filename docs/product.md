@@ -173,7 +173,7 @@ Every row but the E2E one runs in CI against the mock on every pull request.
 - **The one test of the deployment cannot pass.** Its last run, on 2026-10-06, failed 4 of
   5 tests because the API answered 404 (Actions run 37415458012). Its automatic trigger is
   off (`.github/workflows/e2e.yml`).
-- **What is green.** CI on 2026-10-06 (run 37479127953): 489 tests in 39 files; coverage
+- **What is green.** CI on 2026-10-06 (main run 37486098648): 489 tests in 39 files; coverage
   97.72% of statements and 90.95% of branches against an 85% gate; 0 vulnerabilities in
   production dependencies.
 - **Two people outside the project have used it.** P1 and P2 each used the deployed board for
