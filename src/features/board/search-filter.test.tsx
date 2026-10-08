@@ -131,12 +131,16 @@ describe('filtering', () => {
     })
   })
 
-  it('explains the effort filter with the same line as the form', async () => {
+  it('labels the effort filter "Filter by effort" and explains it as the form does', async () => {
     // A person may filter before they ever open the form, so the filter carries
     // the explanation too, as what a screen reader says on reaching the control.
+    // The label is matched exactly, as the form's is: a pattern would also pass on
+    // a longer label that only starts with these words.
     await renderBoard()
 
-    expect(screen.getByRole('button', { name: /filter by effort/i })).toHaveAccessibleDescription(
+    expect(
+      screen.getByLabelText('Filter by effort', { selector: 'button' }),
+    ).toHaveAccessibleDescription(
       'How much work it takes, not how urgent it is. 0 = tiny, 8 = big.',
     )
   })
