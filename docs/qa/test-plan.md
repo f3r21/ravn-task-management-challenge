@@ -56,3 +56,33 @@ A release to production also needs:
 Fernando Ramirez owns the plan. CI runs on every pull request. The E2E spec runs by hand
 until the API returns; then its `deployment_status` trigger goes back on
 (`.github/workflows/e2e.yml` says how).
+
+## F1: the effort field
+
+The plan for app#202. Everything above still applies.
+
+- **Scope.** In: the word Effort and the help line in the form and the filter; "Effort N" on the
+  options, the card and the list row; the help line as the accessible description; filtering by
+  effort, including a filter that matches nothing. Out: the API value `pointEstimate` and its
+  five values, which do not change; the kit; the blind check, which
+  [product](../product.md#f1s-go-or-no-go) owns.
+- **Assumptions.** The kit at `v0.9.0` links a `Select`'s `description` through
+  `aria-describedby`, and `TaskCard` and `TaskTable` use the `formatPoints` they are given. The
+  mock filters by `pointEstimate` the way the API does.
+- **Dependencies.** The kit pin at `v0.9.0`. The seed data, where Samsung is the one task with
+  effort 8.
+- **Entry.** The branch is cut from `feat/202-effort`, and `npm run gate` is green before the
+  change.
+- **Exit.** The four acceptance-criterion tests in the
+  [test map](test-map.md#f1-one-row-per-acceptance-criterion) pass; `npm run gate` and
+  `npm run build` are green; three green local runs of the gate are logged in the pull request
+  into `dev`.
+- **Environments.** Vitest in jsdom over the MSW mock, in CI and locally. `npm run dev` in
+  Chromium, by hand, for contrast, target size and layout. Production, for the blind check.
+- **Queries.** Tests find controls by role and label, never by a test id. The repo rule wins over
+  the QA course advice to add `data-testid`.
+- **Claim.** A test reads each of the four places F1 changes: the form and the filter by role,
+  label and accessible description, and the card and the row by their text.
+- **Limitation.** jsdom loads no CSS, so no test sees whether the help line shows, its contrast or
+  its layout. Those were measured once in a browser ([design](../design.md#f1-the-effort-field)),
+  and nothing checks them again.

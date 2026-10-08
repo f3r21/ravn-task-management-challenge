@@ -20,6 +20,36 @@ Counts are from CI on 2026-10-06, main run 37486098648, unless a row says otherw
 | Playwright, `e2e/deployed-proxy.spec.ts` (5 tests)                      | When it passes: the deployed proxy, routing and token work end to end; create, filter, edit and delete work in Chromium; the page never scrolls sideways at the widths it checks                                                | **Nothing today.** Its last run failed 4 of 5 because the API answered 404 (run 37415458012, 2026-10-06). Also no Firefox or Safari, no accessibility scan |
 | Front interviews, `docs/research/usability-pilot.md`                    | Whether two people new to the app, P1 and P2, neither of them a developer, find the persona and the problem statement in their own last hand-off of work, and whether the board looks right to them for it                      | Any pattern: two people, friends of the moderator, not the target users. Ran on 2026-10-07                                                                 |
 
+## F1: one row per acceptance criterion
+
+The criteria are in [product](../product.md#the-core-flow-create-a-task). All four run in CI
+against the mock.
+
+| Criterion                                                                                                 | Test                                                                                                      | What it does not prove                                            |
+| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 1. The form's field is labelled "Effort", with the help line as its description                           | `create-task.test.tsx`: 'labels the effort field "Effort" and explains it in one line'                    | That the line shows or is readable: jsdom loads no CSS            |
+| 2. The card and the row read "Effort 4"                                                                   | `board-column.test.tsx`: 'reads the effort as "Effort 4" (%s view)', in the grid and the list view        | That it fits: checked by hand at 1440 and 375px                   |
+| 3. Filtering by "Effort 8" keeps only the tasks with effort 8                                             | `search-filter.test.tsx`: "sends a chosen effort to the API and keeps only the tasks with that effort"    | That RAVN's API filters the same way: the mock does the filtering |
+| 4. Unhappy: no task has effort 8, so the board says nothing matches and the filter still reads "Effort 8" | `search-filter.test.tsx`: "says nothing matches an effort no task has, and still shows the effort picked" | The same: the mock decides what matches                           |
+
+**Scenarios by type.**
+
+- **Positive.** Criteria 1 to 3. The edit dialog has the same label and line
+  (`update-delete-task.test.tsx`: 'labels the effort field "Effort" and explains it, as the create
+  dialog does'). A picked effort still sends the API value ("offers efforts 0 to 8 and still sends
+  the API value of the one picked"). The filter's effort goes into the URL and back ("writes a
+  chosen effort into the address with the API value", "reads an effort from the address and shows
+  it on the filter"). The list view heads the column "Effort" (`board-column.test.tsx`: 'heads
+  the effort column "Effort", the name the field has everywhere else').
+- **Negative.** Criterion 4. A value in the URL that is not an effort is dropped by the same
+  `readMember` check that "ignores a value that is not a real member, rather than sending it on"
+  tests for status; no test feeds it a wrong effort.
+- **Boundary, 0 and 8.** They are the two ends of the option list in the form and the filter
+  ("offers efforts 0 to 8 and still sends the API value of the one picked", 'offers "Any effort"
+  and then efforts 0 to 8, in order'), and the formatter writes both (`task-display.test.ts`:
+  'writes every effort value as "Effort N", 0 and 1 included'). Criteria 3 and 4 filter at 8. No
+  test filters at 0 or checks a card at 0.
+
 ## Not tested anywhere
 
 - The app's composed pages under axe (risk R5 in [the register](risk-register.md)).
