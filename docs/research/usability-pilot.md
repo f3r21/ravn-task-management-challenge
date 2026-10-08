@@ -6,9 +6,8 @@ then the problem statement read aloud, then a few minutes trying the deployed bo
 the assumptions in the proto-persona (`docs/product.md`). They do not prove that the app is
 usable for its real users.
 
-They replace the usability test planned earlier, and keep its file name. The same morning holds
-four interviews, two per project and one product each; P3 and P4 try a different project and do
-not appear here.
+They replace the usability test planned earlier, and keep its file name. The same day holds
+one more interview, for another project; it does not appear here.
 
 Every method line comes from the course content of the cohort's PM week and Design week, and
 names its source. A line with no source is logistics.
@@ -44,7 +43,7 @@ customers' motivations and challenges" ("Jobs to be done for Product Managers", 
   four stories, "enough to prevent you from overreacting to a single story" ("Opportunity
   Solution Trees", PM week Thursday). Two sessions are first signals, not patterns: "One vivid
   interview is an anecdote until you see the pattern repeat" (Design week Tuesday brief).
-- **20 and 25 minutes, not an hour or more.** "JTBD interviews typically last 60-90 minutes"
+- **About 25 minutes, not an hour or more.** "JTBD interviews typically last 60-90 minutes"
   ("Jobs to be done for Product Managers"), and a session that combines an interview with a test
   is longer, "90 minutes rather than 60 minutes" ("User Interviews 101"). So each session keeps
   one story and few questions.
@@ -60,8 +59,7 @@ customers' motivations and challenges" ("Jobs to be done for Product Managers", 
 - **Where.** Remote, over Google Meet, which the moderator runs in Chrome. In block 5 the
   participant opens <https://ravn-task-management-challenge.vercel.app> in a new tab of their own
   desktop browser and shares their screen.
-- **How long.** P1: 20 minutes, at 09:00 (UTC-5). P2: 25 minutes, at 11:20. P2's extra minutes go
-  to the story and the board.
+- **How long.** About 25 minutes each: P1 at about 10:30 (UTC-5), P2 at about 11:00.
 - **Recording.** The moderator chose OBS Studio, which records their entire screen locally, with
   both voices. Zoom's local recording is the fallback, which would move the call to Zoom. Wispr
   Flow Notetaker writes the transcript. Recordings, transcripts and session notes stay outside
@@ -214,7 +212,7 @@ session notes stay outside it, because the notes hold quotes, reasons and word-f
 Quotes and clips of 60 seconds or less stay on an unlisted page shown to RAVN evaluators, never
 here.
 
-The Results below hold only paraphrased findings, and whether the problem statement matched each
+This repository holds only paraphrased findings, and whether the problem statement matched each
 participant's experience. Repeated phrases and verbatim quotes stay in the session notes.
 
 If a participant later asks, their results are removed from this repository, and earlier
@@ -222,84 +220,17 @@ versions stay in its history, de-identified.
 
 ## Results
 
-Fill this in after the sessions. Paraphrase: no participant's spoken words go here ([what stays
-out](#what-stays-out-of-this-repository)).
+The sessions ran on 2026-10-07. The paraphrased findings, the verdicts and what changes are in
+[Product](../product.md#the-user-and-the-problem); notes and quotes stay outside this repository.
 
-### Per session
-
-| Finding, paraphrased                                                   | P1  | P2  |
-| ---------------------------------------------------------------------- | --- | --- |
-| The story                                                              |     |     |
-| Triggering event or struggling moment                                  |     |     |
-| Criteria they used                                                     |     |     |
-| Anxieties or hesitations                                               |     |     |
-| The problem statement: resonates, partly or no                         |     |     |
-| Why it matched or did not                                              |     |     |
-| On the board: what they did, and where it differed from what they said |     |     |
-| "Is this right?"                                                       |     |     |
-| Better than expected                                                   |     |     |
-| Worse than expected                                                    |     |     |
-
-### Feedback, weighed
-
-| Feedback, paraphrased | Seen in (P#) | Core problem or preference |
-| --------------------- | ------------ | -------------------------- |
-|                       |              |                            |
-
-### Themes
-
-A theme seen in one session only is an anecdote, and is labelled that way. Verbatim quotes stay
-out, so this table has no quote column.
-
-| Theme | Participant count and IDs | What users said, paraphrased | What we infer | Contradicting evidence |
-| ----- | ------------------------- | ---------------------------- | ------------- | ---------------------- |
-|       |                           |                              |               |                        |
-
-### Insights
-
-Statements about what is true for these users.
-
--
-
-### Job stories
-
-"When [situation], I want to [motivation], so I can [expected outcome]" ("Jobs to be done for
-Product Managers"). Each one states the job, not this board: "One of the most common pitfalls in
-JTBD is confusing the customer's job with your own solution" (the same source).
-
--
-
-### Verdicts
-
-| Assumption                    | Holds, changes or unclear | Evidence (P#) |
-| ----------------------------- | ------------------------- | ------------- |
-| Persona                       |                           |               |
-| Problem statement             |                           |               |
-| The board helps with the pain |                           |               |
-
-The refined problem statement, as Who, What and Why (the Design week Tuesday deliverable). The
-feedback is used "to tighten your language, clarify the pain, and better represent the reality of
-your potential users" ("The Product Management Problem Statement: How to Get it Right"):
-
-- Who:
-- What:
-- Why:
-
-### What changes because of this
-
-- In `docs/product.md`: what the proto-persona and the problem statement keep, change or drop,
-  and its "Validated by" section.
-- In `docs/qa/risk-register.md`: a row for each core problem in the feedback table.
-- In the roadmap's Next: what to build or fix first.
-
-#### The effort field: blind check, before and after
+### The effort field: blind check, before and after
 
 Spec app#202 renames the "Estimated points" field to "Effort" and adds a help line. Its success
 measure is a blind check: a first-time user sees only the app and one task card, then says in
 one sentence what the field means. **Pass:** the answer says amount or size of work, not
 priority or urgency.
 
-These runs are a rehearsal by an agent (`pilot-runner`), not by a user.
+These runs are a rehearsal, not a user session.
 
 | Run    | Date       | Production commit | Field name         | The answer says               | Result |
 | ------ | ---------- | ----------------- | ------------------ | ----------------------------- | ------ |
@@ -307,7 +238,7 @@ These runs are a rehearsal by an agent (`pilot-runner`), not by a user.
 | After  | 2026-10-08 | `297674f`         | "Effort"           | how much work, not how urgent | Pass   |
 
 **Before, 2026-10-07.** The task card: "Create a task for a teammate. Then say, in one sentence,
-what the Estimated points field means." The agent's steps:
+what the Estimated points field means." The rehearsal's steps:
 
 1. Opened the board, which held 7 seeded tasks.
 2. Pressed the "+" button ("Create task"). The dialog opened.
@@ -321,7 +252,7 @@ what the Estimated points field means." The agent's steps:
 9. Left the label empty and the status and due date as they were, and pressed "Create". The
    dialog closed and "Task created" showed.
 
-The rule against quotes above is for participants, so the agent's answer stays verbatim:
+The rule against quotes above is for participants, so the rehearsal's answer stays verbatim:
 
 > Estimated points is the guessed size of a task, meaning how much effort it should take, picked
 > from a 0, 1, 2, 4 or 8 scale and shown on each card as 'Pts', although the app never says what
@@ -330,14 +261,12 @@ The rule against quotes above is for participants, so the agent's answer stays v
 It added that the answer was a guess, because nothing on screen defines the field.
 
 **What this pass means.** The answer says size and effort, so the field passes before the
-change. An agent that knows the term "story points" does not show the confusion P1 and P2
-showed. So these agent runs, before and after, can show only that the new words do not break
+change. The rehearsal knows the term "story points", so it does not show the confusion P1 and
+P2 showed. So these runs, before and after, can show only that the new words do not break
 understanding. The real measure still needs a first-time human user. The pass rule stays as the
 spec wrote it.
 
-**Planned, not done: one human run.** On Thursday 2026-10-08, before the recording and if time
-allows, one person who is not a developer does the same task card. That run is the real measure,
-under the same pass rule.
+**The human run: not run.** A first-time human user is still the real measure and has no date.
 
 **Friction with the field.** It has no visible label and no meaning on screen. The form shows
 only a +/- icon and "0 Points". "Estimated points" is only its accessible name, and hovering
@@ -347,10 +276,10 @@ shows nothing.
 
 _The create form on production at `dcdc7e2`, 2026-10-07, with the points list open._
 
-**After, 2026-10-08.** Before the run, all five places on production at `297674f` (Vercel
+**After, 2026-10-08.** Before the run, all five places on production at `297674f` (GitHub
 deployment 6932434123) read "Effort": the form, the filter, the card, the list row and the
 list's column header. The task card: "Create a task for a teammate. Then say, in one sentence,
-what the Effort field means." The agent's steps:
+what the Effort field means." The rehearsal's steps:
 
 1. Opened the board, which held 7 seeded tasks. The help line already showed under the effort
    filter.
@@ -365,7 +294,7 @@ what the Effort field means." The agent's steps:
    created" showed.
 9. Found the new card on the board. It read "Effort 2".
 
-The agent's answer, verbatim:
+The rehearsal's answer, verbatim:
 
 > Effort is an estimate of how much work a task takes (not how urgent it is), picked from 0, 1,
 > 2, 4 or 8, where 0 is tiny and 8 is big.
@@ -373,9 +302,9 @@ The agent's answer, verbatim:
 It took the answer from the help line, which it read under the filter and under the field.
 
 **What this pass means.** The answer restates the help line, and the run before also passed. So
-the agent runs show only that the new words are read and do not break understanding. They
-cannot show that the change helps a person who is not a developer. The human run planned
-above is still the real measure, and it is still planned, not done.
+the runs show only that the new words are read and do not break understanding. They cannot
+show that the change helps a person who is not a developer. The human run: not run. A
+first-time human user is still the real measure and has no date.
 
 **Friction with the field, after.**
 
