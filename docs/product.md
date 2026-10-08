@@ -49,7 +49,7 @@ assumptions above. Two people give a first signal, not a pattern.
   "Estimated points" was its accessible name. P1 found that the tech-stack labels assume
   developers. P1 created a task; P2 created none.
 
-**F1: the estimate field says Effort and explains itself (app#202).** It is the first change
+**F1: the field says Effort and explains itself (app#202).** It is the first change
 the interviews led to. Their findings are above. The usability-pilot research doc holds F1's
 blind check, under
 [What changes because of this](research/usability-pilot.md#what-changes-because-of-this).
@@ -96,7 +96,7 @@ method (PM week Thursday brief): RICE, MoSCoW, Value vs Effort and the North Sta
 
 | Finding (seen in)                              | Reach                                       | Impact                                    | Effort (person-weeks) | RICE = R × I × C ÷ E           | MoSCoW      | Value vs Effort | North Star check                  |
 | ---------------------------------------------- | ------------------------------------------- | ----------------------------------------- | --------------------- | ------------------------------ | ----------- | --------------- | --------------------------------- |
-| F1: the estimate field is unclear (P1, P2)     | 8: set on every create, shown on every card | 1: friction when creating; nobody blocked | S, 0.05               | 8 × 1 × 0.5 ÷ 0.05 = **80**    | Should      | Quick win       | Moves it: creating a task         |
+| F1: what the field means is unclear (P1, P2)   | 8: set on every create, shown on every card | 1: friction when creating; nobody blocked | S, 0.05               | 8 × 1 × 0.5 ÷ 0.05 = **80**    | Should      | Quick win       | Moves it: creating a task         |
 | A date-range filter (P2)                       | 5: people who filter by date                | 1: "when it is due" is in the problem     | M, 0.1                | 5 × 1 × 0.5 ÷ 0.1 = **25**     | Could       | Quick win       | Orphan: filtering creates no task |
 | Custom labels (P1, P2)                         | 8: on every create and every card           | 1: a better fit, not a block              | L, 0.3                | 8 × 1 × 0.5 ÷ 0.3 = **13.3**   | Should      | Big bet         | Indirect, through creating        |
 | A + button per column (P1)                     | 8                                           | 0.25: a preference                        | M, 0.1                | 8 × 0.25 × 0.5 ÷ 0.1 = **10**  | Won't       | Do last         | Moves nothing                     |
@@ -232,7 +232,7 @@ unclear. Two people are a first signal, not a pattern.
 
 ## Now, next, later
 
-- **Now:** F1, the estimate field says Effort and explains itself (app#202). It ranked first of
+- **Now:** F1, the field says Effort and explains itself (app#202). It ranked first of
   the eight findings ([what to build first](#after-the-interviews-what-to-build-first)). The two
   interviews are done, and their findings are in
   [The user and the problem](#the-user-and-the-problem). Keep the deployment on mock data with
