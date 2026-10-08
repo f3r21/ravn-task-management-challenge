@@ -210,10 +210,12 @@ is the real measure.
 - **Rollback trigger:** a report that someone cannot create a task, or a create test red on
   `main`. **How:** Vercel Instant Rollback. A failed blind check opens a follow-up issue instead.
 - **Monitor:** the blind check, a rehearsal by an agent, not a user. Before, 2026-10-07 on
-  `dcdc7e2`: pass; the agent said size and effort. After: pending (app#209). Planned, not done:
-  on Thursday 2026-10-08, before the recording and if time allows, one person who is not a
-  developer does the same task card, and that run is the real measure. Each result is in the
-  usability-pilot research doc,
+  `dcdc7e2`: pass; the agent said size and effort. After, 2026-10-08 on `297674f`: pass; the
+  agent restated the help line: how much work, not how urgent. Both pass, so the runs show that
+  the new words are read, understood and break nothing, not that they help a non-developer.
+  Planned, not done: on Thursday 2026-10-08, before the recording and if time allows, one
+  person who is not a developer does the same task card, and that run is the real measure. Each
+  result is in the usability-pilot research doc,
   [The effort field: blind check, before and after](research/usability-pilot.md#the-effort-field-blind-check-before-and-after).
 - **Recommendation: go.** F1 changes only the words and one help line, not the API, the data or
   the kit, so it is cheap to undo, and it fixes a core problem that both participants hit. The
