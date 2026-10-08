@@ -48,7 +48,8 @@ A release to production also needs:
 - the E2E spec passing against the production deployment, with `retries: 0`. **Not met:**
   the last run, 2026-10-06, failed 4 of 5 (run 37415458012);
 - the interviews with P1 and P2 leaving no core problem unfixed, where each piece of feedback
-  is weighed as a core problem or a preference. **Pending:** they run on 2026-10-07.
+  is weighed as a core problem or a preference. **Not met:** they ran on 2026-10-07. F1 fixes
+  one core problem; custom labels, weighed core in one session, is not built.
 
 ## Who and when
 
