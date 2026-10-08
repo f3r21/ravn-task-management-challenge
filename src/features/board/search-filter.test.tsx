@@ -141,6 +141,21 @@ describe('filtering', () => {
     )
   })
 
+  it('offers "Any effort" and then efforts 0 to 8, in order', async () => {
+    const { user } = await renderBoard()
+
+    await user.click(screen.getByRole('button', { name: /filter by effort/i }))
+
+    // By accessible name, in order. `textContent` would also pick up the check mark
+    // the kit draws, hidden from assistive tech, beside the selected option.
+    const options = await screen.findAllByRole('option')
+    const names = ['Any effort', 'Effort 0', 'Effort 1', 'Effort 2', 'Effort 4', 'Effort 8']
+    expect(options).toHaveLength(names.length)
+    names.forEach((name, index) => {
+      expect(options[index]).toHaveAccessibleName(name)
+    })
+  })
+
   // The three filters below had no test of any kind: their handlers were the only
   // uncovered lines in the file, so a crossed wire between two adjacent controls
   // would not have been caught by anything.
