@@ -1,12 +1,14 @@
 ---
 name: testing
-description: The provider harness, coverage config that replaces rather than merges, the single e2e spec, and the jsdom traps.
+description: The provider harness, coverage config that replaces rather than merges, the single e2e spec, the tests the docs cite, and the jsdom traps.
 paths:
   - '**/*.test.ts'
   - '**/*.test.tsx'
   - 'vitest.setup.ts'
   - 'vite.config.ts'
   - 'e2e/**'
+  - 'docs/product.md'
+  - 'docs/qa/test-map.md'
 ---
 
 # Test harness
@@ -67,8 +69,8 @@ jsdom, faster and more precisely, and each extra flow is more live mutation.
 `` `file`: 'title' ``. `gate` runs `scripts/check-test-citations.mjs`, which fails when a cited
 title is no longer a test in that file and names the doc line. **Rename a cited test and its doc
 line in the same commit.** A title quoted in prose without its file is not checked, so a new
-citation names its file. In a table, a cell may leave the file out when the cell above it in that
-column names one.
+citation names its file. In a table, a cell may leave the file out when a cell above it in that
+column names one, and it takes the file cited last above it.
 
 # Traps this project has already paid for
 
