@@ -51,8 +51,8 @@ A banner says when the board runs on mock data ("says when the board is running 
 data rather than the live API", `board-page.test.tsx`).
 
 **The effort field and the effort filter (F1).** One line per state. "Cannot happen" says why.
-The placeholder "Effort" never shows: the form starts at "Effort 0" and the filter at "Any
-effort".
+The placeholder "Effort" never shows: a new task's form starts at "Effort 0", an edited task's at
+its own effort, and the filter at "Any effort".
 
 | State             | The effort field, in the create or edit form                                                    | The effort filter                                                                                                            |
 | ----------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -65,10 +65,11 @@ effort".
 
 Checked by: for the form's success line, `create-task.test.tsx` and `update-delete-task.test.tsx`
 check the label, the description and the option names. The chip's text and the help line's place
-under it are checked only in Chromium through Playwright (the layout check below). The filter's
-first four lines are checked in `search-filter.test.tsx`, and its last two by the board's tests
-above. A "Cannot happen" line comes from the code: `task-form-dialog.tsx` sets the start value,
-and the options are one constant, `EFFORT_ITEMS` in `task-display.ts`, for the form and the filter.
+under it are checked only in Chromium through Playwright (the verification pass below). The
+filter's first four lines are checked in `search-filter.test.tsx`, and its last two by the board's
+tests above. A "Cannot happen" line comes from the code: `task-form-dialog.tsx` sets the start
+value, and the options are one constant, `EFFORT_ITEMS` in `task-display.ts`, for the form and the
+filter.
 
 ## Where the build differs from Figma
 
@@ -140,11 +141,11 @@ fix goes in the kit. F1 changes no code for them.
   `npm run dev`, at 1280, 1366 and 1440px, each with no filter set and with a status filter set.
   Before the fix, the effort filter was 397px wide, as wide as its help line on one line, and the
   filter bar took two rows in five of the six cases. After it (`w-min`, below), the filter is as
-  wide as its chip, 163px, and the bar takes one row in all six. One case still takes two rows: at
-  1280px with the effort filter set, "Clear filters" needs 5px more than the row has. That was so
-  before F1 too, because "8 Points" is wider than "Effort 8". At 375px the bar wraps, as it did
-  before F1. No text is cut or hidden, and no page scrolls sideways. The form was checked at 1440
-  and 375px.
+  wide as its chip, 163px, and the bar takes one row in all six. One case outside those six, at
+  1280px with the effort filter set to "Effort 8", takes two rows: "Clear filters" needs 5px more
+  than the row has. That was so before F1 too, because "8 Points" is wider than "Effort 8". At
+  375px the bar wraps, as it did before F1. No text is cut or hidden, and no page scrolls sideways.
+  The form was checked at 1440 and 375px.
 
 **A kit gap: the trigger stretches to the width of its description** (ravn-ui-kit#166). The kit
 `Select` stacks the chip and the help line in one column, as wide as the help line on one line,
