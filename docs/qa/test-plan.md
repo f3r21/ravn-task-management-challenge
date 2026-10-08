@@ -70,13 +70,15 @@ The plan for app#202. Everything above still applies.
   `aria-describedby`, and `TaskCard` and `TaskTable` use the `formatPoints` they are given. The
   mock filters by `pointEstimate` the way the API does.
 - **Dependencies.** The kit pin at `v0.9.0`. The seed data, where Samsung is the one task with
-  effort 8.
+  effort 8 and Netflix redesign the one with effort 0.
 - **Entry.** The branch is cut from `feat/202-effort`, and `npm run gate` is green before the
   change.
 - **Exit.** The four acceptance-criterion tests in the
   [test map](test-map.md#f1-one-row-per-acceptance-criterion) pass; `npm run gate` and
   `npm run build` are green; three green local runs of the gate are logged in the pull request
   into `dev`.
+- **Scenarios.** Positive, negative and boundary (0 and 8), each with the test that checks it, are
+  in the [test map](test-map.md#f1-one-row-per-acceptance-criterion).
 - **Environments.** Vitest in jsdom over the MSW mock, in CI and locally. `npm run dev` in
   Chromium, by hand, for contrast, target size and layout. Production, for the blind check.
 - **Queries.** Tests find controls by role and label, never by a test id. The repo rule wins over
