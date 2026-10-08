@@ -33,8 +33,8 @@ address instead of publishing it. No other screenshot is altered. All five were 
 2026-08-09 from the deployed build while it still reached RAVN's API. The deployment now
 serves seeded mock data, so its tasks and signed-in user differ from these images.
 
-- **Board** — five status columns. Each task card shows a name, tags, a due date, points,
-  an assignee, and an options menu. Loading, error, and empty states are three separate
+- **Board** — five status columns. Each task card shows a name, tags, a due date, its
+  effort ("Effort 4"), an assignee, and an options menu. Loading, error, and empty states are three separate
   states.
 - **Create, edit, delete** — one modal handles create and edit. A confirmation dialog
   handles delete. Each action shows a notification.
